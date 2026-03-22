@@ -1,0 +1,22 @@
+name: Runtime Guard Checks
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  guards:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Startup script hardening checks
+        shell: pwsh
+        run: ./test_bundle/scripts/check_startup_script_hardening.ps1
+
+      - name: Frontend API proxy and timeout policy checks
+        shell: pwsh
+        run: ./test_bundle/scripts/check_frontend_api_policy.ps1

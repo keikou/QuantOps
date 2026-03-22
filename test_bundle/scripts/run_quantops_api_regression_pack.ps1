@@ -20,6 +20,7 @@ $packTests = @{
   )
   debug = @(
     "app/tests/test_sprint6h9_2_7_9_debug_surfaces.py",
+    "app/tests/test_sprint6h9_2_7_12_debug_contracts.py",
     "app/tests/test_sprint6h9_2_7_9b_execution_overview_debug.py",
     "app/tests/test_sprint6h9_2_7_9c_portfolio_debug.py"
   )

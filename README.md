@@ -85,8 +85,11 @@ The repo also contains `source_of_truth/` reference implementations and supporti
 
 - GitHub Actions frontend build workflow: `.github/workflows/frontend-build.yml`
 - GitHub Actions QuantOps API regression workflow: `.github/workflows/quantops-api-regressions.yml`
+- GitHub Actions runtime guard workflow: `.github/workflows/runtime-guard-checks.yml`
+- GitHub Actions optional local-stack smoke workflow: `.github/workflows/optional-local-stack-smoke.yml`
 - QuantOps API regression pack runner: `test_bundle/scripts/run_quantops_api_regression_pack.ps1`
 - Regression pack documentation: `docs/ci_regression_packs.md`
+- Developer startup/runbook: `docs/dev-startup.md`
 
 ## How To Run
 
@@ -112,11 +115,29 @@ start_quantops_api.cmd
 start_frontend.cmd
 ```
 
+### Local startup smoke
+
+```powershell
+powershell -ExecutionPolicy Bypass -File test_bundle/scripts/run_local_startup_smoke.ps1
+```
+
+This smoke script starts the three local services, checks core health routes, verifies the frontend home page and QuantOps overview endpoint, and then shuts the started processes down so the next run begins clean.
+
 ### Startup behavior
 
 - `start_v12_api.cmd` creates `apps/v12-api/.venv` if needed, installs requirements once, and starts Uvicorn on port `8000`
 - `start_quantops_api.cmd` creates `apps/quantops-api/.venv` if needed, installs requirements once, runs DB migration, and starts Uvicorn on port `8010`
 - `start_frontend.cmd` installs frontend dependencies if `node_modules` is missing, then starts Next.js on port `3000`
+
+### Developer runbook
+
+See `docs/dev-startup.md` for:
+
+- startup order
+- ports and health routes
+- `127.0.0.1` local routing expectations
+- heavy-route timeout budgets
+- smoke-check commands
 
 ## Useful URLs
 

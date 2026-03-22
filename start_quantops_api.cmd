@@ -39,7 +39,9 @@ goto :end
 :error
 echo.
 echo [ERROR] QuantOps API startup failed.
+if "%NO_PAUSE%"=="1" goto :end
 pause
 
 :end
+if "%NO_PAUSE%"=="1" goto :eof
 pause
