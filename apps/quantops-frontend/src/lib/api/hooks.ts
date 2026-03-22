@@ -6,6 +6,7 @@ import {
   normalizeApprovals,
   normalizeAuditLogs,
   normalizeCommandCenterRuntimeLatest,
+  normalizeCommandCenterRuntimeRuns,
   normalizeCommandCenterRuntimeDebug,
   normalizeConfig,
   normalizeCurrentUser,
@@ -43,6 +44,7 @@ import type {
   StrategyRow,
   AuditLogRow,
   CommandCenterRuntimeLatest,
+  CommandCenterRuntimeRunSummary,
   CommandCenterRuntimeDebug,
 } from '@/types/api';
 
@@ -191,6 +193,34 @@ export function useCommandCenterRuntimeLatest() {
     queryFn: async () => envelope<CommandCenterRuntimeLatest>(normalizeCommandCenterRuntimeLatest(await apiFetch<any>(endpoints.commandCenterRuntimeLatest))),
     refetchInterval: 15000,
     placeholderData: (previousData) => previousData,
+  });
+}
+export function useCommandCenterRuntimeRuns(filters?: {
+  limit?: number;
+  operatorState?: string;
+  bridgeState?: string;
+  reasonCode?: string;
+  blockingComponent?: string;
+  degraded?: boolean;
+  eventChainComplete?: boolean;
+  artifactAvailable?: boolean;
+}) {
+  const params = new URLSearchParams();
+  params.set('limit', String(filters?.limit ?? 25));
+  if (filters?.operatorState) params.set('operator_state', filters.operatorState);
+  if (filters?.bridgeState) params.set('bridge_state', filters.bridgeState);
+  if (filters?.reasonCode) params.set('reason_code', filters.reasonCode);
+  if (filters?.blockingComponent) params.set('blocking_component', filters.blockingComponent);
+  if (filters?.degraded != null) params.set('degraded', String(filters.degraded));
+  if (filters?.eventChainComplete != null) params.set('event_chain_complete', String(filters.eventChainComplete));
+  if (filters?.artifactAvailable != null) params.set('artifact_available', String(filters.artifactAvailable));
+  const url = `${endpoints.commandCenterRuntimeRuns}?${params.toString()}`;
+
+  return useQuery({
+    queryKey: ['command-center-runtime-runs', filters?.limit ?? 25, filters?.operatorState ?? '', filters?.bridgeState ?? '', filters?.reasonCode ?? '', filters?.blockingComponent ?? '', filters?.degraded ?? 'any', filters?.eventChainComplete ?? 'any', filters?.artifactAvailable ?? 'any'],
+    queryFn: async () => envelope<CommandCenterRuntimeRunSummary[]>(normalizeCommandCenterRuntimeRuns(await apiFetch<any>(url))),
+    refetchInterval: 15000,
+    placeholderData: (previousData) => previousData ?? envelope<CommandCenterRuntimeRunSummary[]>([]),
   });
 }
 export function useCommandCenterRuntimeDebug(runId: string) {

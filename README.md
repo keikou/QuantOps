@@ -1,4 +1,4 @@
-# QuantOps Sprint6H-9.2.8
+# QuantOps Sprint6H-9.2.9
 
 QuantOps is a local integrated trading operations workspace composed of three main applications:
 
@@ -6,7 +6,7 @@ QuantOps is a local integrated trading operations workspace composed of three ma
 - `apps/quantops-api`: the QuantOps control-plane and aggregation API
 - `apps/quantops-frontend`: the Next.js operator GUI
 
-The current version focuses on runtime observability and operator truth telemetry on top of the stabilized local stack: canonical runtime events/reasons, planner and execution-bridge diagnostics, command-center runtime aggregation, run-detail drilldown, runtime diagnostic bundles, and the previously completed CI/regression-pack hardening for the Sprint6H stack.
+The current version focuses on runtime observability plus recent-runs operational triage on top of the stabilized local stack: canonical runtime events/reasons, planner and execution-bridge diagnostics, command-center runtime aggregation, run-detail drilldown, runtime diagnostic bundles, recent-runs indexing, and reason/component-driven runtime triage views.
 
 ## Project Summary
 
@@ -44,6 +44,7 @@ The repo also contains `source_of_truth/` reference implementations and supporti
   - truth-based runtime badges and summary cards
   - run-detail drilldown at `/execution/runs/[runId]`
   - local runtime diagnostic bundle path visibility
+  - recent runtime runs table with saved triage views and reason/component filters
 
 ### QuantOps API
 
@@ -73,6 +74,7 @@ The repo also contains `source_of_truth/` reference implementations and supporti
   - latest runtime truth
   - run-scoped debug/runtime drilldown
   - artifact bundle detection for local smoke outputs
+  - recent-runs aggregation with state/reason/component/artifact filtering
 
 ### V12 API
 
@@ -85,7 +87,8 @@ The repo also contains `source_of_truth/` reference implementations and supporti
 
 ## TODO
 
-- add recent-runs / historical triage views after the current single-run drilldown flow
+- add runtime rollups / clustering summaries above Recent Runs
+- add trend/incident-style summaries for top reason codes and blocking components
 - continue operator UX cleanup around artifact presentation and evidence portability
 - expand end-to-end validation for live GUI flows and slow first-load paths
 - harden remaining write flows and permission gating

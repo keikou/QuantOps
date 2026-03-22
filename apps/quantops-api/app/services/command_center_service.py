@@ -146,6 +146,87 @@ class CommandCenterService:
             "name": latest.name,
         }
 
+    def _runtime_summary_from_inputs(
+        self,
+        *,
+        run_id: str | None,
+        bridge: dict,
+        planner: dict,
+        events: list[dict],
+        reasons: list[dict],
+        started_at: str | None = None,
+        completed_at: str | None = None,
+    ) -> dict:
+        latest_reason = reasons[0] if reasons else {}
+        bridge_state = str(bridge.get("bridge_state") or "no_decision")
+        degraded_flags = list(bridge.get("degraded_flags") or [])
+        filled_count = int(bridge.get("filled_count", 0) or 0)
+        resolved_run_id = run_id or bridge.get("run_id") or planner.get("run_id")
+        operator_state = self._runtime_operator_state(
+            bridge_state,
+            filled_count=filled_count,
+            degraded_flags=degraded_flags,
+        )
+        return {
+            "run_id": resolved_run_id,
+            "cycle_id": bridge.get("cycle_id") or planner.get("cycle_id"),
+            "bridge_state": bridge_state,
+            "operator_state": operator_state,
+            "planner_status": str(planner.get("planner_status") or "unknown"),
+            "planned_count": int(bridge.get("planned_count", 0) or 0),
+            "submitted_count": int(bridge.get("submitted_count", 0) or 0),
+            "blocked_count": int(bridge.get("blocked_count", 0) or 0),
+            "filled_count": filled_count,
+            "event_chain_complete": bool(bridge.get("event_chain_complete", False)),
+            "latest_reason_code": str(bridge.get("latest_reason_code") or latest_reason.get("reason_code") or "") or None,
+            "latest_reason_summary": str(bridge.get("latest_reason_summary") or latest_reason.get("summary") or "") or None,
+            "blocking_component": str(
+                bridge.get("blocking_component")
+                or (latest_reason.get("details") or {}).get("blocking_component")
+                or ""
+            ) or None,
+            "degraded": bool(degraded_flags),
+            "degraded_flags": degraded_flags,
+            "operator_message": str(bridge.get("operator_message") or "") or None,
+            "generated_at": planner.get("generated_at"),
+            "last_transition_at": bridge.get("last_transition_at") or planner.get("generated_at") or utc_now_iso(),
+            "last_successful_fill_at": self._latest_event_timestamp(events, event_type="fill_recorded", status="ok"),
+            "last_successful_portfolio_update_at": self._latest_event_timestamp(events, event_type="portfolio_updated", status="ok"),
+            "last_cycle_completed_at": self._latest_event_timestamp(events, event_type="cycle_completed", status="ok"),
+            "timeline": self._timeline_items(events, limit=12),
+            "detail_path": f"/execution/runs/{resolved_run_id}" if resolved_run_id else None,
+            "started_at": started_at,
+            "completed_at": completed_at,
+        }
+
+    @staticmethod
+    def _matches_runtime_run_filters(
+        row: dict,
+        *,
+        operator_state: str | None,
+        bridge_state: str | None,
+        reason_code: str | None,
+        blocking_component: str | None,
+        degraded: bool | None,
+        event_chain_complete: bool | None,
+        artifact_available: bool | None,
+    ) -> bool:
+        if operator_state and str(row.get("operator_state") or "") != operator_state:
+            return False
+        if bridge_state and str(row.get("bridge_state") or "") != bridge_state:
+            return False
+        if reason_code and str(row.get("latest_reason_code") or "") != reason_code:
+            return False
+        if blocking_component and str(row.get("blocking_component") or "") != blocking_component:
+            return False
+        if degraded is not None and bool(row.get("degraded")) is not degraded:
+            return False
+        if event_chain_complete is not None and bool(row.get("event_chain_complete")) is not event_chain_complete:
+            return False
+        if artifact_available is not None and bool(row.get("artifact_available")) is not artifact_available:
+            return False
+        return True
+
     async def get_overview(self) -> dict:
         dashboard = await self.dashboard_service.get_overview()
         execution = await self.analytics_service.execution_summary_live()
@@ -231,45 +312,17 @@ class CommandCenterService:
         )
         events = events_payload.get("items", []) if isinstance(events_payload.get("items"), list) else []
         reasons = reasons_payload.get("items", []) if isinstance(reasons_payload.get("items"), list) else []
-        timeline = self._timeline_items(events, limit=12)
-        latest_reason = reasons[0] if reasons else {}
-        bridge_state = str(bridge.get("bridge_state") or "no_decision")
-        degraded_flags = list(bridge.get("degraded_flags") or [])
-        filled_count = int(bridge.get("filled_count", 0) or 0)
-        operator_state = self._runtime_operator_state(
-            bridge_state,
-            filled_count=filled_count,
-            degraded_flags=degraded_flags,
+        summary = self._runtime_summary_from_inputs(
+            run_id=bridge.get("run_id") or planner.get("run_id"),
+            bridge=bridge,
+            planner=planner,
+            events=events,
+            reasons=reasons,
         )
-        last_successful_fill_at = self._latest_event_timestamp(events, event_type="fill_recorded", status="ok")
-        last_successful_portfolio_update_at = self._latest_event_timestamp(events, event_type="portfolio_updated", status="ok")
-        last_cycle_completed_at = self._latest_event_timestamp(events, event_type="cycle_completed", status="ok")
         return {
             "status": str(bridge.get("status") or "ok"),
-            "run_id": bridge.get("run_id") or planner.get("run_id"),
-            "cycle_id": bridge.get("cycle_id") or planner.get("cycle_id"),
-            "bridge_state": bridge_state,
-            "operator_state": operator_state,
-            "planner_status": str(planner.get("planner_status") or "unknown"),
-            "planned_count": int(bridge.get("planned_count", 0) or 0),
-            "submitted_count": int(bridge.get("submitted_count", 0) or 0),
-            "blocked_count": int(bridge.get("blocked_count", 0) or 0),
-            "filled_count": filled_count,
-            "event_chain_complete": bool(bridge.get("event_chain_complete", False)),
-            "latest_reason_code": str(bridge.get("latest_reason_code") or latest_reason.get("reason_code") or "") or None,
-            "latest_reason_summary": str(bridge.get("latest_reason_summary") or latest_reason.get("summary") or "") or None,
-            "blocking_component": str(bridge.get("blocking_component") or (latest_reason.get("details") or {}).get("blocking_component") or "") or None,
-            "degraded": bool(degraded_flags),
-            "degraded_flags": degraded_flags,
-            "operator_message": str(bridge.get("operator_message") or "") or None,
-            "generated_at": planner.get("generated_at"),
-            "last_transition_at": bridge.get("last_transition_at") or planner.get("generated_at") or utc_now_iso(),
-            "last_successful_fill_at": last_successful_fill_at,
-            "last_successful_portfolio_update_at": last_successful_portfolio_update_at,
-            "last_cycle_completed_at": last_cycle_completed_at,
-            "timeline": timeline,
+            **summary,
             "debug_path": f"/api/v1/command-center/debug/runtime?run_id={bridge.get('run_id')}" if bridge.get("run_id") else "/api/v1/command-center/debug/runtime",
-            "detail_path": f"/execution/runs/{bridge.get('run_id')}" if bridge.get("run_id") else None,
         }
 
     async def get_runtime_debug(self, run_id: str | None = None) -> dict:
@@ -286,14 +339,12 @@ class CommandCenterService:
         resolved_run_id = run_id or bridge.get("run_id") or planner.get("run_id")
         events = [item for item in (events_payload.get("items") or []) if not resolved_run_id or item.get("run_id") == resolved_run_id]
         reasons = reasons_payload.get("items") or []
-        bridge_state = str(bridge.get("bridge_state") or "no_decision")
-        degraded_flags = list(bridge.get("degraded_flags") or [])
-        filled_count = int(bridge.get("filled_count", 0) or 0)
-        timeline = self._timeline_items(events, limit=25)
-        operator_state = self._runtime_operator_state(
-            bridge_state,
-            filled_count=filled_count,
-            degraded_flags=degraded_flags,
+        summary = self._runtime_summary_from_inputs(
+            run_id=resolved_run_id,
+            bridge=bridge,
+            planner=planner,
+            events=events,
+            reasons=reasons,
         )
         return {
             "scope": "command_center.runtime",
@@ -304,27 +355,7 @@ class CommandCenterService:
             "timings": {
                 "snapshot_age_sec": self._snapshot_age_sec(bridge.get("last_transition_at") or planner.get("generated_at")),
             },
-            "summary": {
-                "run_id": resolved_run_id,
-                "cycle_id": bridge.get("cycle_id") or planner.get("cycle_id"),
-                "bridge_state": bridge_state,
-                "operator_state": operator_state,
-                "planner_status": planner.get("planner_status"),
-                "planned_count": int(bridge.get("planned_count", 0) or 0),
-                "submitted_count": int(bridge.get("submitted_count", 0) or 0),
-                "blocked_count": int(bridge.get("blocked_count", 0) or 0),
-                "filled_count": filled_count,
-                "event_chain_complete": bool(bridge.get("event_chain_complete", False)),
-                "latest_reason_code": bridge.get("latest_reason_code"),
-                "latest_reason_summary": bridge.get("latest_reason_summary"),
-                "blocking_component": bridge.get("blocking_component"),
-                "operator_message": bridge.get("operator_message"),
-                "degraded": bool(degraded_flags),
-                "degraded_flags": degraded_flags,
-                "last_successful_fill_at": self._latest_event_timestamp(events, event_type="fill_recorded", status="ok"),
-                "last_successful_portfolio_update_at": self._latest_event_timestamp(events, event_type="portfolio_updated", status="ok"),
-                "last_cycle_completed_at": self._latest_event_timestamp(events, event_type="cycle_completed", status="ok"),
-            },
+            "summary": summary,
             "provenance": {
                 "run_id": resolved_run_id,
                 "cycle_id": bridge.get("cycle_id") or planner.get("cycle_id"),
@@ -342,13 +373,86 @@ class CommandCenterService:
                 "event_rows": len(events),
                 "reason_rows": len(reasons),
             },
-            "timeline": timeline,
+            "timeline": self._timeline_items(events, limit=25),
             "raw": {
                 "planner": planner,
                 "bridge": bridge,
                 "events": events[:25],
                 "reasons": reasons[:15],
             },
+        }
+
+    async def get_runtime_runs(
+        self,
+        *,
+        limit: int = 20,
+        operator_state: str | None = None,
+        bridge_state: str | None = None,
+        reason_code: str | None = None,
+        blocking_component: str | None = None,
+        degraded: bool | None = None,
+        event_chain_complete: bool | None = None,
+        artifact_available: bool | None = None,
+    ) -> dict:
+        fetch_limit = min(max(limit * 3, 20), 100)
+        runs_payload = await self.v12_client.get_runtime_runs(limit=fetch_limit)
+        run_rows = runs_payload.get("items") if isinstance(runs_payload.get("items"), list) else []
+        summaries: list[dict] = []
+
+        async def build_summary(run: dict) -> dict:
+            run_id = str(run.get("run_id") or "")
+            bridge, planner, events_payload, reasons_payload = await asyncio.gather(
+                self.v12_client.get_execution_bridge_by_run(run_id),
+                self.v12_client.get_execution_plans_by_run(run_id),
+                self.v12_client.get_runtime_events_by_run(run_id, limit=25),
+                self.v12_client.get_runtime_reasons_by_run(run_id, limit=10),
+            )
+            events = events_payload.get("items", []) if isinstance(events_payload.get("items"), list) else []
+            reasons = reasons_payload.get("items", []) if isinstance(reasons_payload.get("items"), list) else []
+            summary = self._runtime_summary_from_inputs(
+                run_id=run_id,
+                bridge=bridge,
+                planner=planner,
+                events=events,
+                reasons=reasons,
+                started_at=run.get("started_at") or run.get("created_at"),
+                completed_at=run.get("finished_at"),
+            )
+            summary["status"] = str(run.get("status") or bridge.get("status") or "unknown")
+            summary["duration_ms"] = int(run.get("duration_ms", 0) or 0)
+            summary["error_message"] = str(run.get("error_message") or "") or None
+            summary["triggered_by"] = str(run.get("triggered_by") or "") or None
+            summary["artifact_available"] = self._artifact_bundle_for_run(run_id) is not None
+            return summary
+
+        for result in await asyncio.gather(*(build_summary(run) for run in run_rows)):
+            if self._matches_runtime_run_filters(
+                result,
+                operator_state=operator_state,
+                bridge_state=bridge_state,
+                reason_code=reason_code,
+                blocking_component=blocking_component,
+                degraded=degraded,
+                event_chain_complete=event_chain_complete,
+                artifact_available=artifact_available,
+            ):
+                summaries.append(result)
+
+        return {
+            "status": "ok",
+            "count": len(summaries[:limit]),
+            "items": summaries[:limit],
+            "filters": {
+                "limit": limit,
+                "operator_state": operator_state,
+                "bridge_state": bridge_state,
+                "reason_code": reason_code,
+                "blocking_component": blocking_component,
+                "degraded": degraded,
+                "event_chain_complete": event_chain_complete,
+                "artifact_available": artifact_available,
+            },
+            "as_of": utc_now_iso(),
         }
 
     async def get_execution_debug(self) -> dict:

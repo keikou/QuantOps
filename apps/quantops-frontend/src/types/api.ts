@@ -293,6 +293,32 @@ export type CommandCenterRuntimeLatest = {
   timeline: RuntimeTimelineEvent[];
 };
 
+export type CommandCenterRuntimeRunSummary = {
+  runId: string;
+  cycleId?: string;
+  status: string;
+  startedAt?: string;
+  completedAt?: string;
+  durationMs?: number;
+  triggeredBy?: string;
+  bridgeState: string;
+  operatorState: string;
+  plannerStatus: string;
+  plannedCount: number;
+  submittedCount: number;
+  blockedCount: number;
+  filledCount: number;
+  eventChainComplete: boolean;
+  latestReasonCode?: string;
+  latestReasonSummary?: string;
+  blockingComponent?: string;
+  degraded: boolean;
+  degradedFlags: string[];
+  lastSuccessfulFillAt?: string;
+  detailPath?: string;
+  artifactAvailable: boolean;
+};
+
 export type CommandCenterRuntimeDebug = {
   scope: string;
   status: string;

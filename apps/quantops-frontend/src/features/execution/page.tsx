@@ -1,11 +1,26 @@
 'use client';
 
+import Link from 'next/link';
+import { useState } from 'react';
+
 import { KpiCard } from '@/components/cards/kpi-card';
 import { DataStatusBanner, DataStatusPill, resolveDataStatus } from '@/components/shared/data-status';
 import { LoadingState } from '@/components/shared/loading-state';
 import { RuntimeBlockCard, RuntimeStatusBadgeStrip, RuntimeSummaryCards, RuntimeTimelinePanel } from '@/components/shared/runtime-observability';
 import { SimpleTable } from '@/components/tables/simple-table';
-import { useCommandCenterRuntimeLatest, useExecutionLatest, useExecutionOrders, useExecutionPlannerLatest, useExecutionStateLatest, useExecutionSummary } from '@/lib/api/hooks';
+import { useCommandCenterRuntimeLatest, useCommandCenterRuntimeRuns, useExecutionLatest, useExecutionOrders, useExecutionPlannerLatest, useExecutionStateLatest, useExecutionSummary } from '@/lib/api/hooks';
+
+type RuntimeFilterKey =
+  | 'all'
+  | 'blocked'
+  | 'degraded'
+  | 'submitted_no_fill'
+  | 'failed'
+  | 'filled'
+  | 'missing_price'
+  | 'risk_guard_block'
+  | 'incomplete_chain'
+  | 'no_artifact';
 
 function fmtSec(value?: number) {
   if (value == null || Number.isNaN(value)) return '-';
@@ -17,13 +32,54 @@ function fmtMetric(value?: number) {
   return value;
 }
 
+function labelize(value?: string) {
+  if (!value) return '-';
+  return value
+    .split('_')
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+}
+
 export default function Page() {
+  const [runtimeFilter, setRuntimeFilter] = useState<RuntimeFilterKey>('all');
+  const [reasonFilter, setReasonFilter] = useState('');
+  const [componentFilter, setComponentFilter] = useState('');
   const summary = useExecutionSummary();
   const latest = useExecutionLatest();
   const orders = useExecutionOrders();
   const planner = useExecutionPlannerLatest();
   const state = useExecutionStateLatest();
   const runtime = useCommandCenterRuntimeLatest();
+  const runtimeViewFilters: {
+    operatorState?: string;
+    reasonCode?: string;
+    blockingComponent?: string;
+    degraded?: boolean;
+    eventChainComplete?: boolean;
+    artifactAvailable?: boolean;
+  } =
+    runtimeFilter === 'all'
+      ? {}
+      : runtimeFilter === 'degraded'
+        ? { degraded: true as const }
+        : runtimeFilter === 'incomplete_chain'
+          ? { eventChainComplete: false as const }
+          : runtimeFilter === 'no_artifact'
+            ? { artifactAvailable: false as const }
+            : runtimeFilter === 'missing_price'
+              ? { reasonCode: 'MISSING_PRICE' }
+              : runtimeFilter === 'risk_guard_block'
+                ? { reasonCode: 'RISK_GUARD_BLOCK' }
+                : { operatorState: runtimeFilter };
+  const runtimeRuns = useCommandCenterRuntimeRuns(
+    {
+      limit: 25,
+      ...runtimeViewFilters,
+      reasonCode: reasonFilter || runtimeViewFilters.reasonCode,
+      blockingComponent: componentFilter || runtimeViewFilters.blockingComponent,
+    }
+  );
 
   if (summary.isLoading && !summary.data) return <LoadingState />;
 
@@ -54,6 +110,19 @@ export default function Page() {
   const summaryStatus = resolveDataStatus({ isLoading: summary.isLoading, hasData: Boolean(data), error: summary.error });
   const plannerStatus = resolveDataStatus({ isLoading: planner.isLoading, hasData: Boolean(plannerData), error: planner.error });
   const stateStatus = resolveDataStatus({ isLoading: state.isLoading, hasData: Boolean(stateData), error: state.error });
+  const runtimeRunsData = runtimeRuns.data?.data ?? [];
+  const runtimeFilterOptions: Array<{ key: RuntimeFilterKey; label: string }> = [
+    { key: 'all', label: 'All' },
+    { key: 'blocked', label: 'Blocked' },
+    { key: 'degraded', label: 'Degraded' },
+    { key: 'submitted_no_fill', label: 'Submitted-No-Fill' },
+    { key: 'failed', label: 'Failed' },
+    { key: 'filled', label: 'Filled' },
+    { key: 'missing_price', label: 'Missing Price' },
+    { key: 'risk_guard_block', label: 'Risk Guard' },
+    { key: 'incomplete_chain', label: 'Incomplete Chain' },
+    { key: 'no_artifact', label: 'No Artifact' },
+  ];
 
   return (
     <div className="space-y-6">
@@ -108,6 +177,109 @@ export default function Page() {
         </div>
       </div>
       <RuntimeTimelinePanel runtime={runtimeData} />
+
+      <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div>
+            <div className="font-medium text-slate-100">Recent Runtime Runs</div>
+            <div className="text-sm text-slate-400">Historical triage across the latest runs, using the same semantics as run detail.</div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {runtimeFilterOptions.map((option) => (
+              <button
+                key={option.key}
+                type="button"
+                onClick={() => setRuntimeFilter(option.key)}
+                className={`rounded-full border px-3 py-1 text-xs transition ${
+                  runtimeFilter === option.key
+                    ? 'border-cyan-500/40 bg-cyan-500/10 text-cyan-100'
+                    : 'border-slate-700 bg-slate-800/70 text-slate-300 hover:border-slate-600 hover:text-slate-100'
+                }`}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="mt-3 grid gap-3 md:grid-cols-2">
+          <label className="text-sm text-slate-300">
+            <div className="mb-1 text-xs uppercase tracking-wide text-slate-500">Reason Code</div>
+            <input
+              value={reasonFilter}
+              onChange={(event) => setReasonFilter(event.target.value.toUpperCase())}
+              placeholder="MISSING_PRICE"
+              className="w-full rounded-xl border border-slate-700 bg-slate-950/70 px-3 py-2 text-sm text-slate-100 outline-none transition focus:border-cyan-500/40"
+            />
+          </label>
+          <label className="text-sm text-slate-300">
+            <div className="mb-1 text-xs uppercase tracking-wide text-slate-500">Blocking Component</div>
+            <input
+              value={componentFilter}
+              onChange={(event) => setComponentFilter(event.target.value)}
+              placeholder="execution_planner"
+              className="w-full rounded-xl border border-slate-700 bg-slate-950/70 px-3 py-2 text-sm text-slate-100 outline-none transition focus:border-cyan-500/40"
+            />
+          </label>
+        </div>
+        <div className="mt-4 overflow-x-auto">
+          <table className="min-w-full text-sm">
+            <thead className="border-b border-slate-800 text-slate-400">
+              <tr>
+                <th className="px-3 py-2 text-left font-medium">Run</th>
+                <th className="px-3 py-2 text-left font-medium">Start</th>
+                <th className="px-3 py-2 text-left font-medium">Operator</th>
+                <th className="px-3 py-2 text-left font-medium">Bridge</th>
+                <th className="px-3 py-2 text-left font-medium">Reason</th>
+                <th className="px-3 py-2 text-left font-medium">Plans / Orders / Fills</th>
+                <th className="px-3 py-2 text-left font-medium">Flags</th>
+                <th className="px-3 py-2 text-left font-medium">Detail</th>
+              </tr>
+            </thead>
+            <tbody>
+              {runtimeRunsData.length ? (
+                runtimeRunsData.map((row) => (
+                  <tr key={row.runId} className="border-b border-slate-800/80 text-slate-200">
+                    <td className="px-3 py-3 align-top">
+                      <div className="font-medium text-slate-100">{row.runId}</div>
+                      <div className="text-xs text-slate-400">{row.completedAt || '-'}</div>
+                    </td>
+                    <td className="px-3 py-3 align-top text-slate-300">{row.startedAt || '-'}</td>
+                    <td className="px-3 py-3 align-top">{labelize(row.operatorState)}</td>
+                    <td className="px-3 py-3 align-top">{labelize(row.bridgeState)}</td>
+                    <td className="px-3 py-3 align-top">
+                      <div>{row.latestReasonSummary || labelize(row.latestReasonCode)}</div>
+                      <div className="text-xs text-slate-400">{row.blockingComponent || '-'}</div>
+                    </td>
+                    <td className="px-3 py-3 align-top">{row.plannedCount} / {row.submittedCount} / {row.filledCount}</td>
+                    <td className="px-3 py-3 align-top">
+                      <div>{row.degraded ? 'Degraded' : 'Normal'}</div>
+                      <div className="text-xs text-slate-400">
+                        Chain {row.eventChainComplete ? 'complete' : 'incomplete'}{row.artifactAvailable ? ' · bundle' : ''}
+                      </div>
+                    </td>
+                    <td className="px-3 py-3 align-top">
+                      {row.detailPath ? (
+                        <Link href={row.detailPath} className="text-cyan-200 transition hover:text-cyan-100">
+                          Open
+                        </Link>
+                      ) : (
+                        <span className="text-slate-500">-</span>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr className="text-slate-400">
+                  <td className="px-3 py-4" colSpan={8}>
+                    {runtimeRuns.isLoading ? 'Loading recent runtime runs…' : 'No runs matched the current filter.'}
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       <SimpleTable
         headers={['Symbol', 'Side', 'Qty', 'Fill Price', 'Slippage', 'Latency', 'Status']}
         rows={rows.length ? rows.map((r) => [r.symbol, r.side || '-', r.fillQty ?? '-', r.fillPrice ?? '-', r.slippageBps ?? '-', r.latencyMs ?? '-', r.status || '-']) : [['-', '-', '-', '-', '-', '-', 'no fills']]}

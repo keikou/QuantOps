@@ -1,4 +1,4 @@
-import type { CommandCenterRuntimeDebug, CommandCenterRuntimeLatest, DataSourceStatus, DataStatus, MonitoringSystem, RiskSnapshot, UserRole } from '@/types/api';
+import type { CommandCenterRuntimeDebug, CommandCenterRuntimeLatest, CommandCenterRuntimeRunSummary, DataSourceStatus, DataStatus, MonitoringSystem, RiskSnapshot, UserRole } from '@/types/api';
 
 export function getPayload<T>(input: any, fallback: T): T {
   if (input == null) return fallback;
@@ -428,6 +428,36 @@ export function normalizeCommandCenterRuntimeLatest(input: any): CommandCenterRu
       timestamp: toString(item.timestamp ?? item.created_at, ''),
     })),
   };
+}
+
+export function normalizeCommandCenterRuntimeRuns(input: any): CommandCenterRuntimeRunSummary[] {
+  const payload = getPayload<any>(input, {});
+  const rows = Array.isArray(payload.items) ? payload.items : getArray<any>(input);
+  return rows.map((row: any) => ({
+    runId: toString(row.runId ?? row.run_id, ''),
+    cycleId: toString(row.cycleId ?? row.cycle_id, ''),
+    status: toString(row.status, 'unknown'),
+    startedAt: toString(row.startedAt ?? row.started_at, ''),
+    completedAt: toString(row.completedAt ?? row.completed_at, ''),
+    durationMs: toNumber(row.durationMs ?? row.duration_ms),
+    triggeredBy: toString(row.triggeredBy ?? row.triggered_by, ''),
+    bridgeState: toString(row.bridgeState ?? row.bridge_state, 'no_decision'),
+    operatorState: toString(row.operatorState ?? row.operator_state ?? row.bridgeState ?? row.bridge_state, 'no_decision'),
+    plannerStatus: toString(row.plannerStatus ?? row.planner_status, 'unknown'),
+    plannedCount: toNumber(row.plannedCount ?? row.planned_count),
+    submittedCount: toNumber(row.submittedCount ?? row.submitted_count),
+    blockedCount: toNumber(row.blockedCount ?? row.blocked_count),
+    filledCount: toNumber(row.filledCount ?? row.filled_count),
+    eventChainComplete: toBool(row.eventChainComplete ?? row.event_chain_complete, false),
+    latestReasonCode: toString(row.latestReasonCode ?? row.latest_reason_code, ''),
+    latestReasonSummary: toString(row.latestReasonSummary ?? row.latest_reason_summary, ''),
+    blockingComponent: toString(row.blockingComponent ?? row.blocking_component, ''),
+    degraded: toBool(row.degraded, Array.isArray(row.degradedFlags ?? row.degraded_flags) && (row.degradedFlags ?? row.degraded_flags).length > 0),
+    degradedFlags: Array.isArray(row.degradedFlags ?? row.degraded_flags) ? (row.degradedFlags ?? row.degraded_flags) : [],
+    lastSuccessfulFillAt: toString(row.lastSuccessfulFillAt ?? row.last_successful_fill_at, ''),
+    detailPath: toString(row.detailPath ?? row.detail_path, ''),
+    artifactAvailable: toBool(row.artifactAvailable ?? row.artifact_available, false),
+  }));
 }
 
 export function normalizeCommandCenterRuntimeDebug(input: any): CommandCenterRuntimeDebug {
