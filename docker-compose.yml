@@ -1,0 +1,91 @@
+name: sprint6-paper-runtime
+
+services:
+  v12-api:
+    build:
+      context: ./apps/v12-api
+      dockerfile: Dockerfile
+    container_name: sprint6-v12-api
+    environment:
+      APP_ENV: ${APP_ENV:-dev}
+      AHB_MODE: ${AHB_MODE:-paper}
+      AHB_USE_LIVE_MARKET_DATA: "${AHB_USE_LIVE_MARKET_DATA:-true}"
+      AHB_RUNTIME_DIR: ${AHB_RUNTIME_DIR:-/app/runtime}
+      AHB_SYMBOLS: "${AHB_SYMBOLS:-BTCUSDT,ETHUSDT,SOLUSDT,WLDUSDT,DOGEUSDT}"
+      AHB_TIMEFRAME: ${AHB_TIMEFRAME:-15m}
+      PAPER_CYCLE_INTERVAL_SEC: ${PAPER_CYCLE_INTERVAL_SEC:-60}
+      AHB_PRICE_SOURCE: ${AHB_PRICE_SOURCE:-binance_book_ticker}
+      AHB_ALLOW_SYNTHETIC_QUOTE_FALLBACK: "${AHB_ALLOW_SYNTHETIC_QUOTE_FALLBACK:-true}"
+      AHB_STRICT_LIVE_QUOTES: "${AHB_STRICT_LIVE_QUOTES:-false}"
+      AHB_BINANCE_REST_BASE_URL: ${AHB_BINANCE_REST_BASE_URL:-https://api.binance.com}
+      AHB_QUOTE_TIMEOUT_SEC: ${AHB_QUOTE_TIMEOUT_SEC:-5}
+      PYTHONUNBUFFERED: "1"
+      TZ: ${TZ:-Asia/Tokyo}
+    ports:
+      - "${V12_API_PUBLIC_PORT:-8000}:8000"
+    volumes:
+      - v12_runtime:/app/runtime
+    healthcheck:
+      test: ["CMD-SHELL", "python -c 'import urllib.request,sys; sys.exit(0 if urllib.request.urlopen(\"http://127.0.0.1:8000/health\", timeout=3).getcode()==200 else 1)'"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+    restart: unless-stopped
+
+  quantops-api:
+    build:
+      context: ./apps/quantops-api
+      dockerfile: Dockerfile
+    container_name: sprint6-quantops-api
+    environment:
+      APP_ENV: ${APP_ENV:-dev}
+      QUANTOPS_DB_PATH: ${QUANTOPS_DB_PATH:-/app/data/quantops.duckdb}
+      V12_BASE_URL: http://v12-api:8000
+      V12_TIMEOUT_SECONDS: ${V12_TIMEOUT_SECONDS:-10}
+      V12_MOCK_MODE: "${V12_MOCK_MODE:-false}"
+      WORKER_INTERVAL_SEC: ${WORKER_INTERVAL_SEC:-60}
+      PYTHONUNBUFFERED: "1"
+      TZ: ${TZ:-Asia/Tokyo}
+    ports:
+      - "${QUANTOPS_PUBLIC_PORT:-8010}:8001"
+    volumes:
+      - quantops_data:/app/data
+    depends_on:
+      v12-api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "python -c 'import urllib.request,sys; sys.exit(0 if urllib.request.urlopen(\"http://127.0.0.1:8001/api/v1/health\", timeout=3).getcode()==200 else 1)'"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+    restart: unless-stopped
+
+  quantops-worker:
+    build:
+      context: ./apps/quantops-api
+      dockerfile: Dockerfile
+    container_name: sprint6-quantops-worker
+    command: ["python", "-m", "app.worker"]
+    environment:
+      APP_ENV: ${APP_ENV:-dev}
+      QUANTOPS_DB_PATH: ${QUANTOPS_DB_PATH:-/app/data/quantops.duckdb}
+      V12_BASE_URL: http://v12-api:8000
+      V12_TIMEOUT_SECONDS: ${V12_TIMEOUT_SECONDS:-10}
+      V12_MOCK_MODE: "${V12_MOCK_MODE:-false}"
+      WORKER_INTERVAL_SEC: ${WORKER_INTERVAL_SEC:-60}
+      PYTHONUNBUFFERED: "1"
+      TZ: ${TZ:-Asia/Tokyo}
+    volumes:
+      - quantops_data:/app/data
+    depends_on:
+      v12-api:
+        condition: service_healthy
+      quantops-api:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  v12_runtime:
+  quantops_data:

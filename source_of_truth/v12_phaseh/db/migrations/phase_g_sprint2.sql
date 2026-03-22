@@ -1,0 +1,27 @@
+-- PhaseG Sprint2 DuckDB migration
+CREATE TABLE IF NOT EXISTS state_market_snapshots (ts TIMESTAMP, snapshot_name VARCHAR, payload JSON);
+CREATE TABLE IF NOT EXISTS state_signal_snapshots (ts TIMESTAMP, snapshot_name VARCHAR, payload JSON);
+CREATE TABLE IF NOT EXISTS state_portfolio_snapshots (ts TIMESTAMP, snapshot_name VARCHAR, payload JSON);
+CREATE TABLE IF NOT EXISTS state_order_snapshots (ts TIMESTAMP, snapshot_name VARCHAR, payload JSON);
+CREATE TABLE IF NOT EXISTS state_position_snapshots (ts TIMESTAMP, snapshot_name VARCHAR, payload JSON);
+CREATE TABLE IF NOT EXISTS state_account_snapshots (ts TIMESTAMP, snapshot_name VARCHAR, payload JSON);
+CREATE TABLE IF NOT EXISTS state_pnl_snapshots (ts TIMESTAMP, snapshot_name VARCHAR, payload JSON);
+CREATE TABLE IF NOT EXISTS state_recovery_checkpoints (ts TIMESTAMP, checkpoint_name VARCHAR, payload JSON);
+CREATE TABLE IF NOT EXISTS orchestrator_runs (run_id VARCHAR, ts TIMESTAMP, mode VARCHAR, status VARCHAR, payload JSON);
+CREATE TABLE IF NOT EXISTS orchestrator_cycles (cycle_id VARCHAR, run_id VARCHAR, ts TIMESTAMP, mode VARCHAR, status VARCHAR, payload JSON);
+CREATE TABLE IF NOT EXISTS backtest_runs (run_id VARCHAR, ts TIMESTAMP, payload JSON);
+CREATE TABLE IF NOT EXISTS backtest_results (run_id VARCHAR, ts TIMESTAMP, payload JSON);
+CREATE TABLE IF NOT EXISTS paper_orders (ts TIMESTAMP, payload JSON);
+CREATE TABLE IF NOT EXISTS paper_fills (ts TIMESTAMP, payload JSON);
+CREATE TABLE IF NOT EXISTS paper_positions (ts TIMESTAMP, payload JSON);
+CREATE TABLE IF NOT EXISTS paper_pnl_snapshots (ts TIMESTAMP, payload JSON);
+CREATE TABLE IF NOT EXISTS shadow_decisions (ts TIMESTAMP, payload JSON);
+CREATE TABLE IF NOT EXISTS shadow_orders (ts TIMESTAMP, payload JSON);
+CREATE TABLE IF NOT EXISTS shadow_fills (ts TIMESTAMP, payload JSON);
+CREATE TABLE IF NOT EXISTS execution_costs (ts TIMESTAMP, payload JSON);
+CREATE TABLE IF NOT EXISTS order_events (ts TIMESTAMP, payload JSON);
+CREATE TABLE IF NOT EXISTS order_state_transitions (ts TIMESTAMP, payload JSON);
+CREATE TABLE IF NOT EXISTS execution_quality_snapshots (ts TIMESTAMP, payload JSON);
+CREATE TABLE IF NOT EXISTS slippage_reports (ts TIMESTAMP, payload JSON);
+CREATE TABLE IF NOT EXISTS latency_snapshots (ts TIMESTAMP, payload JSON);
+CREATE TABLE IF NOT EXISTS shadow_pnl_snapshots (ts TIMESTAMP, payload JSON);

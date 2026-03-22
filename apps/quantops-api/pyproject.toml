@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "quantops-api"
+version = "0.2.0"
+description = "QuantOps Sprint2 control plane with alpha analytics"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi>=0.115.0",
+  "uvicorn>=0.30.0",
+  "httpx>=0.27.0",
+  "duckdb>=1.1.0",
+  "pydantic>=2.7.0",
+  "pytest>=8.0.0"
+]
+
+[tool.pytest.ini_options]
+testpaths = ["app/tests"]
+
+[tool.setuptools]
+packages = ["app"]
+
+[tool.setuptools.package-data]
+app = ["db/migrations/*.sql", "db/seed/*.sql"]

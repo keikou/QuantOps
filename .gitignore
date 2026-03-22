@@ -1,0 +1,17 @@
+.env
+.env.local
+.venv/
+node_modules/
+.next/
+.pytest_cache/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+*.tsbuildinfo
+*.duckdb
+*.sqlite3
+*.lock
+
+apps/v12-api/runtime/
+source_of_truth/quantops_sprint3/services/v12-api/runtime/

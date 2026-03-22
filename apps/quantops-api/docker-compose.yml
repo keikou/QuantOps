@@ -1,0 +1,12 @@
+services:
+  quantops-sprint3:
+    build: .
+    container_name: quantops-sprint3
+    environment:
+      QUANTOPS_DB_PATH: /app/data/quantops.duckdb
+      V12_MOCK_MODE: "true"
+      QUANTOPS_PUBLIC_PORT: ${QUANTOPS_PUBLIC_PORT:-8010}
+    ports:
+      - "${QUANTOPS_PUBLIC_PORT:-8010}:8001"
+    volumes:
+      - ./data:/app/data

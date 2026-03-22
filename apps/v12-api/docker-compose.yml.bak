@@ -1,0 +1,11 @@
+services:
+  v12_phaseh_sprint2_quant_system:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - AHB_MODE=shadow
+      - AHB_USE_LIVE_MARKET_DATA=false
+    volumes:
+      - .:/app
+    restart: unless-stopped

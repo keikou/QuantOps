@@ -1,0 +1,278 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { apiFetch, apiMutate } from '@/lib/api/fetcher';
+import { endpoints } from '@/lib/api/endpoints';
+import {
+  normalizeAlerts,
+  normalizeApprovals,
+  normalizeAuditLogs,
+  normalizeConfig,
+  normalizeCurrentUser,
+  normalizeEquityHistory,
+  normalizeExecutionFills,
+  normalizeExecutionOrders,
+  normalizeExecutionPlannerLatest,
+  normalizeExecutionSummary,
+  normalizeExecutionState,
+  normalizeJobs,
+  normalizeMonitoring,
+  normalizeOverview,
+  normalizePortfolioOverview,
+  normalizePositions,
+  normalizeRisk,
+  normalizeStrategies,
+} from '@/lib/api/normalize';
+import type {
+  ActionResult,
+  ApiEnvelope,
+  ConfigDraft,
+  CurrentUser,
+  GovernanceDecision,
+  MonitoringSystem,
+  OverviewData,
+  EquityPoint,
+  ExecutionSummary,
+  ExecutionFillRow,
+  ExecutionOrderRow,
+  ExecutionPlannerLatest,
+  ExecutionState,
+  PortfolioOverview,
+  PositionRow,
+  RiskSnapshot,
+  StrategyRow,
+  AuditLogRow,
+} from '@/types/api';
+
+function envelope<T>(data: T): ApiEnvelope<T> {
+  return { data, source: 'live' };
+}
+
+function useInvalidateMutation<TVariables>(
+  mutationFn: (variables: TVariables) => Promise<ApiEnvelope<ActionResult>>,
+  keysToInvalidate: string[][]
+) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn,
+    onSuccess: async () => {
+      await Promise.all(keysToInvalidate.map((key) => queryClient.invalidateQueries({ queryKey: key })));
+    },
+  });
+}
+
+export function useOverview() {
+  return useQuery({
+    queryKey: ['overview'],
+    queryFn: async () => envelope<OverviewData>(normalizeOverview(await apiFetch<any>(endpoints.overview))),
+    refetchInterval: 15000,
+    refetchOnMount: false,
+    placeholderData: (previousData) => previousData,
+  });
+}
+export function usePortfolioOverview() {
+  return useQuery({
+    queryKey: ['portfolio-overview'],
+    queryFn: async () => envelope<PortfolioOverview>(normalizePortfolioOverview(await apiFetch<any>(endpoints.portfolioOverview))),
+    refetchInterval: 20000,
+    refetchOnMount: false,
+    placeholderData: (previousData) => previousData ?? envelope<PortfolioOverview>({
+      totalEquity: 0,
+      balance: 0,
+      usedMargin: 0,
+      freeMargin: 0,
+      unrealized: 0,
+      grossExposure: 0,
+      netExposure: 0,
+      realizedPnl: 0,
+      unrealizedPnl: 0,
+      expectedVolatility: 0,
+      expectedSharpe: 0,
+      lastUpdated: '',
+    }),
+  });
+}
+export function usePortfolioPositions() {
+  return useQuery({
+    queryKey: ['portfolio-positions'],
+    queryFn: async () => envelope<PositionRow[]>(normalizePositions(await apiFetch<any>(endpoints.portfolioPositions))),
+    refetchInterval: 20000,
+    refetchOnMount: false,
+    placeholderData: (previousData) => previousData ?? envelope<PositionRow[]>([]),
+  });
+}
+export function useRiskSnapshot() {
+  return useQuery({
+    queryKey: ['risk-snapshot'],
+    queryFn: async () => envelope<RiskSnapshot>(normalizeRisk(await apiFetch<any>(endpoints.riskSnapshot))),
+    refetchInterval: 15000,
+    placeholderData: (previousData) => previousData,
+  });
+}
+export function useMonitoringSystem() {
+  return useQuery<ApiEnvelope<MonitoringSystem>>({
+    queryKey: ['monitoring-system'],
+    queryFn: async () => envelope<MonitoringSystem>(normalizeMonitoring(await apiFetch<any>(endpoints.monitoringSystem))),
+    refetchInterval: 10000,
+    placeholderData: (previousData) => previousData,
+  });
+}
+export function useAlerts() {
+  return useQuery({
+    queryKey: ['alerts'],
+    queryFn: async () => envelope<any[]>(normalizeAlerts(await apiFetch<any>(endpoints.alerts))),
+    refetchInterval: 10000,
+    placeholderData: (previousData) => previousData ?? envelope<any[]>([]),
+  });
+}
+export function useSchedulerJobs() {
+  return useQuery({
+    queryKey: ['scheduler-jobs'],
+    queryFn: async () => envelope<any[]>(normalizeJobs(await apiFetch<any>(endpoints.schedulerJobs))),
+    refetchInterval: 10000,
+    placeholderData: (previousData) => previousData ?? envelope<any[]>([]),
+  });
+}
+
+export function useEquityHistory() {
+  return useQuery({
+    queryKey: ['equity-history'],
+    queryFn: async () => envelope<EquityPoint[]>(normalizeEquityHistory(await apiFetch<any>(endpoints.equityHistory))),
+    refetchInterval: 15000,
+    placeholderData: (previousData) => previousData ?? envelope<EquityPoint[]>([]),
+  });
+}
+export function useExecutionSummary() {
+  return useQuery({
+    queryKey: ['execution-summary'],
+    queryFn: async () => envelope<ExecutionSummary>(normalizeExecutionSummary(await apiFetch<any>(endpoints.executionSummary))),
+    refetchInterval: 15000,
+    retry: 1,
+    placeholderData: (previousData) => previousData,
+  });
+}
+export function useExecutionLatest() {
+  return useQuery({
+    queryKey: ['execution-latest'],
+    queryFn: async () => envelope<ExecutionFillRow[]>(normalizeExecutionFills(await apiFetch<any>(`${endpoints.executionLatest}?limit=100`))),
+    refetchInterval: 15000,
+    placeholderData: (previousData) => previousData ?? envelope<ExecutionFillRow[]>([]),
+  });
+}
+export function useExecutionPlannerLatest() {
+  return useQuery({
+    queryKey: ['execution-planner-latest'],
+    queryFn: async () => envelope<ExecutionPlannerLatest>(normalizeExecutionPlannerLatest(await apiFetch<any>(endpoints.executionPlannerLatest))),
+    refetchInterval: 15000,
+    placeholderData: (previousData) => previousData,
+  });
+}
+export function useExecutionOrders() {
+  return useQuery({
+    queryKey: ['execution-orders'],
+    queryFn: async () => envelope<ExecutionOrderRow[]>(normalizeExecutionOrders(await apiFetch<any>(`${endpoints.executionOrders}?limit=100`))),
+    refetchInterval: 15000,
+    placeholderData: (previousData) => previousData ?? envelope<ExecutionOrderRow[]>([]),
+  });
+}
+export function useExecutionStateLatest() {
+  return useQuery({
+    queryKey: ['execution-state-latest'],
+    queryFn: async () => envelope<ExecutionState>(normalizeExecutionState(await apiFetch<any>(endpoints.executionStateLatest))),
+    refetchInterval: 15000,
+    placeholderData: (previousData) => previousData,
+  });
+}
+export function useStrategyRegistry() {
+  return useQuery({
+    queryKey: ['strategy-registry'],
+    queryFn: async () => envelope<StrategyRow[]>(normalizeStrategies(await apiFetch<any>(endpoints.strategyRegistry)) as StrategyRow[]),
+    refetchInterval: 15000,
+    placeholderData: (previousData) => previousData ?? envelope<StrategyRow[]>([]),
+  });
+}
+export function useGovernanceApprovals() {
+  return useQuery({
+    queryKey: ['governance-approvals'],
+    queryFn: async () => envelope<GovernanceDecision[]>(normalizeApprovals(await apiFetch<any>(endpoints.governanceApprovals)) as GovernanceDecision[]),
+    refetchInterval: 15000,
+    placeholderData: (previousData) => previousData ?? envelope<GovernanceDecision[]>([]),
+  });
+}
+export function useConfigCurrent() {
+  return useQuery({
+    queryKey: ['config-current'],
+    queryFn: async () => envelope<ConfigDraft>(normalizeConfig(await apiFetch<any>(endpoints.configCurrent)) as ConfigDraft),
+    refetchInterval: 30000,
+    placeholderData: (previousData) => previousData ?? envelope<ConfigDraft>({
+      version: 'local-default',
+      schedulerCadenceSec: 60,
+      riskLimit: 0.1,
+      monitoringThreshold: 0.9,
+      executionMode: 'paper',
+    }),
+  });
+}
+export function useCurrentUser() {
+  return useQuery({
+    queryKey: ['current-user'],
+    queryFn: async () => envelope<CurrentUser>(normalizeCurrentUser(await apiFetch<any>(endpoints.currentUser)) as CurrentUser),
+    staleTime: 60000,
+    placeholderData: (previousData) => previousData ?? envelope<CurrentUser>({
+      id: 'local-viewer',
+      name: 'Local Viewer',
+      role: 'viewer',
+    }),
+  });
+}
+export function useAuditLogs() {
+  return useQuery({
+    queryKey: ['audit-logs'],
+    queryFn: async () => envelope<AuditLogRow[]>(normalizeAuditLogs(await apiFetch<any>(endpoints.auditLogs)) as AuditLogRow[]),
+    refetchInterval: 15000,
+    placeholderData: (previousData) => previousData ?? envelope<AuditLogRow[]>([]),
+  });
+}
+
+export function useAcknowledgeAlert() {
+  return useInvalidateMutation<string>((id) => apiMutate<ActionResult>(endpoints.alertAcknowledge(id)), [['alerts'], ['overview'], ['audit-logs']]);
+}
+export function useRunSchedulerJob() {
+  return useInvalidateMutation<string>((name) => apiMutate<ActionResult>(endpoints.schedulerRun(name)), [['scheduler-jobs'], ['overview'], ['audit-logs']]);
+}
+export function usePauseSchedulerJob() {
+  return useInvalidateMutation<string>((name) => apiMutate<ActionResult>(endpoints.schedulerPause(name)), [['scheduler-jobs'], ['audit-logs']]);
+}
+export function useResumeSchedulerJob() {
+  return useInvalidateMutation<string>((name) => apiMutate<ActionResult>(endpoints.schedulerResume(name)), [['scheduler-jobs'], ['audit-logs']]);
+}
+export function useStartStrategy() {
+  return useInvalidateMutation<string>((id) => apiMutate<ActionResult>(endpoints.commandCenterStrategyStart, 'POST', { strategy_id: id }), [['strategy-registry'], ['overview'], ['audit-logs'], ['risk-snapshot']]);
+}
+export function useStopStrategy() {
+  return useInvalidateMutation<string>((id) => apiMutate<ActionResult>(endpoints.commandCenterStrategyStop, 'POST', { strategy_id: id }), [['strategy-registry'], ['overview'], ['audit-logs'], ['risk-snapshot']]);
+}
+export function useUpdateStrategyRiskBudget() {
+  return useInvalidateMutation<{ strategyId: string; riskBudget: number; note?: string }>(
+    ({ strategyId, riskBudget, note }) => apiMutate<ActionResult>(endpoints.commandCenterStrategyRisk, 'POST', { strategy_id: strategyId, risk_budget: riskBudget, note }),
+    [['strategy-registry'], ['risk-snapshot'], ['audit-logs']]
+  );
+}
+export function usePauseTrading() {
+  return useInvalidateMutation<{ note?: string }>((payload) => apiMutate<ActionResult>(endpoints.commandCenterRiskPause, 'POST', payload), [['risk-snapshot'], ['overview'], ['audit-logs']]);
+}
+export function useResumeTrading() {
+  return useInvalidateMutation<{ note?: string }>((payload) => apiMutate<ActionResult>(endpoints.commandCenterRiskResume, 'POST', payload), [['risk-snapshot'], ['overview'], ['audit-logs']]);
+}
+export function useKillSwitch() {
+  return useInvalidateMutation<{ note?: string }>((payload) => apiMutate<ActionResult>(endpoints.commandCenterRiskKillSwitch, 'POST', payload), [['risk-snapshot'], ['overview'], ['audit-logs']]);
+}
+export function useApproveGovernance() {
+  return useInvalidateMutation<string>((id) => apiMutate<ActionResult>(endpoints.governanceApprove(id)), [['governance-approvals'], ['audit-logs']]);
+}
+export function useRejectGovernance() {
+  return useInvalidateMutation<string>((id) => apiMutate<ActionResult>(endpoints.governanceReject(id)), [['governance-approvals'], ['audit-logs']]);
+}
+export function useSaveConfigDraft() {
+  return useInvalidateMutation<Partial<ConfigDraft>>((payload) => apiMutate<ActionResult>(endpoints.configDraftSave, 'POST', payload), [['config-current'], ['audit-logs']]);
+}
+
+export const usePositions = usePortfolioPositions;

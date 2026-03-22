@@ -1,0 +1,433 @@
+from __future__ import annotations
+
+import asyncio
+from datetime import datetime, timezone
+
+from app.clients.v12_client import V12Client, utc_now_iso
+from app.services.dashboard_service import DashboardService
+from app.services.portfolio_service import PortfolioService
+from app.services.risk_service import RiskService
+from app.services.analytics_service import AnalyticsService
+from app.services.monitoring_service import MonitoringService
+from app.services.alert_service import AlertService
+from app.services.scheduler_service import SchedulerService
+from app.services.control_service import ControlService
+from app.repositories.analytics_repository import AnalyticsRepository
+from app.repositories.audit_repository import AuditRepository
+from app.repositories.risk_repository import RiskRepository
+from app.services.notification_service import NotificationService
+
+
+class CommandCenterService:
+    def __init__(
+        self,
+        v12_client: V12Client,
+        dashboard_service: DashboardService,
+        portfolio_service: PortfolioService,
+        risk_service: RiskService,
+        analytics_service: AnalyticsService,
+        monitoring_service: MonitoringService,
+        alert_service: AlertService,
+        scheduler_service: SchedulerService,
+        control_service: ControlService,
+        analytics_repository: AnalyticsRepository,
+        audit_repository: AuditRepository,
+        risk_repository: RiskRepository,
+        notification_service: NotificationService,
+    ) -> None:
+        self.v12_client = v12_client
+        self.dashboard_service = dashboard_service
+        self.portfolio_service = portfolio_service
+        self.risk_service = risk_service
+        self.analytics_service = analytics_service
+        self.monitoring_service = monitoring_service
+        self.alert_service = alert_service
+        self.scheduler_service = scheduler_service
+        self.control_service = control_service
+        self.analytics_repository = analytics_repository
+        self.audit_repository = audit_repository
+        self.risk_repository = risk_repository
+        self.notification_service = notification_service
+
+    @staticmethod
+    def _snapshot_age_sec(value: object) -> float | None:
+        if not value:
+            return None
+        try:
+            ts = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+            if ts.tzinfo is None:
+                ts = ts.replace(tzinfo=timezone.utc)
+            else:
+                ts = ts.astimezone(timezone.utc)
+            return round(max(0.0, (datetime.now(timezone.utc) - ts).total_seconds()), 3)
+        except Exception:
+            return None
+
+    async def get_overview(self) -> dict:
+        dashboard = await self.dashboard_service.get_overview()
+        execution = await self.analytics_service.execution_summary_live()
+        system = await self.monitoring_service.get_system()
+        risk = await self.risk_service.get_snapshot()
+        alerts = self.alert_service.list_alerts()
+        jobs = self.scheduler_service.list_jobs()
+        return {
+            "status": "ok",
+            "portfolio_value": float(dashboard.get("portfolio_value", 0.0) or 0.0),
+            "pnl": float(dashboard.get("pnl", 0.0) or 0.0),
+            "gross_exposure": float(dashboard.get("gross_exposure", 0.0) or 0.0),
+            "net_exposure": float(dashboard.get("net_exposure", 0.0) or 0.0),
+            "active_strategies": int(dashboard.get("active_strategies", 0) or 0),
+            "open_alerts": int(alerts.get("open_count", alerts.get("count", 0)) or 0),
+            "scheduler_jobs": len(jobs),
+            "fill_rate": float(execution.get("fill_rate", 0.0) or 0.0),
+            "avg_slippage_bps": float(execution.get("avg_slippage_bps", 0.0) or 0.0),
+            "system_status": str(system.get("status", "unknown") or "unknown"),
+            "execution_state": str(system.get("executionState", "") or ""),
+            "execution_reason": str(system.get("executionReason", "") or ""),
+            "worker_status": str(system.get("worker_status", system.get("workerStatus", "")) or ""),
+            "risk_trading_state": str(risk.get("trading_state", "running") or "running"),
+            "kill_switch": str(risk.get("kill_switch", "normal") or "normal"),
+            "alert_state": str(risk.get("alert_state", risk.get("alert", "unknown")) or "unknown"),
+            "as_of": dashboard.get("as_of") or execution.get("as_of") or system.get("as_of") or utc_now_iso(),
+        }
+
+    async def get_strategies(self) -> dict:
+        registry = await self.v12_client.get_strategy_registry()
+        risk_budget = await self.v12_client.get_strategy_risk_budget()
+        risk_by_strategy = {
+            str(row.get("strategy_id")): float(row.get("budget_usage", 0.0) or 0.0)
+            for row in (risk_budget.get("risk") or {}).get("per_strategy", [])
+        }
+        runtime_by_strategy = {row["strategy_id"]: row for row in self.analytics_repository.runtime_states()}
+        overrides_by_strategy = {row["strategy_id"]: row for row in self.analytics_repository.strategy_overrides()}
+        items = []
+        for row in registry.get("strategies", []):
+            strategy_id = str(row.get("strategy_id", row.get("strategy_name", "unknown")))
+            runtime = runtime_by_strategy.get(strategy_id, {})
+            override = overrides_by_strategy.get(strategy_id, {})
+            items.append(
+                {
+                    "strategy_id": strategy_id,
+                    "strategy_name": str(row.get("strategy_name", strategy_id)),
+                    "capital_weight": float(override.get("capital_allocation", row.get("capital_weight", 0.0)) or 0.0),
+                    "realized_return": float(row.get("realized_return", row.get("expected_return", 0.0)) or 0.0),
+                    "risk_budget_usage": risk_by_strategy.get(strategy_id, 0.0),
+                    "risk_budget": override.get("risk_budget"),
+                    "status": str(runtime.get("desired_state", "enabled") or "enabled"),
+                    "remote_status": str(runtime.get("remote_status", "unknown") or "unknown"),
+                    "updated_at": runtime.get("updated_at") or override.get("updated_at") or registry.get("as_of") or utc_now_iso(),
+                }
+            )
+        return {
+            "status": "ok",
+            "enabled_count": int(registry.get("enabled_count", len(items)) or len(items)),
+            "items": items,
+            "as_of": registry.get("as_of") or risk_budget.get("as_of") or utc_now_iso(),
+        }
+
+    async def get_execution_latest(self) -> dict:
+        latest = await self.analytics_service.execution_summary_live()
+        return {
+            "status": "ok",
+            "order_count": int(latest.get("order_count", 0) or 0),
+            "fill_count": int(latest.get("fill_count", 0) or 0),
+            "fill_rate": float(latest.get("fill_rate", 0.0) or 0.0),
+            "avg_slippage_bps": float(latest.get("avg_slippage_bps", 0.0) or 0.0),
+            "latency_ms_p50": float(latest.get("latency_ms_p50", 0.0) or 0.0),
+            "latency_ms_p95": float(latest.get("latency_ms_p95", 0.0) or 0.0),
+            "venue_score": float(latest.get("venue_score", 0.0) or 0.0),
+            "as_of": latest.get("as_of") or utc_now_iso(),
+        }
+
+    async def get_execution_debug(self) -> dict:
+        stored = self.analytics_service.execution_summary()
+        stored_looks_empty = (
+            float(stored.get("fill_rate", 0.0) or 0.0) == 0.0
+            and float(stored.get("avg_slippage_bps", 0.0) or 0.0) == 0.0
+            and float(stored.get("latency_ms_p50", 0.0) or 0.0) == 0.0
+            and float(stored.get("latency_ms_p95", 0.0) or 0.0) == 0.0
+            and float(stored.get("venue_score", 0.0) or 0.0) == 0.0
+        )
+        latest, planner, state, orders_payload, fills_payload = await asyncio.gather(
+            self.analytics_service.execution_summary_live(),
+            self.analytics_service.latest_execution_planner(),
+            self.v12_client.get_execution_state_latest(),
+            self.v12_client.get_execution_orders(limit=250),
+            self.v12_client.get_execution_fills(limit=250),
+        )
+
+        orders = orders_payload.get("items") or orders_payload.get("orders") or []
+        fills = fills_payload.get("items") or fills_payload.get("fills") or fills_payload.get("latest_fills") or []
+        order_count = int(latest.get("order_count", len(orders)) or len(orders))
+        fill_count = int(latest.get("fill_count", len(fills)) or len(fills))
+
+        if not stored_looks_empty:
+            read_mode = "stored_summary"
+            source = "cache"
+        else:
+            has_live_metrics = any(
+                float(latest.get(key, 0.0) or 0.0) > 0.0
+                for key in ("fill_rate", "avg_slippage_bps", "latency_ms_p50", "latency_ms_p95", "venue_score")
+            )
+            if has_live_metrics:
+                read_mode = "live_bridge"
+                source = "live"
+            else:
+                read_mode = "empty_summary"
+                source = "empty"
+
+        status = "ok" if source != "empty" else "no_data"
+        reason = None
+        if read_mode == "live_bridge":
+            reason = "stored_summary_empty"
+        elif read_mode == "empty_summary":
+            reason = "execution_summary_unavailable"
+
+        return {
+            "scope": "command_center.execution",
+            "status": status,
+            "source": source,
+            "reason": reason,
+            "as_of": latest.get("as_of") or planner.get("as_of") or state.get("as_of") or utc_now_iso(),
+            "timings": {
+                "snapshot_age_sec": self._snapshot_age_sec(latest.get("as_of") or planner.get("as_of") or state.get("as_of")),
+            },
+            "summary": {
+                "fill_rate": float(latest.get("fill_rate", 0.0) or 0.0),
+                "avg_slippage_bps": float(latest.get("avg_slippage_bps", 0.0) or 0.0),
+                "latency_ms_p50": float(latest.get("latency_ms_p50", 0.0) or 0.0),
+                "latency_ms_p95": float(latest.get("latency_ms_p95", 0.0) or 0.0),
+                "venue_score": float(latest.get("venue_score", 0.0) or 0.0),
+                "order_count": order_count,
+                "fill_count": fill_count,
+                "execution_state": str(state.get("execution_state") or planner.get("trading_state") or "unknown"),
+                "state_reason": str(state.get("reason") or ((state.get("block_reasons") or [{}])[0].get("code") if state.get("block_reasons") else "") or ""),
+            },
+            "provenance": {
+                "read_mode": read_mode,
+                "background_refresh_scheduled": False,
+                "stores": ["execution_snapshot", "execution_orders", "execution_fills"],
+                "upstream_dependencies": [
+                    "v12:/execution/quality/latest",
+                    "v12:/execution/planner/latest",
+                    "v12:/execution/state/latest",
+                    "v12:/execution/orders",
+                    "v12:/execution/fills",
+                ],
+                "summary_source": "analytics_repository.latest_execution" if read_mode == "stored_summary" else "v12.execution_quality.latest",
+            },
+            "counts": {
+                "active_plans": int(planner.get("plan_count", 0) or 0),
+                "open_orders": int(state.get("open_order_count", order_count) or order_count),
+                "fills_considered": len(fills) if isinstance(fills, list) else 0,
+            },
+            "raw": {
+                "stored_summary": stored,
+                "live_summary": latest,
+                "planner": planner,
+                "execution_state": state,
+                "orders": orders[:25] if isinstance(orders, list) else [],
+                "fills": fills[:25] if isinstance(fills, list) else [],
+            },
+        }
+
+    async def get_portfolio_summary(self) -> dict:
+        overview = await self.portfolio_service.get_overview()
+        return {
+            "status": "ok",
+            "portfolio_value": float(overview.get("portfolio_value", 0.0) or 0.0),
+            "cash": float(overview.get("cash", 0.0) or 0.0),
+            "pnl": float(overview.get("pnl", 0.0) or 0.0),
+            "drawdown": float(overview.get("drawdown", 0.0) or 0.0),
+            "gross_exposure": float(overview.get("gross_exposure", 0.0) or 0.0),
+            "net_exposure": float(overview.get("net_exposure", 0.0) or 0.0),
+            "long_exposure": float(overview.get("long_exposure", 0.0) or 0.0),
+            "short_exposure": float(overview.get("short_exposure", 0.0) or 0.0),
+            "leverage": float(overview.get("leverage", 0.0) or 0.0),
+            "position_count": len(overview.get("positions", [])),
+            "as_of": overview.get("as_of") or utc_now_iso(),
+        }
+
+    async def get_risk_summary(self) -> dict:
+        snapshot = await self.risk_service.get_snapshot()
+        trading_state = self.risk_repository.get_trading_state()
+        return {
+            "status": "ok",
+            "gross_exposure": float(snapshot.get("gross_exposure", 0.0) or 0.0),
+            "net_exposure": float(snapshot.get("net_exposure", 0.0) or 0.0),
+            "leverage": float(snapshot.get("leverage", 0.0) or 0.0),
+            "drawdown": float(snapshot.get("drawdown", 0.0) or 0.0),
+            "alert_state": str(snapshot.get("alert_state", "unknown") or "unknown"),
+            "risk_limit": snapshot.get("risk_limit", {}) or {},
+            "trading_state": str(trading_state.get("trading_state", "running") or "running"),
+            "as_of": snapshot.get("as_of") or trading_state.get("as_of") or utc_now_iso(),
+        }
+
+    async def get_system_summary(self) -> dict:
+        monitoring = await self.monitoring_service.get_system()
+        execution = await self.monitoring_service.get_execution()
+        alerts = self.alert_service.list_alerts()
+        jobs = self.scheduler_service.list_jobs()
+        return {
+            "status": "ok",
+            "system_status": str(monitoring.get("status", "unknown") or "unknown"),
+            "execution_status": str(execution.get("status", "unknown") or "unknown"),
+            "services": monitoring.get("services", {}) or {},
+            "open_alerts": int(alerts.get("open_count", alerts.get("count", 0)) or 0),
+            "scheduler_jobs": len(jobs),
+            "as_of": monitoring.get("as_of") or execution.get("as_of") or utc_now_iso(),
+        }
+
+    def get_system_jobs(self) -> dict:
+        jobs = self.scheduler_service.list_jobs()
+        return {"status": "ok", "count": len(jobs), "items": jobs, "as_of": utc_now_iso()}
+
+    def get_system_alerts(self) -> dict:
+        alerts = self.alert_service.list_alerts()
+        alerts.setdefault("status", "ok")
+        alerts.setdefault("as_of", utc_now_iso())
+        return alerts
+
+
+    async def start_strategy(self, strategy_id: str) -> dict:
+        result = await self.control_service.start_strategy(strategy_id)
+        self.audit_repository.log_operator_action(
+            action_type="command_center.start_strategy",
+            target_type="strategy",
+            target_id=strategy_id,
+            request_json=str({"strategy_id": strategy_id}),
+            result_status=(str(result.get("result", {}).get("status", "queued")) if not result.get("ok") else "ok"),
+        )
+        return {
+            "ok": True,
+            "message": f"Strategy {strategy_id} start requested.",
+            "action": "start_strategy",
+            "target": strategy_id,
+            "details": result,
+            "as_of": utc_now_iso(),
+        }
+
+    async def stop_strategy(self, strategy_id: str) -> dict:
+        result = await self.control_service.stop_strategy(strategy_id)
+        self.audit_repository.log_operator_action(
+            action_type="command_center.stop_strategy",
+            target_type="strategy",
+            target_id=strategy_id,
+            request_json=str({"strategy_id": strategy_id}),
+            result_status=(str(result.get("result", {}).get("status", "queued")) if not result.get("ok") else "ok"),
+        )
+        return {
+            "ok": True,
+            "message": f"Strategy {strategy_id} stop requested.",
+            "action": "stop_strategy",
+            "target": strategy_id,
+            "details": result,
+            "as_of": utc_now_iso(),
+        }
+
+    async def update_strategy_risk(self, strategy_id: str, risk_budget: float, note: str | None = None) -> dict:
+        override = self.analytics_repository.upsert_strategy_override(strategy_id=strategy_id, risk_budget=risk_budget, note=note)
+        self.audit_repository.log_operator_action(
+            action_type="command_center.update_strategy_risk",
+            target_type="strategy",
+            target_id=strategy_id,
+            request_json=str({"strategy_id": strategy_id, "risk_budget": risk_budget, "note": note}),
+            result_status="ok",
+        )
+        self.audit_repository.log_action(category="command_center", event_type="update_strategy_risk", payload_json=str(override))
+        return {
+            "ok": True,
+            "message": f"Strategy {strategy_id} risk budget updated to {risk_budget}.",
+            "action": "update_strategy_risk",
+            "target": strategy_id,
+            "details": override,
+            "as_of": utc_now_iso(),
+        }
+
+    async def pause_risk(self, note: str | None = None) -> dict:
+        remote = await self.v12_client.pause_runtime(note or "Paused from Command Center")
+        state = self.risk_repository.set_trading_state("paused", note or "Paused from Command Center")
+        self.audit_repository.log_operator_action(
+            action_type="command_center.pause_trading",
+            target_type="risk",
+            target_id="global",
+            request_json=str({"note": note}),
+            result_status="ok",
+        )
+        self.audit_repository.log_action(category="command_center", event_type="pause_trading", payload_json=str(state))
+        self.notification_service.notify_risk_event('warning', 'Global trading paused.', {'state': state})
+        return {
+            "ok": True,
+            "message": "Global trading paused.",
+            "action": "pause_trading",
+            "target": "global",
+            "details": {"risk_state": state, "remote_result": remote},
+            "as_of": utc_now_iso(),
+        }
+
+    async def resume_risk(self, note: str | None = None) -> dict:
+        remote = await self.v12_client.resume_runtime(note or "Resumed from Command Center")
+        state = self.risk_repository.set_trading_state("running", note or "Resumed from Command Center")
+        self.audit_repository.log_operator_action(
+            action_type="command_center.resume_trading",
+            target_type="risk",
+            target_id="global",
+            request_json=str({"note": note}),
+            result_status="ok",
+        )
+        self.audit_repository.log_action(category="command_center", event_type="resume_trading", payload_json=str(state))
+        self.notification_service.notify_risk_event('info', 'Global trading resumed.', {'state': state})
+        return {
+            "ok": True,
+            "message": "Global trading resumed.",
+            "action": "resume_trading",
+            "target": "global",
+            "details": {"risk_state": state, "remote_result": remote},
+            "as_of": utc_now_iso(),
+        }
+
+    async def kill_switch(self, note: str | None = None) -> dict:
+        result = await self.control_service.kill_switch()
+        state = self.risk_repository.set_trading_state("halted", note or "Kill switch triggered from Command Center")
+        self.audit_repository.log_kill_switch(status="triggered", note=note or "Command Center kill switch")
+        self.notification_service.notify_risk_event('critical', 'Kill switch triggered.', {'note': note, 'state': state})
+        self.audit_repository.log_operator_action(
+            action_type="command_center.kill_switch",
+            target_type="risk",
+            target_id="global",
+            request_json=str({"note": note}),
+            result_status="triggered",
+        )
+        return {
+            "ok": True,
+            "message": "Kill switch triggered. Trading moved to halted state.",
+            "action": "kill_switch",
+            "target": "global",
+            "details": {"risk_state": state, "control_result": result},
+            "as_of": utc_now_iso(),
+        }
+
+
+    def get_hardening_status(self) -> dict:
+        channels = self.notification_service.get_channels()
+        return {
+            'status': 'ok',
+            'rbac_enabled': True,
+            'audit_enabled': True,
+            'notification_channels': channels,
+            'operator_actions_logged': len(self.audit_repository.list_operator_actions()),
+            'kill_switch_events': len(self.audit_repository.list_kill_switch_events()),
+            'recent_audit_events': len(self.audit_repository.list_audit_logs()),
+            'as_of': utc_now_iso(),
+        }
+
+    def get_audit_summary(self) -> dict:
+        return {
+            'status': 'ok',
+            'audit_logs': self.audit_repository.list_audit_logs(),
+            'operator_actions': self.audit_repository.list_operator_actions(),
+            'config_changes': self.audit_repository.list_config_changes(),
+            'mode_switches': self.audit_repository.list_mode_switches(),
+            'kill_switch_events': self.audit_repository.list_kill_switch_events(),
+            'as_of': utc_now_iso(),
+        }

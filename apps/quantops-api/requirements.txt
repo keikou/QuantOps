@@ -1,0 +1,8 @@
+fastapi
+uvicorn[standard]
+pandas
+numpy
+duckdb
+pydantic
+requests
+httpx

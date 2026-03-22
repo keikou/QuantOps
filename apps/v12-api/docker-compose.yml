@@ -1,0 +1,16 @@
+services:
+  v12_phaseh_sprint4_quant_system:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - AHB_MODE=shadow
+      - AHB_USE_LIVE_MARKET_DATA=false
+      - AHB_RUNTIME_DIR=/app/runtime
+    volumes:
+      - .:/app
+      - phaseh_sprint4_runtime:/app/runtime
+    restart: unless-stopped
+
+volumes:
+  phaseh_sprint4_runtime:

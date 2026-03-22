@@ -1,0 +1,9 @@
+{
+  "status": "ok",
+  "decisions": [
+    {
+      "symbol": "BTCUSDT",
+      "target_weight": 0.3333
+    }
+  ]
+}

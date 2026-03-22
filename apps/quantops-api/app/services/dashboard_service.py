@@ -1,0 +1,505 @@
+from __future__ import annotations
+
+import asyncio
+from datetime import datetime, timezone
+import logging
+import time
+
+from app.clients.v12_client import V12Client, utc_now_iso
+from app.repositories.scheduler_repository import SchedulerRepository
+from app.services.alert_service import AlertService
+from app.services.equity_breakdown import compute_equity_breakdown
+
+
+class _NullAlertService:
+    def evaluate_rules(self) -> None:
+        return None
+
+    def list_alerts(self) -> dict:
+        return {"items": [], "count": 0, "open_count": 0}
+
+
+logger = logging.getLogger(__name__)
+
+
+class DashboardService:
+    def __init__(
+        self,
+        v12_client: V12Client,
+        scheduler_repository: SchedulerRepository,
+        alert_service: AlertService | None = None,
+    ) -> None:
+        self.v12_client = v12_client
+        self.scheduler_repository = scheduler_repository
+        self.alert_service = alert_service or _NullAlertService()
+
+    @staticmethod
+    def _as_dict(payload: object) -> dict:
+        return payload if isinstance(payload, dict) else {}
+
+    @staticmethod
+    def _safe_float(value: object, default: float = 0.0) -> float:
+        try:
+            if value is None:
+                return default
+            return float(value)
+        except (TypeError, ValueError):
+            return default
+
+    @staticmethod
+    def _snapshot_age_sec(value: object) -> float | None:
+        if not value:
+            return None
+        try:
+            ts = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+            if ts.tzinfo is None:
+                ts = ts.replace(tzinfo=timezone.utc)
+            else:
+                ts = ts.astimezone(timezone.utc)
+            return round(max(0.0, (datetime.now(timezone.utc) - ts).total_seconds()), 3)
+        except Exception:
+            return None
+
+    @staticmethod
+    def _first_present_key(payload: dict, *keys: str) -> str | None:
+        for key in keys:
+            if key in payload and payload.get(key) is not None:
+                return key
+        return None
+
+    async def get_overview(self) -> dict:
+        started = time.perf_counter()
+
+        # fast portfolio 型:
+        # overview に必要な最小限の upstream だけ使う
+        (
+            portfolio_payload,
+            dashboard_payload,
+            runtime_payload,
+            registry_payload,
+        ) = await asyncio.gather(
+            self.v12_client.get_portfolio_positions(),
+            self.v12_client.get_portfolio_dashboard(),
+            self.v12_client.get_runtime_status(),
+            self.v12_client.get_strategy_registry(),
+        )
+
+        portfolio = self._as_dict(portfolio_payload)
+        portfolio_dashboard = self._as_dict(dashboard_payload)
+        runtime = self._as_dict(runtime_payload)
+
+        summary = (
+            portfolio_dashboard.get("summary")
+            if isinstance(portfolio_dashboard.get("summary"), dict)
+            else portfolio_dashboard
+        )
+        summary = summary if isinstance(summary, dict) else {}
+
+        items = portfolio.get("items") or portfolio.get("positions") or []
+        if not isinstance(items, list):
+            items = []
+
+        weights: list[float] = []
+        total_pnl = 0.0
+
+        for row in items:
+            if not isinstance(row, dict):
+                continue
+            weight = self._safe_float(row.get("weight", row.get("target_weight", 0.0)))
+            side = str(row.get("side", "long") or "long").lower()
+            if side == "short" and weight > 0:
+                weight = -weight
+            weights.append(weight)
+            total_pnl += self._safe_float(row.get("pnl", row.get("unrealized_pnl", 0.0)))
+
+        try:
+            breakdown = compute_equity_breakdown(portfolio_dashboard, portfolio)
+        except Exception:
+            logger.exception("equity_breakdown_failed_dashboard_fast")
+            summary_balance = self._safe_float(
+                summary.get("cash_balance")
+                or summary.get("balance")
+                or summary.get("cash")
+                or summary.get("free_cash")
+                or 0.0
+            )
+            summary_used_margin = self._safe_float(summary.get("used_margin") or 0.0)
+            summary_unrealized = self._safe_float(summary.get("unrealized_pnl") or summary.get("unrealized") or 0.0)
+            summary_total_equity = self._safe_float(
+                summary.get("total_equity")
+                or summary.get("portfolio_value")
+                or (summary_balance + self._safe_float(summary.get("market_value") or 0.0))
+                or 0.0
+            )
+            breakdown = {
+                "balance": round(summary_balance, 2),
+                "used_margin": round(summary_used_margin, 2),
+                "free_margin": round(summary_total_equity - summary_used_margin, 2),
+                "unrealized": round(summary_unrealized, 2),
+                "total_equity": round(summary_total_equity, 2),
+            }
+
+        total_equity = self._safe_float(breakdown.get("total_equity"))
+
+        gross_exposure = self._safe_float(
+            summary.get("gross_exposure", summary.get("grossExposure", 0.0))
+        )
+        net_exposure = self._safe_float(
+            summary.get("net_exposure", summary.get("netExposure", 0.0))
+        )
+
+        if gross_exposure == 0.0 and weights:
+            gross_exposure = sum(abs(v) for v in weights)
+        if net_exposure == 0.0 and weights:
+            net_exposure = sum(weights)
+
+        # pnl は shadow summary を呼ばず、summary -> positions 合計の順で fallback
+        realized_pnl = self._safe_float(summary.get("realized_pnl", 0.0))
+        unrealized_pnl_summary = self._safe_float(summary.get("unrealized_pnl", 0.0))
+        pnl = realized_pnl + unrealized_pnl_summary
+        if pnl == 0.0:
+            pnl = total_pnl
+
+        # strategy_registry は必須ではないので失敗しても overview を遅く/壊さない
+        registry = self._as_dict(registry_payload)
+        active_strategies = int(
+            registry.get("enabled_count")
+            or len(registry.get("strategies") or [])
+            or len(items)
+        )
+
+        # scheduler jobs はローカル参照のみ
+        try:
+            job_rows = self.scheduler_repository.list_jobs()
+        except Exception:
+            logger.exception("dashboard_scheduler_jobs_failed")
+            job_rows = []
+
+        running_jobs = sum(
+            1
+            for row in job_rows
+            if str((row or {}).get("status", "idle")).lower() in {"running", "active"}
+        )
+
+        # fast path: read API で evaluate_rules は実行しない
+        try:
+            alerts_payload = self.alert_service.list_alerts()
+        except Exception:
+            logger.exception("dashboard_alerts_read_failed")
+            alerts_payload = {"items": [], "count": 0, "open_count": 0}
+
+        alerts = alerts_payload.get("items") or []
+        open_alert_count = int(
+            alerts_payload.get("open_count", alerts_payload.get("count", 0)) or 0
+        )
+
+        as_of = (
+            runtime.get("as_of")
+            or portfolio_dashboard.get("as_of")
+            or portfolio.get("as_of")
+            or utc_now_iso()
+        )
+
+        result = {
+            "portfolio_value": round(total_equity, 2),
+            "total_equity": round(total_equity, 2),
+            "balance": round(self._safe_float(breakdown.get("balance")), 2),
+            "used_margin": round(self._safe_float(breakdown.get("used_margin")), 2),
+            "free_margin": round(self._safe_float(breakdown.get("free_margin")), 2),
+            "unrealized": round(self._safe_float(breakdown.get("unrealized")), 2),
+            "pnl": round(pnl, 6),
+            "gross_exposure": round(gross_exposure, 6),
+            "net_exposure": round(net_exposure, 6),
+            "leverage": round(gross_exposure, 6),
+            "active_strategies": int(active_strategies),
+            "alerts": alerts,
+            "open_alerts": int(open_alert_count),
+            "running_jobs": int(running_jobs),
+            "mock_mode": runtime.get("mock_mode"),
+            "latest_run_id": runtime.get("latest_run_id"),
+            "latest_execution_timestamp": None,
+            "as_of": as_of,
+        }
+
+        duration_ms = round((time.perf_counter() - started) * 1000.0, 2)
+        logger.info(
+            "dashboard_overview_fast_built",
+            extra={
+                "duration_ms": duration_ms,
+                "positions_count": len(items),
+                "active_strategies": result["active_strategies"],
+                "running_jobs": result["running_jobs"],
+            },
+        )
+
+        return result
+
+    async def get_overview_debug(self) -> dict:
+        started = time.perf_counter()
+
+        (
+            portfolio_payload,
+            dashboard_payload,
+            runtime_payload,
+            registry_payload,
+        ) = await asyncio.gather(
+            self.v12_client.get_portfolio_positions(),
+            self.v12_client.get_portfolio_dashboard(),
+            self.v12_client.get_runtime_status(),
+            self.v12_client.get_strategy_registry(),
+        )
+
+        portfolio = self._as_dict(portfolio_payload)
+        portfolio_dashboard = self._as_dict(dashboard_payload)
+        runtime = self._as_dict(runtime_payload)
+        registry = self._as_dict(registry_payload)
+        summary = (
+            portfolio_dashboard.get("summary")
+            if isinstance(portfolio_dashboard.get("summary"), dict)
+            else portfolio_dashboard
+        )
+        summary = summary if isinstance(summary, dict) else {}
+
+        items = portfolio.get("items") or portfolio.get("positions") or []
+        if not isinstance(items, list):
+            items = []
+
+        weights: list[float] = []
+        total_pnl = 0.0
+        used_margin_from_positions = 0.0
+        unrealized_from_positions = 0.0
+        market_value_from_positions = 0.0
+        valid_positions: list[dict] = []
+
+        for row in items:
+            if not isinstance(row, dict):
+                continue
+            valid_positions.append(row)
+            weight = self._safe_float(row.get("weight", row.get("target_weight", 0.0)))
+            side = str(row.get("side", "long") or "long").lower()
+            if side == "short" and weight > 0:
+                weight = -weight
+            weights.append(weight)
+            pnl = self._safe_float(row.get("pnl", row.get("unrealized_pnl", 0.0)))
+            total_pnl += pnl
+            signed_qty = self._safe_float(
+                row.get("signed_qty", row.get("quantity", row.get("qty", row.get("position_qty", 0.0))))
+            )
+            avg_price = abs(self._safe_float(row.get("avg_price", row.get("avg_entry_price", row.get("avg", 0.0)))))
+            mark_price = self._safe_float(row.get("mark_price", row.get("markPrice", row.get("price", row.get("last_price", avg_price)))))
+            used_margin_from_positions += abs(signed_qty) * avg_price
+            unrealized_from_positions += pnl
+            market_value_from_positions += signed_qty * mark_price
+
+        breakdown_failed = False
+        try:
+            breakdown = compute_equity_breakdown(portfolio_dashboard, portfolio)
+        except Exception:
+            breakdown_failed = True
+            logger.exception("equity_breakdown_failed_dashboard_debug")
+            summary_balance = self._safe_float(
+                summary.get("cash_balance")
+                or summary.get("balance")
+                or summary.get("cash")
+                or summary.get("free_cash")
+                or 0.0
+            )
+            summary_used_margin = self._safe_float(summary.get("used_margin") or 0.0)
+            summary_unrealized = self._safe_float(summary.get("unrealized_pnl") or summary.get("unrealized") or 0.0)
+            summary_total_equity = self._safe_float(
+                summary.get("total_equity")
+                or summary.get("portfolio_value")
+                or (summary_balance + self._safe_float(summary.get("market_value") or 0.0))
+                or 0.0
+            )
+            breakdown = {
+                "balance": round(summary_balance, 2),
+                "used_margin": round(summary_used_margin, 2),
+                "free_margin": round(summary_total_equity - summary_used_margin, 2),
+                "unrealized": round(summary_unrealized, 2),
+                "total_equity": round(summary_total_equity, 2),
+            }
+
+        total_equity = self._safe_float(breakdown.get("total_equity"))
+        balance = self._safe_float(breakdown.get("balance"))
+        used_margin = self._safe_float(breakdown.get("used_margin"))
+        free_margin = self._safe_float(breakdown.get("free_margin"))
+        unrealized = self._safe_float(breakdown.get("unrealized"))
+
+        gross_exposure = self._safe_float(summary.get("gross_exposure", summary.get("grossExposure", 0.0)))
+        net_exposure = self._safe_float(summary.get("net_exposure", summary.get("netExposure", 0.0)))
+        gross_exposure_source = "dashboard.summary.gross_exposure"
+        net_exposure_source = "dashboard.summary.net_exposure"
+        if gross_exposure == 0.0 and weights:
+            gross_exposure = sum(abs(v) for v in weights)
+            gross_exposure_source = "derived(sum(abs(position.weight)))"
+        if net_exposure == 0.0 and weights:
+            net_exposure = sum(weights)
+            net_exposure_source = "derived(sum(position.weight))"
+
+        realized_pnl = self._safe_float(summary.get("realized_pnl", 0.0))
+        unrealized_pnl_summary = self._safe_float(summary.get("unrealized_pnl", 0.0))
+        pnl = realized_pnl + unrealized_pnl_summary
+        pnl_source = "dashboard.summary.realized_pnl + dashboard.summary.unrealized_pnl"
+        if pnl == 0.0:
+            pnl = total_pnl
+            pnl_source = "derived(sum(position.pnl))"
+
+        active_strategies = int(
+            registry.get("enabled_count")
+            or len(registry.get("strategies") or [])
+            or len(valid_positions)
+        )
+
+        try:
+            job_rows = self.scheduler_repository.list_jobs()
+        except Exception:
+            logger.exception("dashboard_scheduler_jobs_failed_debug")
+            job_rows = []
+
+        running_jobs = sum(
+            1
+            for row in job_rows
+            if str((row or {}).get("status", "idle")).lower() in {"running", "active"}
+        )
+
+        try:
+            alerts_payload = self.alert_service.list_alerts()
+        except Exception:
+            logger.exception("dashboard_alerts_read_failed_debug")
+            alerts_payload = {"items": [], "count": 0, "open_count": 0}
+
+        alerts = alerts_payload.get("items") or []
+        open_alert_count = int(alerts_payload.get("open_count", alerts_payload.get("count", 0)) or 0)
+        as_of = runtime.get("as_of") or portfolio_dashboard.get("as_of") or portfolio.get("as_of") or utc_now_iso()
+
+        balance_key = self._first_present_key(summary, "balance", "cash_balance", "cash", "free_cash")
+        total_equity_key = self._first_present_key(summary, "total_equity", "portfolio_value")
+        used_margin_key = self._first_present_key(summary, "used_margin")
+        unrealized_key = self._first_present_key(summary, "unrealized_pnl", "unrealized")
+
+        field_sources = {
+            "total_equity": (
+                f"dashboard.summary.{total_equity_key}"
+                if total_equity_key
+                else "derived(balance + positions.market_value)"
+                if valid_positions
+                else "derived(balance + summary.market_value)"
+            ),
+            "balance": f"dashboard.summary.{balance_key}" if balance_key else "derived(default_zero)",
+            "used_margin": (
+                "derived(sum(abs(position.signed_qty) * position.avg_price))"
+                if valid_positions
+                else f"dashboard.summary.{used_margin_key}"
+                if used_margin_key
+                else "derived(default_zero)"
+            ),
+            "free_margin": "derived(total_equity - used_margin)",
+            "unrealized": (
+                "derived(sum(position.pnl))"
+                if valid_positions
+                else f"dashboard.summary.{unrealized_key}"
+                if unrealized_key
+                else "derived(default_zero)"
+            ),
+            "daily_pnl": pnl_source,
+            "gross_exposure": gross_exposure_source,
+            "net_exposure": net_exposure_source,
+        }
+
+        degraded_inputs = [
+            name
+            for name, payload in {
+                "portfolio_positions": portfolio,
+                "portfolio_dashboard": portfolio_dashboard,
+                "runtime_status": runtime,
+                "strategy_registry": registry,
+            }.items()
+            if str(payload.get("status", "") or "").lower() == "degraded"
+        ]
+
+        status = "ok"
+        source = "live"
+        reason = None
+        if degraded_inputs:
+            status = "fallback"
+            reason = "degraded_upstream_payload"
+            if any(str(value).startswith("derived(") for value in field_sources.values()):
+                source = "derived"
+
+        duration_ms = round((time.perf_counter() - started) * 1000.0, 2)
+        return {
+            "scope": "dashboard.overview",
+            "status": status,
+            "source": source,
+            "reason": reason,
+            "as_of": as_of,
+            "timings": {
+                "handler_ms": duration_ms,
+                "snapshot_age_sec": self._snapshot_age_sec(as_of),
+            },
+            "summary": {
+                "total_equity": round(total_equity, 2),
+                "balance": round(balance, 2),
+                "used_margin": round(used_margin, 2),
+                "free_margin": round(free_margin, 2),
+                "unrealized": round(unrealized, 2),
+                "daily_pnl": round(pnl, 6),
+                "gross_exposure": round(gross_exposure, 6),
+                "net_exposure": round(net_exposure, 6),
+                "active_strategies": active_strategies,
+                "open_alerts": open_alert_count,
+                "running_jobs": running_jobs,
+            },
+            "provenance": {
+                "read_mode": "live_aggregate_with_truth_fields",
+                "background_refresh_scheduled": False,
+                "upstream_dependencies": [
+                    "v12:/portfolio/positions/latest",
+                    "v12:/portfolio/overview",
+                    "v12:/runtime/status",
+                    "v12:/strategy/registry",
+                ],
+                "field_sources": field_sources,
+                "degraded_inputs": degraded_inputs,
+                "breakdown_failed": breakdown_failed,
+            },
+            "counts": {
+                "position_count": len(valid_positions),
+                "alert_count": len(alerts) if isinstance(alerts, list) else 0,
+                "job_count": len(job_rows),
+            },
+            "raw": {
+                "portfolio_positions": portfolio,
+                "portfolio_dashboard": portfolio_dashboard,
+                "runtime_status": runtime,
+                "strategy_registry": registry,
+                "computed": {
+                    "weights": weights,
+                    "used_margin_from_positions": round(used_margin_from_positions, 6),
+                    "unrealized_from_positions": round(unrealized_from_positions, 6),
+                    "market_value_from_positions": round(market_value_from_positions, 6),
+                },
+            },
+        }
+
+    async def get_system_health(self) -> dict:
+        payload = await self.v12_client.get_system_health()
+        runtime = await self.v12_client.get_runtime_status()
+        services = payload.get("services")
+        if not isinstance(services, dict):
+            services = {
+                "api": "ok" if payload.get("status") == "ok" else "unknown",
+                "runtime": payload.get("mode", "unknown"),
+                "phase": payload.get("phase"),
+                "sprint": payload.get("sprint"),
+            }
+        services.setdefault("paper_runtime", "ok" if runtime.get("latest_run_id") else "idle")
+        return {
+            "status": payload.get("status", "unknown"),
+            "services": services,
+            "as_of": runtime.get("as_of") or payload.get("as_of") or utc_now_iso(),
+        }
+
+    def get_job_status(self) -> dict:
+        return {"jobs": self.scheduler_repository.list_jobs()}

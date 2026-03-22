@@ -1,0 +1,18 @@
+services:
+  quantops-command-center:
+    build:
+      context: ./apps/quantops-api
+      dockerfile: Dockerfile.command_center
+    container_name: quantops-command-center
+    environment:
+      QUANTOPS_DB_PATH: /app/data/quantops.duckdb
+      V12_BASE_URL: http://v12-api:8000
+      V12_MOCK_MODE: "true"
+      QUANTOPS_ALERT_SLACK_WEBHOOK: ""
+      QUANTOPS_ALERT_WEBHOOK_URL: ""
+      QUANTOPS_ALERT_EMAIL_TO: ""
+    ports:
+      - "8010:8010"
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
