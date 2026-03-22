@@ -122,6 +122,9 @@ class V12Client:
     async def get_runtime_runs(self, limit: int = 20) -> dict[str, Any]:
         return await self._request_first("GET", [f"/runtime/runs?limit={int(limit)}"])
 
+    async def get_runtime_run(self, run_id: str) -> dict[str, Any]:
+        return await self._request_first("GET", [f"/runtime/runs/{run_id}"])
+
     async def get_runtime_events_latest(self, limit: int = 50) -> dict[str, Any]:
         return await self._request_first("GET", [f"/runtime/events/latest?limit={int(limit)}"])
 

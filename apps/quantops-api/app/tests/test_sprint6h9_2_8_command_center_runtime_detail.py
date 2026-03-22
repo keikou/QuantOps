@@ -78,6 +78,35 @@ class _RuntimeDetailV12Client:
             ]
         }
 
+    async def get_runtime_run(self, run_id: str) -> dict:
+        return {
+            "item": {
+                "run_id": run_id,
+                "job_name": "runtime_run_once",
+                "mode": "paper",
+                "started_at": "2026-03-23T00:00:01+00:00",
+                "finished_at": "2026-03-23T00:00:05+00:00",
+                "status": "success",
+                "duration_ms": 4000,
+                "triggered_by": "api",
+                "checkpoints": [
+                    {
+                        "checkpoint_id": "checkpoint-1",
+                        "checkpoint_name": "latest_orchestrator_run",
+                        "created_at": "2026-03-23T00:00:05+00:00",
+                    }
+                ],
+                "audit_logs": [
+                    {
+                        "audit_id": "audit-1",
+                        "event_type": "run_finished",
+                        "created_at": "2026-03-23T00:00:05+00:00",
+                        "actor": "api",
+                    }
+                ],
+            }
+        }
+
 
 def _build_service() -> CommandCenterService:
     return CommandCenterService(
@@ -106,6 +135,14 @@ def test_command_center_runtime_debug_uses_run_scoped_events() -> None:
     assert payload["summary"]["latest_reason_code"] == "NO_POSITION_DELTA"
     assert payload["summary"]["last_cycle_completed_at"] == "2026-03-23T00:00:05+00:00"
     assert len(payload["timeline"]) == 3
+    assert payload["run"]["status"] == "success"
+    assert payload["artifacts"]["checkpoint_count"] == 1
+    assert payload["counts"]["audit_log_rows"] == 1
+    assert payload["stages"][0]["key"] == "cycle_start"
+    assert payload["stages"][2]["key"] == "execution_bridge"
+    assert payload["stages"][2]["state"] == "blocked"
+    assert payload["stages"][-1]["key"] == "cycle_completion"
+    assert payload["stages"][-1]["state"] == "completed"
     assert payload["raw"]["events"][1]["event_type"] == "order_blocked"
 
 
@@ -126,3 +163,4 @@ def test_command_center_runtime_debug_includes_artifact_bundle_when_present(tmp_
     assert artifact["run_id"] == "run-014a"
     assert artifact["name"] == artifact_file.name
     assert artifact["path"] == str(artifact_file)
+    assert "runtime_bundle" in payload["artifacts"]["available"]

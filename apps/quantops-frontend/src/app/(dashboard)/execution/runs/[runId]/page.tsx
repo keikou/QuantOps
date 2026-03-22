@@ -6,7 +6,7 @@ import { useParams } from 'next/navigation';
 import { KpiCard } from '@/components/cards/kpi-card';
 import { ErrorState } from '@/components/shared/error-state';
 import { LoadingState } from '@/components/shared/loading-state';
-import { RuntimeBlockCard, RuntimeStatusBadgeStrip, RuntimeSummaryCards, RuntimeTimelinePanel } from '@/components/shared/runtime-observability';
+import { RuntimeBlockCard, RuntimeStageTimelinePanel, RuntimeStatusBadgeStrip, RuntimeSummaryCards, RuntimeTimelinePanel } from '@/components/shared/runtime-observability';
 import { useCommandCenterRuntimeDebug } from '@/lib/api/hooks';
 import type { CommandCenterRuntimeLatest } from '@/types/api';
 
@@ -80,13 +80,33 @@ export default function Page() {
         <KpiCard title="Planner Rows" value={Number(detail?.counts?.planner_rows ?? 0)} />
         <KpiCard title="Event Rows" value={Number(detail?.counts?.event_rows ?? 0)} />
         <KpiCard title="Reason Rows" value={Number(detail?.counts?.reason_rows ?? 0)} />
+        <KpiCard title="Duration (ms)" value={Number(detail?.run?.durationMs ?? 0)} />
         <KpiCard title="Snapshot Age (sec)" value={Number(detail?.timings?.snapshotAgeSec ?? 0)} />
       </div>
 
-      <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 text-sm text-slate-300">
-        <div className="font-medium text-slate-100">Diagnostic Bundle</div>
-        <div className="mt-2">Artifact: <span className="text-slate-100">{detail?.provenance?.artifactBundle?.name || '-'}</span></div>
-        <div className="mt-1 break-all text-xs text-cyan-200">{detail?.provenance?.artifactBundle?.path || 'No local artifact bundle found for this run.'}</div>
+      <div className="grid gap-4 xl:grid-cols-2">
+        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 text-sm text-slate-300">
+          <div className="font-medium text-slate-100">Run Forensics</div>
+          <div className="mt-2 grid gap-2 md:grid-cols-2">
+            <div>Status: <span className="text-slate-100">{detail?.run?.status || '-'}</span></div>
+            <div>Triggered by: <span className="text-slate-100">{detail?.run?.triggeredBy || '-'}</span></div>
+            <div>Mode: <span className="text-slate-100">{detail?.run?.mode || '-'}</span></div>
+            <div>Job: <span className="text-slate-100">{detail?.run?.jobName || '-'}</span></div>
+            <div>Started at: <span className="text-slate-100">{detail?.run?.startedAt || '-'}</span></div>
+            <div>Finished at: <span className="text-slate-100">{detail?.run?.finishedAt || '-'}</span></div>
+          </div>
+        </div>
+        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 text-sm text-slate-300">
+          <div className="font-medium text-slate-100">Diagnostic Bundle</div>
+          <div className="mt-2">Artifact: <span className="text-slate-100">{detail?.artifacts?.bundle?.name || detail?.provenance?.artifactBundle?.name || '-'}</span></div>
+          <div className="mt-1 break-all text-xs text-cyan-200">{detail?.artifacts?.bundle?.path || detail?.provenance?.artifactBundle?.path || 'No local artifact bundle found for this run.'}</div>
+          <div className="mt-3 grid gap-2 md:grid-cols-2">
+            <div>Checkpoints: <span className="text-slate-100">{detail?.artifacts?.checkpointCount ?? 0}</span></div>
+            <div>Audit logs: <span className="text-slate-100">{detail?.artifacts?.auditLogCount ?? 0}</span></div>
+            <div>Available: <span className="text-slate-100">{detail?.artifacts?.available?.join(', ') || '-'}</span></div>
+            <div>Missing: <span className="text-slate-100">{detail?.artifacts?.missing?.join(', ') || '-'}</span></div>
+          </div>
+        </div>
       </div>
 
       <div className="grid gap-4 xl:grid-cols-2">
@@ -94,7 +114,10 @@ export default function Page() {
         <RuntimeTimelinePanel runtime={runtimeCardData} />
       </div>
 
+      <RuntimeStageTimelinePanel debug={detail} />
+
       <div className="grid gap-4 xl:grid-cols-2">
+        <DebugPayloadCard title="Run Record" payload={detail?.raw?.run} />
         <DebugPayloadCard title="Planner Truth" payload={detail?.raw?.planner} />
         <DebugPayloadCard title="Bridge Diagnostics" payload={detail?.raw?.bridge} />
       </div>

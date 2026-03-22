@@ -464,6 +464,7 @@ export function normalizeCommandCenterRuntimeDebug(input: any): CommandCenterRun
   const x = getPayload<any>(input, {});
   const summary = getPayload<any>(x.summary, {});
   const timeline = Array.isArray(x.timeline) ? x.timeline : [];
+  const stages = Array.isArray(x.stages) ? x.stages : [];
   return {
     scope: toString(x.scope, 'command_center.runtime'),
     status: toString(x.status, 'no_data'),
@@ -472,6 +473,17 @@ export function normalizeCommandCenterRuntimeDebug(input: any): CommandCenterRun
     asOf: toString(x.asOf ?? x.as_of, ''),
     timings: {
       snapshotAgeSec: toNumber(x.timings?.snapshot_age_sec ?? x.timings?.snapshotAgeSec),
+    },
+    run: {
+      runId: toString(x.run?.runId ?? x.run?.run_id, ''),
+      status: toString(x.run?.status, ''),
+      jobName: toString(x.run?.jobName ?? x.run?.job_name, ''),
+      mode: toString(x.run?.mode, ''),
+      triggeredBy: toString(x.run?.triggeredBy ?? x.run?.triggered_by, ''),
+      startedAt: toString(x.run?.startedAt ?? x.run?.started_at, ''),
+      finishedAt: toString(x.run?.finishedAt ?? x.run?.finished_at, ''),
+      durationMs: toNumber(x.run?.durationMs ?? x.run?.duration_ms),
+      errorMessage: toString(x.run?.errorMessage ?? x.run?.error_message, ''),
     },
     summary: {
       runId: toString(summary.runId ?? summary.run_id, ''),
@@ -504,7 +516,29 @@ export function normalizeCommandCenterRuntimeDebug(input: any): CommandCenterRun
           }
         : undefined,
     },
+    artifacts: {
+      bundle: x.artifacts?.bundle
+        ? {
+            runId: toString(x.artifacts.bundle.run_id ?? x.artifacts.bundle.runId, ''),
+            path: toString(x.artifacts.bundle.path, ''),
+            name: toString(x.artifacts.bundle.name, ''),
+          }
+        : undefined,
+      checkpointCount: toNumber(x.artifacts?.checkpoint_count ?? x.artifacts?.checkpointCount),
+      auditLogCount: toNumber(x.artifacts?.audit_log_count ?? x.artifacts?.auditLogCount),
+      available: Array.isArray(x.artifacts?.available) ? x.artifacts.available.map((item: any) => toString(item, '')).filter(Boolean) : [],
+      missing: Array.isArray(x.artifacts?.missing) ? x.artifacts.missing.map((item: any) => toString(item, '')).filter(Boolean) : [],
+    },
     counts: x.counts ?? {},
+    stages: stages.map((item: any) => ({
+      key: toString(item.key, ''),
+      title: toString(item.title, ''),
+      state: toString(item.state, 'unknown'),
+      timestamp: toString(item.timestamp, ''),
+      summary: toString(item.summary, ''),
+      reasonCode: toString(item.reasonCode ?? item.reason_code, ''),
+      evidence: Array.isArray(item.evidence) ? item.evidence.map((value: any) => toString(value, '')).filter(Boolean) : [],
+    })),
     timeline: timeline.map((item: any) => ({
       eventType: toString(item.eventType ?? item.event_type, ''),
       summary: toString(item.summary, ''),
@@ -515,6 +549,7 @@ export function normalizeCommandCenterRuntimeDebug(input: any): CommandCenterRun
       timestamp: toString(item.timestamp ?? item.created_at, ''),
     })),
     raw: {
+      run: x.raw?.run ?? {},
       planner: x.raw?.planner ?? {},
       bridge: x.raw?.bridge ?? {},
       events: Array.isArray(x.raw?.events) ? x.raw.events : [],

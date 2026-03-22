@@ -146,6 +146,207 @@ class CommandCenterService:
             "name": latest.name,
         }
 
+    @staticmethod
+    def _find_event(events: list[dict], *event_types: str, status: str | None = None) -> dict | None:
+        for item in reversed(events):
+            current_type = str(item.get("event_type") or "")
+            if current_type not in event_types:
+                continue
+            if status is not None and str(item.get("status") or "") != status:
+                continue
+            return item
+        return None
+
+    @staticmethod
+    def _find_reason(reasons: list[dict], reason_code: str | None) -> dict | None:
+        if not reason_code:
+            return None
+        for item in reasons:
+            if str(item.get("reason_code") or "") == reason_code:
+                return item
+        return None
+
+    def _runtime_stage_items(
+        self,
+        *,
+        run: dict,
+        planner: dict,
+        bridge: dict,
+        events: list[dict],
+        reasons: list[dict],
+        artifact_bundle: dict | None,
+    ) -> list[dict]:
+        latest_reason_code = str(bridge.get("latest_reason_code") or "") or None
+        latest_reason = self._find_reason(reasons, latest_reason_code)
+        cycle_started = self._find_event(events, "cycle_started")
+        cycle_completed = self._find_event(events, "cycle_completed", status="ok")
+        cycle_failed = self._find_event(events, "cycle_failed", status="failed") or self._find_event(events, "cycle_failed", status="blocked")
+        order_submitted = self._find_event(events, "order_submitted", status="ok")
+        order_blocked = self._find_event(events, "order_blocked")
+        fill_recorded = self._find_event(events, "fill_recorded", status="ok")
+        portfolio_updated = self._find_event(events, "portfolio_updated", status="ok")
+
+        planner_status = str(planner.get("planner_status") or "unknown")
+        bridge_state = str(bridge.get("bridge_state") or "no_decision")
+        planned_count = int(bridge.get("planned_count", 0) or 0)
+        submitted_count = int(bridge.get("submitted_count", 0) or 0)
+        filled_count = int(bridge.get("filled_count", 0) or 0)
+        checkpoints = run.get("checkpoints") if isinstance(run.get("checkpoints"), list) else []
+        audit_logs = run.get("audit_logs") if isinstance(run.get("audit_logs"), list) else []
+
+        stages = [
+            {
+                "key": "cycle_start",
+                "title": "Cycle Start",
+                "state": "completed" if cycle_started or run.get("started_at") else "missing",
+                "timestamp": cycle_started.get("timestamp") if cycle_started else run.get("started_at") or run.get("created_at"),
+                "summary": cycle_started.get("summary") if cycle_started else "Runtime run was created.",
+                "reason_code": cycle_started.get("reason_code") if cycle_started else None,
+                "evidence": [f"triggered_by={run.get('triggered_by') or 'unknown'}", f"mode={run.get('mode') or 'unknown'}"],
+            },
+            {
+                "key": "planner_truth",
+                "title": "Planner Truth",
+                "state": "completed" if planner_status not in {"unknown", "blocked", "failed"} else ("blocked" if planner_status == "blocked" else "degraded" if planner_status == "failed" else "missing"),
+                "timestamp": planner.get("generated_at") or run.get("started_at"),
+                "summary": (
+                    f"Planner status {planner_status} with {len(planner.get('items') or [])} row(s)."
+                    if planner_status != "unknown"
+                    else "Planner truth was not available for this run."
+                ),
+                "reason_code": latest_reason_code if planner_status in {"blocked", "failed"} else None,
+                "evidence": [
+                    f"planner_status={planner_status}",
+                    f"planner_rows={len(planner.get('items') or [])}",
+                    f"planned_count={planned_count}",
+                ],
+            },
+            {
+                "key": "execution_bridge",
+                "title": "Execution Bridge",
+                "state": (
+                    "completed" if bridge_state in {"filled", "submitted_no_fill"} else
+                    "blocked" if bridge_state in {"planned_blocked", "planned_not_submitted", "no_decision"} else
+                    "degraded" if bridge_state in {"failed", "cycle_failed"} else
+                    "missing"
+                ),
+                "timestamp": bridge.get("last_transition_at") or planner.get("generated_at"),
+                "summary": str(bridge.get("operator_message") or bridge.get("latest_reason_summary") or f"Bridge state {bridge_state}."),
+                "reason_code": latest_reason_code,
+                "evidence": [
+                    f"bridge_state={bridge_state}",
+                    f"planned={planned_count}",
+                    f"submitted={submitted_count}",
+                    f"filled={filled_count}",
+                ],
+            },
+            {
+                "key": "order_submission",
+                "title": "Order Submission",
+                "state": (
+                    "completed" if submitted_count > 0 else
+                    "blocked" if planned_count > 0 or order_blocked else
+                    "not_applicable"
+                ),
+                "timestamp": order_submitted.get("timestamp") if order_submitted else order_blocked.get("timestamp") if order_blocked else bridge.get("last_transition_at"),
+                "summary": (
+                    order_submitted.get("summary")
+                    if order_submitted
+                    else order_blocked.get("summary")
+                    if order_blocked
+                    else "No order submission was required for this run."
+                ),
+                "reason_code": order_blocked.get("reason_code") if order_blocked else latest_reason_code if submitted_count == 0 and planned_count > 0 else None,
+                "evidence": [
+                    f"submitted_count={submitted_count}",
+                    f"blocked_count={int(bridge.get('blocked_count', 0) or 0)}",
+                ],
+            },
+            {
+                "key": "fill_capture",
+                "title": "Fill Capture",
+                "state": (
+                    "completed" if filled_count > 0 else
+                    "blocked" if submitted_count > 0 else
+                    "not_applicable"
+                ),
+                "timestamp": fill_recorded.get("timestamp") if fill_recorded else bridge.get("last_transition_at"),
+                "summary": (
+                    fill_recorded.get("summary")
+                    if fill_recorded
+                    else "Orders were submitted but no fills were captured."
+                    if submitted_count > 0
+                    else "No fill stage was expected for this run."
+                ),
+                "reason_code": fill_recorded.get("reason_code") if fill_recorded else latest_reason_code if submitted_count > 0 and filled_count == 0 else None,
+                "evidence": [
+                    f"filled_count={filled_count}",
+                    f"submitted_count={submitted_count}",
+                ],
+            },
+            {
+                "key": "portfolio_update",
+                "title": "Portfolio Update",
+                "state": (
+                    "completed" if portfolio_updated else
+                    "missing" if filled_count > 0 else
+                    "not_applicable"
+                ),
+                "timestamp": portfolio_updated.get("timestamp") if portfolio_updated else None,
+                "summary": (
+                    portfolio_updated.get("summary")
+                    if portfolio_updated
+                    else "Portfolio update event is missing after fills were recorded."
+                    if filled_count > 0
+                    else "Portfolio update was not expected because there were no fills."
+                ),
+                "reason_code": portfolio_updated.get("reason_code") if portfolio_updated else None,
+                "evidence": [f"last_successful_portfolio_update_at={self._latest_event_timestamp(events, event_type='portfolio_updated', status='ok') or '-'}"],
+            },
+            {
+                "key": "artifacts",
+                "title": "Artifacts & Evidence",
+                "state": "completed" if artifact_bundle or checkpoints or audit_logs else "missing",
+                "timestamp": run.get("finished_at") or run.get("started_at"),
+                "summary": (
+                    f"Artifact bundle={'yes' if artifact_bundle else 'no'}, checkpoints={len(checkpoints)}, audit_logs={len(audit_logs)}."
+                ),
+                "reason_code": None,
+                "evidence": [
+                    f"artifact_bundle={artifact_bundle.get('name') if artifact_bundle else 'missing'}",
+                    f"checkpoints={len(checkpoints)}",
+                    f"audit_logs={len(audit_logs)}",
+                ],
+            },
+            {
+                "key": "cycle_completion",
+                "title": "Cycle Completion",
+                "state": (
+                    "failed" if str(run.get("status") or "") == "failed" or cycle_failed else
+                    "completed" if cycle_completed or str(run.get("status") or "") in {"success", "ok"} else
+                    "running"
+                ),
+                "timestamp": cycle_completed.get("timestamp") if cycle_completed else cycle_failed.get("timestamp") if cycle_failed else run.get("finished_at"),
+                "summary": (
+                    cycle_completed.get("summary")
+                    if cycle_completed
+                    else cycle_failed.get("summary")
+                    if cycle_failed
+                    else f"Run status {run.get('status') or 'unknown'}."
+                ),
+                "reason_code": cycle_failed.get("reason_code") if cycle_failed else latest_reason_code if str(run.get("status") or "") == "failed" else None,
+                "evidence": [
+                    f"run_status={run.get('status') or 'unknown'}",
+                    f"duration_ms={run.get('duration_ms') or 0}",
+                ],
+            },
+        ]
+        if latest_reason is not None:
+            for stage in stages:
+                if stage["reason_code"] == latest_reason_code and latest_reason.get("summary"):
+                    stage["evidence"].append(f"reason_summary={latest_reason.get('summary')}")
+        return stages
+
     def _runtime_summary_from_inputs(
         self,
         *,
@@ -339,12 +540,25 @@ class CommandCenterService:
         resolved_run_id = run_id or bridge.get("run_id") or planner.get("run_id")
         events = [item for item in (events_payload.get("items") or []) if not resolved_run_id or item.get("run_id") == resolved_run_id]
         reasons = reasons_payload.get("items") or []
+        run = await self.v12_client.get_runtime_run(resolved_run_id) if resolved_run_id else {}
+        run_item = run.get("item") if isinstance(run.get("item"), dict) else run
+        artifact_bundle = self._artifact_bundle_for_run(resolved_run_id)
         summary = self._runtime_summary_from_inputs(
             run_id=resolved_run_id,
             bridge=bridge,
             planner=planner,
             events=events,
             reasons=reasons,
+            started_at=run_item.get("started_at") or run_item.get("created_at"),
+            completed_at=run_item.get("finished_at"),
+        )
+        stages = self._runtime_stage_items(
+            run=run_item if isinstance(run_item, dict) else {},
+            planner=planner,
+            bridge=bridge,
+            events=events,
+            reasons=reasons,
+            artifact_bundle=artifact_bundle,
         )
         return {
             "scope": "command_center.runtime",
@@ -364,17 +578,56 @@ class CommandCenterService:
                     "v12:/execution/bridge/latest",
                     "v12:/runtime/events/latest",
                     "v12:/runtime/reasons/latest",
+                    "v12:/runtime/runs/{run_id}",
                 ],
                 "debug_linkage": "planner_truth + bridge_diagnostics + runtime_events + runtime_reasons",
-                "artifact_bundle": self._artifact_bundle_for_run(resolved_run_id),
+                "artifact_bundle": artifact_bundle,
             },
             "counts": {
                 "planner_rows": len(planner.get("items") or []),
                 "event_rows": len(events),
                 "reason_rows": len(reasons),
+                "checkpoint_rows": len(run_item.get("checkpoints") or []),
+                "audit_log_rows": len(run_item.get("audit_logs") or []),
             },
+            "run": {
+                "run_id": resolved_run_id,
+                "status": run_item.get("status"),
+                "job_name": run_item.get("job_name"),
+                "mode": run_item.get("mode"),
+                "triggered_by": run_item.get("triggered_by"),
+                "started_at": run_item.get("started_at") or run_item.get("created_at"),
+                "finished_at": run_item.get("finished_at"),
+                "duration_ms": int(run_item.get("duration_ms", 0) or 0),
+                "error_message": run_item.get("error_message"),
+            },
+            "artifacts": {
+                "bundle": artifact_bundle,
+                "checkpoint_count": len(run_item.get("checkpoints") or []),
+                "audit_log_count": len(run_item.get("audit_logs") or []),
+                "available": [
+                    name
+                    for name, present in (
+                        ("runtime_bundle", artifact_bundle is not None),
+                        ("checkpoints", bool(run_item.get("checkpoints"))),
+                        ("audit_logs", bool(run_item.get("audit_logs"))),
+                    )
+                    if present
+                ],
+                "missing": [
+                    name
+                    for name, present in (
+                        ("runtime_bundle", artifact_bundle is not None),
+                        ("checkpoints", bool(run_item.get("checkpoints"))),
+                        ("audit_logs", bool(run_item.get("audit_logs"))),
+                    )
+                    if not present
+                ],
+            },
+            "stages": stages,
             "timeline": self._timeline_items(events, limit=25),
             "raw": {
+                "run": run_item,
                 "planner": planner,
                 "bridge": bridge,
                 "events": events[:25],

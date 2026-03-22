@@ -265,6 +265,16 @@ export type RuntimeTimelineEvent = {
   timestamp: string;
 };
 
+export type RuntimeStage = {
+  key: string;
+  title: string;
+  state: string;
+  timestamp?: string;
+  summary: string;
+  reasonCode?: string;
+  evidence: string[];
+};
+
 export type CommandCenterRuntimeLatest = {
   status: string;
   runId?: string;
@@ -326,6 +336,17 @@ export type CommandCenterRuntimeDebug = {
   reason?: string;
   asOf?: string;
   timings?: { snapshotAgeSec?: number };
+  run?: {
+    runId?: string;
+    status?: string;
+    jobName?: string;
+    mode?: string;
+    triggeredBy?: string;
+    startedAt?: string;
+    finishedAt?: string;
+    durationMs?: number;
+    errorMessage?: string;
+  };
   summary: {
     runId?: string;
     cycleId?: string;
@@ -354,9 +375,22 @@ export type CommandCenterRuntimeDebug = {
       name?: string;
     };
   };
+  artifacts?: {
+    bundle?: {
+      runId?: string;
+      path?: string;
+      name?: string;
+    };
+    checkpointCount?: number;
+    auditLogCount?: number;
+    available?: string[];
+    missing?: string[];
+  };
   counts?: Record<string, number>;
+  stages: RuntimeStage[];
   timeline: RuntimeTimelineEvent[];
   raw: {
+    run?: Record<string, unknown>;
     planner?: Record<string, unknown>;
     bridge?: Record<string, unknown>;
     events?: Array<Record<string, unknown>>;
