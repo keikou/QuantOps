@@ -11,7 +11,7 @@ class Settings:
     app_version: str = "0.3.0"
     api_prefix: str = "/api/v1"
     db_path: str = os.getenv("QUANTOPS_DB_PATH", "./data/quantops.duckdb")
-    v12_base_url: str = os.getenv("V12_BASE_URL", "http://localhost:8000")
+    v12_base_url: str = os.getenv("V12_BASE_URL", "http://127.0.0.1:8000")
     v12_timeout_seconds: float = float(os.getenv("V12_TIMEOUT_SECONDS", "10"))
     v12_mock_mode: bool = os.getenv("V12_MOCK_MODE", "true").lower() in {"1", "true", "yes", "on"}
     cors_allow_origins: tuple[str, ...] = tuple(

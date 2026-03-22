@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { ENABLE_PROXY_MOCK } from '@/lib/api/config';
 import { getMockResponse, applyMockMutation } from '@/lib/api/mock-server-state';
 
-const BASE = process.env.QUANTOPS_API_BASE_URL || 'http://localhost:8010';
+const BASE = (process.env.QUANTOPS_API_BASE_URL || 'http://127.0.0.1:8010').trim().replace(/\/+$/, '');
 
 function makeRequestId(request: NextRequest) {
   return request.headers.get('x-client-request-id') || `proxy-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;

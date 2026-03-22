@@ -6,11 +6,17 @@ if not exist .venv (
     python -m venv .venv
 )
 
-call .venv\Scripts\activate.bat
-if errorlevel 1 goto :error
+set VENV_PYTHON=%CD%\.venv\Scripts\python.exe
+
+if not exist "%VENV_PYTHON%" goto :error
+
+if not exist .venv\Scripts\pip.exe (
+    "%VENV_PYTHON%" -m ensurepip --upgrade
+    if errorlevel 1 goto :error
+)
 
 if not exist .venv\installed.flag (
-    pip install -r requirements.txt
+    "%VENV_PYTHON%" -m pip install -r requirements.txt
     if errorlevel 1 goto :error
     echo done > .venv\installed.flag
 )
@@ -21,7 +27,7 @@ set PAPER_CYCLE_INTERVAL_SEC=60
 echo ENABLE_STARTUP_PAPER_LOOP=%ENABLE_STARTUP_PAPER_LOOP%
 echo PAPER_CYCLE_INTERVAL_SEC=%PAPER_CYCLE_INTERVAL_SEC%
 
-python -m uvicorn ai_hedge_bot.api.app:app --host 0.0.0.0 --port 8000
+"%VENV_PYTHON%" -m uvicorn ai_hedge_bot.api.app:app --host 0.0.0.0 --port 8000
 goto :end
 
 :error

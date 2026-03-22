@@ -7,11 +7,14 @@ if not exist .venv (
 )
 
 set VENV_PYTHON=%CD%\.venv\Scripts\python.exe
-set VENV_PIP=%CD%\.venv\Scripts\pip.exe
-
 if not exist "%VENV_PYTHON%" goto :error
 
-set V12_BASE_URL=http://localhost:8000
+if not exist .venv\Scripts\pip.exe (
+    "%VENV_PYTHON%" -m ensurepip --upgrade
+    if errorlevel 1 goto :error
+)
+
+set V12_BASE_URL=http://127.0.0.1:8000
 set V12_MOCK_MODE=false
 set QUANTOPS_DB_PATH=./data/quantops.duckdb
 
@@ -22,7 +25,7 @@ echo QUANTOPS_DB_PATH=%QUANTOPS_DB_PATH%
 
 
 if not exist .venv\installed.flag (
-    "%VENV_PIP%" install -r requirements.txt
+    "%VENV_PYTHON%" -m pip install -r requirements.txt
     if errorlevel 1 goto :error
     echo done > .venv\installed.flag
 )
