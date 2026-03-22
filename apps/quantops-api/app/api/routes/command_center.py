@@ -52,6 +52,7 @@ async def runtime_runs(
     limit: int = 20,
     operator_state: str | None = None,
     bridge_state: str | None = None,
+    issue_code: str | None = None,
     reason_code: str | None = None,
     blocking_component: str | None = None,
     degraded: bool | None = None,
@@ -64,12 +65,25 @@ async def runtime_runs(
         limit=limit,
         operator_state=operator_state,
         bridge_state=bridge_state,
+        issue_code=issue_code,
         reason_code=reason_code,
         blocking_component=blocking_component,
         degraded=degraded,
         event_chain_complete=event_chain_complete,
         artifact_available=artifact_available,
     )
+    request.state.handler_duration_ms = round((time.perf_counter() - started) * 1000.0, 2)
+    return payload
+
+
+@router.get('/runtime/issues')
+async def runtime_issues(
+    request: Request,
+    limit: int = 25,
+    service: CommandCenterService = Depends(get_command_center_service),
+) -> dict:
+    started = time.perf_counter()
+    payload = await service.get_runtime_issues(limit=limit)
     request.state.handler_duration_ms = round((time.perf_counter() - started) * 1000.0, 2)
     return payload
 

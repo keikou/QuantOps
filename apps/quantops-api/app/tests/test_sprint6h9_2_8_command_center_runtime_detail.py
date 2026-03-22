@@ -7,6 +7,21 @@ from app.services.command_center_service import CommandCenterService
 
 
 class _RuntimeDetailV12Client:
+    async def get_runtime_runs(self, limit: int = 20) -> dict:
+        return {
+            "items": [
+                {
+                    "run_id": "run-014a",
+                    "started_at": "2026-03-23T00:00:01+00:00",
+                    "finished_at": "2026-03-23T00:00:05+00:00",
+                    "status": "success",
+                    "duration_ms": 4000,
+                    "triggered_by": "api",
+                    "created_at": "2026-03-23T00:00:01+00:00",
+                }
+            ][:limit]
+        }
+
     async def get_execution_bridge_by_run(self, run_id: str) -> dict:
         return {
             "run_id": run_id,
@@ -138,6 +153,9 @@ def test_command_center_runtime_debug_uses_run_scoped_events() -> None:
     assert payload["run"]["status"] == "success"
     assert payload["artifacts"]["checkpoint_count"] == 1
     assert payload["counts"]["audit_log_rows"] == 1
+    assert payload["diagnosis"]["primary_code"] == "execution_bridge_missing"
+    assert payload["diagnosis"]["retryability"] == "retryable"
+    assert payload["diagnosis_context"]["recurrence_status"] == "isolated"
     assert payload["stages"][0]["key"] == "cycle_start"
     assert payload["stages"][2]["key"] == "execution_bridge"
     assert payload["stages"][2]["state"] == "blocked"

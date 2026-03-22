@@ -275,6 +275,35 @@ export type RuntimeStage = {
   evidence: string[];
 };
 
+export type RuntimeDiagnosis = {
+  primaryCode: string;
+  secondaryCodes: string[];
+  severity: string;
+  retryability: string;
+  operatorAction: string;
+  likelyComponent: string;
+  confidence: number;
+  summary?: string;
+};
+
+export type RuntimeIssueBucket = {
+  code: string;
+  count: number;
+  distinctRunCount: number;
+  severity: string;
+  retryability: string;
+  operatorAction: string;
+  likelyComponent: string;
+  firstSeenAt?: string;
+  latestSeenAt?: string;
+  exampleRunId?: string;
+  recurrenceStatus: string;
+  trend: string;
+  windowRunCount: number;
+  windowStart?: string;
+  windowEnd?: string;
+};
+
 export type CommandCenterRuntimeLatest = {
   status: string;
   runId?: string;
@@ -327,6 +356,8 @@ export type CommandCenterRuntimeRunSummary = {
   lastSuccessfulFillAt?: string;
   detailPath?: string;
   artifactAvailable: boolean;
+  diagnosis?: RuntimeDiagnosis;
+  diagnosisCode?: string;
 };
 
 export type CommandCenterRuntimeDebug = {
@@ -385,6 +416,14 @@ export type CommandCenterRuntimeDebug = {
     auditLogCount?: number;
     available?: string[];
     missing?: string[];
+  };
+  diagnosis?: RuntimeDiagnosis;
+  diagnosisContext?: {
+    seenInRecentRuns?: string;
+    recurrenceStatus?: string;
+    trend?: string;
+    firstSeenAt?: string;
+    lastSeenAt?: string;
   };
   counts?: Record<string, number>;
   stages: RuntimeStage[];

@@ -1,4 +1,4 @@
-# QuantOps Sprint6H-9.2.10
+# QuantOps Sprint6H-9.2.11
 
 QuantOps is a local integrated trading operations workspace composed of three main applications:
 
@@ -6,7 +6,7 @@ QuantOps is a local integrated trading operations workspace composed of three ma
 - `apps/quantops-api`: the QuantOps control-plane and aggregation API
 - `apps/quantops-frontend`: the Next.js operator GUI
 
-The current version focuses on runtime observability plus recent-runs operational triage on top of the stabilized local stack: canonical runtime events/reasons, planner and execution-bridge diagnostics, command-center runtime aggregation, run-detail drilldown, runtime diagnostic bundles, recent-runs indexing, reason/component-driven runtime triage views, and structured run-stage timeline forensics.
+The current version focuses on runtime observability, recent-runs operational triage, and operator diagnosis workflows on top of the stabilized local stack: canonical runtime events/reasons, planner and execution-bridge diagnostics, command-center runtime aggregation, run-detail drilldown, runtime diagnostic bundles, recent-runs indexing, diagnosis-based issue rollups, recurrence/trend semantics, and structured run-stage timeline forensics.
 
 ## Project Summary
 
@@ -46,7 +46,9 @@ The repo also contains `source_of_truth/` reference implementations and supporti
   - structured run-stage timeline with stage state, evidence, and root-cause clues
   - run forensics summary for status, trigger, mode, and duration
   - local runtime diagnostic bundle path visibility
-  - recent runtime runs table with saved triage views and reason/component filters
+  - recent runtime runs table with diagnosis-backed saved views and reason/component filters
+  - active runtime issue rollups with diagnosis severity, retryability, recurrence, and trend
+  - run-detail diagnosis card with recurrence context and remediation hints
 
 ### QuantOps API
 

@@ -11,13 +11,22 @@ class _RuntimeRunsV12Client:
         return {
             "items": [
                 {
-                    "run_id": "run-blocked",
+                    "run_id": "run-blocked-new",
                     "started_at": "2026-03-23T01:00:00+00:00",
                     "finished_at": "2026-03-23T01:00:04+00:00",
                     "status": "ok",
                     "duration_ms": 4000,
                     "triggered_by": "smoke",
                     "created_at": "2026-03-23T01:00:00+00:00",
+                },
+                {
+                    "run_id": "run-blocked-mid",
+                    "started_at": "2026-03-23T00:57:00+00:00",
+                    "finished_at": "2026-03-23T00:57:04+00:00",
+                    "status": "ok",
+                    "duration_ms": 4000,
+                    "triggered_by": "smoke",
+                    "created_at": "2026-03-23T00:57:00+00:00",
                 },
                 {
                     "run_id": "run-filled",
@@ -28,11 +37,20 @@ class _RuntimeRunsV12Client:
                     "triggered_by": "smoke",
                     "created_at": "2026-03-23T00:50:00+00:00",
                 },
+                {
+                    "run_id": "run-blocked-old",
+                    "started_at": "2026-03-23T00:40:00+00:00",
+                    "finished_at": "2026-03-23T00:40:04+00:00",
+                    "status": "ok",
+                    "duration_ms": 4000,
+                    "triggered_by": "smoke",
+                    "created_at": "2026-03-23T00:40:00+00:00",
+                },
             ][:limit]
         }
 
     async def get_execution_bridge_by_run(self, run_id: str) -> dict:
-        if run_id == "run-blocked":
+        if run_id.startswith("run-blocked"):
             return {
                 "run_id": run_id,
                 "cycle_id": "cycle-blocked",
@@ -67,7 +85,7 @@ class _RuntimeRunsV12Client:
         }
 
     async def get_execution_plans_by_run(self, run_id: str) -> dict:
-        if run_id == "run-blocked":
+        if run_id.startswith("run-blocked"):
             return {
                 "run_id": run_id,
                 "cycle_id": "cycle-blocked",
@@ -84,7 +102,7 @@ class _RuntimeRunsV12Client:
         }
 
     async def get_runtime_events_by_run(self, run_id: str, limit: int = 25) -> dict:
-        if run_id == "run-blocked":
+        if run_id.startswith("run-blocked"):
             return {
                 "items": [
                     {
@@ -109,6 +127,14 @@ class _RuntimeRunsV12Client:
                 },
                 {
                     "run_id": run_id,
+                    "event_type": "portfolio_updated",
+                    "status": "ok",
+                    "severity": "info",
+                    "summary": "Portfolio updated.",
+                    "timestamp": "2026-03-23T00:50:02.500000+00:00",
+                },
+                {
+                    "run_id": run_id,
                     "event_type": "cycle_completed",
                     "status": "ok",
                     "severity": "info",
@@ -119,7 +145,7 @@ class _RuntimeRunsV12Client:
         }
 
     async def get_runtime_reasons_by_run(self, run_id: str, limit: int = 10) -> dict:
-        if run_id == "run-blocked":
+        if run_id.startswith("run-blocked"):
             return {
                 "items": [
                     {
@@ -154,21 +180,44 @@ def _build_service() -> CommandCenterService:
 def test_runtime_runs_returns_recent_rows_with_consistent_semantics() -> None:
     payload = asyncio.run(_build_service().get_runtime_runs(limit=10))
 
-    assert payload["count"] == 2
-    assert [item["run_id"] for item in payload["items"]] == ["run-blocked", "run-filled"]
+    assert payload["count"] == 4
+    assert [item["run_id"] for item in payload["items"]] == ["run-blocked-new", "run-blocked-mid", "run-filled", "run-blocked-old"]
 
     first = payload["items"][0]
     assert first["operator_state"] == "blocked"
     assert first["bridge_state"] == "planned_blocked"
     assert first["latest_reason_code"] == "NO_POSITION_DELTA"
+    assert first["diagnosis"]["primary_code"] == "execution_bridge_missing"
     assert first["event_chain_complete"] is True
-    assert first["detail_path"] == "/execution/runs/run-blocked"
+    assert first["detail_path"] == "/execution/runs/run-blocked-new"
 
     second = payload["items"][1]
-    assert second["operator_state"] == "filled"
-    assert second["filled_count"] == 2
-    assert second["degraded"] is True
-    assert second["last_successful_fill_at"] == "2026-03-23T00:50:02+00:00"
+    assert second["operator_state"] == "blocked"
+    assert second["diagnosis"]["primary_code"] == "execution_bridge_missing"
+    assert second["diagnosis_code"] == "execution_bridge_missing"
+
+    third = payload["items"][2]
+    assert third["operator_state"] == "filled"
+    assert third["filled_count"] == 2
+    assert third["degraded"] is True
+    assert third["diagnosis"]["primary_code"] == "successful_chain"
+    assert third["last_successful_fill_at"] == "2026-03-23T00:50:02+00:00"
+
+    fourth = payload["items"][3]
+    assert fourth["diagnosis"]["primary_code"] == "execution_bridge_missing"
+
+
+def test_runtime_runs_filter_by_diagnosis_code() -> None:
+    payload = asyncio.run(
+        _build_service().get_runtime_runs(
+            limit=10,
+            issue_code="execution_bridge_missing",
+        )
+    )
+
+    assert payload["count"] == 3
+    assert [item["run_id"] for item in payload["items"]] == ["run-blocked-new", "run-blocked-mid", "run-blocked-old"]
+    assert payload["filters"]["issue_code"] == "execution_bridge_missing"
 
 
 def test_runtime_runs_filters_on_operator_state_and_reason_code() -> None:
@@ -180,8 +229,8 @@ def test_runtime_runs_filters_on_operator_state_and_reason_code() -> None:
         )
     )
 
-    assert payload["count"] == 1
-    assert [item["run_id"] for item in payload["items"]] == ["run-blocked"]
+    assert payload["count"] == 3
+    assert [item["run_id"] for item in payload["items"]] == ["run-blocked-new", "run-blocked-mid", "run-blocked-old"]
     assert payload["filters"]["operator_state"] == "blocked"
     assert payload["filters"]["reason_code"] == "NO_POSITION_DELTA"
 
@@ -189,8 +238,8 @@ def test_runtime_runs_filters_on_operator_state_and_reason_code() -> None:
 def test_runtime_runs_filters_on_blocking_component_and_artifact_availability(tmp_path: Path) -> None:
     artifact_dir = tmp_path / "runtime_diagnostics"
     artifact_dir.mkdir()
-    artifact_file = artifact_dir / "20260323-010000_run-blocked.json"
-    artifact_file.write_text('{"run_id":"run-blocked"}', encoding="utf-8")
+    artifact_file = artifact_dir / "20260323-010000_run-blocked-new.json"
+    artifact_file.write_text('{"run_id":"run-blocked-new"}', encoding="utf-8")
 
     original_root = CommandCenterService.ARTIFACT_ROOT
     CommandCenterService.ARTIFACT_ROOT = artifact_dir
@@ -206,7 +255,33 @@ def test_runtime_runs_filters_on_blocking_component_and_artifact_availability(tm
         CommandCenterService.ARTIFACT_ROOT = original_root
 
     assert payload["count"] == 1
-    assert [item["run_id"] for item in payload["items"]] == ["run-blocked"]
+    assert [item["run_id"] for item in payload["items"]] == ["run-blocked-new"]
     assert payload["items"][0]["artifact_available"] is True
     assert payload["filters"]["blocking_component"] == "execution_planner"
     assert payload["filters"]["artifact_available"] is True
+
+
+def test_runtime_issues_rollup_marks_repeating_and_trend() -> None:
+    payload = asyncio.run(_build_service().get_runtime_issues(limit=10))
+
+    assert payload["count"] == 2
+    assert payload["items"][0]["code"] == "execution_bridge_missing"
+    assert payload["items"][0]["count"] == 3
+    assert payload["items"][0]["distinct_run_count"] == 3
+    assert payload["items"][0]["recurrence_status"] == "persistent"
+    assert payload["items"][0]["trend"] == "up"
+    assert payload["items"][0]["window_run_count"] == 4
+    assert payload["items"][0]["example_run_id"] == "run-blocked-new"
+
+    assert payload["items"][1]["code"] == "successful_chain"
+    assert payload["items"][1]["recurrence_status"] == "isolated"
+
+
+def test_runtime_issues_rollup_window_metadata_present() -> None:
+    payload = asyncio.run(_build_service().get_runtime_issues(limit=10))
+
+    first = payload["items"][0]
+    assert first["first_seen_at"] == "2026-03-23T00:40:04+00:00"
+    assert first["last_seen_at"] == "2026-03-23T01:00:04+00:00"
+    assert first["window_start"] == "2026-03-23T00:40:00+00:00"
+    assert first["window_end"] == "2026-03-23T01:00:04+00:00"

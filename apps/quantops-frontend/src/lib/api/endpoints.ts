@@ -10,6 +10,7 @@ export const endpoints = {
   executionSummary: '/api/v1/command-center/execution/latest',
   commandCenterRuntimeLatest: '/api/v1/command-center/runtime/latest',
   commandCenterRuntimeRuns: '/api/v1/command-center/runtime/runs',
+  commandCenterRuntimeIssues: '/api/v1/command-center/runtime/issues',
   commandCenterRuntimeDebug: '/api/v1/command-center/debug/runtime',
   commandCenterRuntimeDebugByRun: (runId: string) => `/api/v1/command-center/debug/runtime?run_id=${encodeURIComponent(runId)}`,
   executionLatest: '/api/v1/execution/fills',

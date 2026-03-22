@@ -6,6 +6,7 @@ import {
   normalizeApprovals,
   normalizeAuditLogs,
   normalizeCommandCenterRuntimeLatest,
+  normalizeRuntimeIssueBuckets,
   normalizeCommandCenterRuntimeRuns,
   normalizeCommandCenterRuntimeDebug,
   normalizeConfig,
@@ -46,6 +47,7 @@ import type {
   CommandCenterRuntimeLatest,
   CommandCenterRuntimeRunSummary,
   CommandCenterRuntimeDebug,
+  RuntimeIssueBucket,
 } from '@/types/api';
 
 function envelope<T>(data: T): ApiEnvelope<T> {
@@ -199,6 +201,7 @@ export function useCommandCenterRuntimeRuns(filters?: {
   limit?: number;
   operatorState?: string;
   bridgeState?: string;
+  issueCode?: string;
   reasonCode?: string;
   blockingComponent?: string;
   degraded?: boolean;
@@ -209,6 +212,7 @@ export function useCommandCenterRuntimeRuns(filters?: {
   params.set('limit', String(filters?.limit ?? 25));
   if (filters?.operatorState) params.set('operator_state', filters.operatorState);
   if (filters?.bridgeState) params.set('bridge_state', filters.bridgeState);
+  if (filters?.issueCode) params.set('issue_code', filters.issueCode);
   if (filters?.reasonCode) params.set('reason_code', filters.reasonCode);
   if (filters?.blockingComponent) params.set('blocking_component', filters.blockingComponent);
   if (filters?.degraded != null) params.set('degraded', String(filters.degraded));
@@ -217,10 +221,18 @@ export function useCommandCenterRuntimeRuns(filters?: {
   const url = `${endpoints.commandCenterRuntimeRuns}?${params.toString()}`;
 
   return useQuery({
-    queryKey: ['command-center-runtime-runs', filters?.limit ?? 25, filters?.operatorState ?? '', filters?.bridgeState ?? '', filters?.reasonCode ?? '', filters?.blockingComponent ?? '', filters?.degraded ?? 'any', filters?.eventChainComplete ?? 'any', filters?.artifactAvailable ?? 'any'],
+    queryKey: ['command-center-runtime-runs', filters?.limit ?? 25, filters?.operatorState ?? '', filters?.bridgeState ?? '', filters?.issueCode ?? '', filters?.reasonCode ?? '', filters?.blockingComponent ?? '', filters?.degraded ?? 'any', filters?.eventChainComplete ?? 'any', filters?.artifactAvailable ?? 'any'],
     queryFn: async () => envelope<CommandCenterRuntimeRunSummary[]>(normalizeCommandCenterRuntimeRuns(await apiFetch<any>(url))),
     refetchInterval: 15000,
     placeholderData: (previousData) => previousData ?? envelope<CommandCenterRuntimeRunSummary[]>([]),
+  });
+}
+export function useCommandCenterRuntimeIssues(limit = 25) {
+  return useQuery({
+    queryKey: ['command-center-runtime-issues', limit],
+    queryFn: async () => envelope<RuntimeIssueBucket[]>(normalizeRuntimeIssueBuckets(await apiFetch<any>(`${endpoints.commandCenterRuntimeIssues}?limit=${limit}`))),
+    refetchInterval: 15000,
+    placeholderData: (previousData) => previousData ?? envelope<RuntimeIssueBucket[]>([]),
   });
 }
 export function useCommandCenterRuntimeDebug(runId: string) {

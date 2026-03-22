@@ -347,6 +347,141 @@ class CommandCenterService:
                     stage["evidence"].append(f"reason_summary={latest_reason.get('summary')}")
         return stages
 
+    @staticmethod
+    def _diagnosis_catalog(code: str) -> dict:
+        catalog = {
+            "missing_price": {
+                "severity": "medium",
+                "retryability": "retryable",
+                "operator_action": "Check pricing source freshness, symbol mapping, and market data ingestion.",
+                "likely_component": "pricing_service",
+            },
+            "risk_guard_block": {
+                "severity": "high",
+                "retryability": "watch",
+                "operator_action": "Inspect guard reason, exposure, margin, and kill-switch thresholds before retrying.",
+                "likely_component": "risk_guard",
+            },
+            "execution_bridge_missing": {
+                "severity": "high",
+                "retryability": "retryable",
+                "operator_action": "Verify planner-to-execution handoff and execution adapter health.",
+                "likely_component": "execution_bridge",
+            },
+            "order_not_submitted": {
+                "severity": "medium",
+                "retryability": "retryable",
+                "operator_action": "Check whether order submission was intentionally suppressed or blocked downstream.",
+                "likely_component": "execution_bridge",
+            },
+            "fill_not_captured": {
+                "severity": "medium",
+                "retryability": "watch",
+                "operator_action": "Inspect broker acknowledgements and fill capture latency before retrying.",
+                "likely_component": "execution_bridge",
+            },
+            "portfolio_not_updated": {
+                "severity": "high",
+                "retryability": "watch",
+                "operator_action": "Confirm portfolio writer and snapshot persistence after fills.",
+                "likely_component": "portfolio_writer",
+            },
+            "artifact_chain_incomplete": {
+                "severity": "medium",
+                "retryability": "investigate",
+                "operator_action": "Inspect the first missing artifact and compare checkpoints against the stage timeline.",
+                "likely_component": "analytics_writer",
+            },
+            "cycle_stalled": {
+                "severity": "high",
+                "retryability": "investigate",
+                "operator_action": "Review runtime scheduler state and any incomplete steps before retrying.",
+                "likely_component": "runtime_service",
+            },
+            "successful_chain": {
+                "severity": "low",
+                "retryability": "none",
+                "operator_action": "No remediation needed. Continue monitoring for regressions.",
+                "likely_component": "none",
+            },
+            "unknown_runtime_gap": {
+                "severity": "medium",
+                "retryability": "investigate",
+                "operator_action": "Review the run detail evidence and raw event chain to locate the first missing truth point.",
+                "likely_component": "unknown",
+            },
+        }
+        return catalog.get(code, catalog["unknown_runtime_gap"])
+
+    def _classify_runtime_diagnosis(
+        self,
+        *,
+        summary: dict,
+        stages: list[dict],
+        artifacts: dict,
+    ) -> dict:
+        latest_reason_code = str(summary.get("latest_reason_code") or "").upper()
+        latest_reason_summary = str(summary.get("latest_reason_summary") or "")
+        blocking_component = str(summary.get("blocking_component") or "") or None
+        missing_artifacts = list(artifacts.get("missing") or [])
+        stage_by_key = {str(stage.get("key") or ""): stage for stage in stages}
+
+        primary_code = "unknown_runtime_gap"
+        secondary_codes: list[str] = []
+
+        if latest_reason_code == "MISSING_PRICE":
+            primary_code = "missing_price"
+        elif latest_reason_code == "RISK_GUARD_BLOCK":
+            primary_code = "risk_guard_block"
+        elif stage_by_key.get("execution_bridge", {}).get("state") in {"blocked", "missing"} and int(summary.get("planned_count", 0) or 0) > 0:
+            primary_code = "execution_bridge_missing"
+        elif stage_by_key.get("order_submission", {}).get("state") == "blocked":
+            primary_code = "order_not_submitted"
+        elif stage_by_key.get("fill_capture", {}).get("state") == "blocked":
+            primary_code = "fill_not_captured"
+        elif stage_by_key.get("portfolio_update", {}).get("state") == "missing":
+            primary_code = "portfolio_not_updated"
+        elif stage_by_key.get("cycle_completion", {}).get("state") == "running":
+            primary_code = "cycle_stalled"
+        elif (
+            summary.get("operator_state") == "filled"
+            and stage_by_key.get("portfolio_update", {}).get("state") == "completed"
+            and stage_by_key.get("cycle_completion", {}).get("state") == "completed"
+        ):
+            primary_code = "successful_chain"
+
+        if missing_artifacts and str(summary.get("operator_state") or "") != "filled" and primary_code != "artifact_chain_incomplete":
+            secondary_codes.append("artifact_chain_incomplete")
+
+        catalog = self._diagnosis_catalog(primary_code)
+        confidence = 0.95 if primary_code in {"missing_price", "risk_guard_block"} else 0.88 if primary_code != "unknown_runtime_gap" else 0.65
+        return {
+            "primary_code": primary_code,
+            "secondary_codes": secondary_codes,
+            "severity": catalog["severity"],
+            "retryability": catalog["retryability"],
+            "operator_action": catalog["operator_action"],
+            "likely_component": blocking_component or catalog["likely_component"],
+            "confidence": confidence,
+            "summary": latest_reason_summary or str(stage_by_key.get("cycle_completion", {}).get("summary") or ""),
+        }
+
+    @staticmethod
+    def _issue_trend(count_recent: int, count_older: int) -> str:
+        if count_recent > count_older:
+            return "up"
+        if count_recent < count_older:
+            return "down"
+        return "flat"
+
+    @staticmethod
+    def _issue_recurrence_status(total_count: int, count_recent: int) -> str:
+        if total_count <= 1:
+            return "isolated"
+        if total_count >= 3 and count_recent >= 2:
+            return "persistent"
+        return "repeating"
+
     def _runtime_summary_from_inputs(
         self,
         *,
@@ -406,6 +541,7 @@ class CommandCenterService:
         *,
         operator_state: str | None,
         bridge_state: str | None,
+        issue_code: str | None,
         reason_code: str | None,
         blocking_component: str | None,
         degraded: bool | None,
@@ -415,6 +551,8 @@ class CommandCenterService:
         if operator_state and str(row.get("operator_state") or "") != operator_state:
             return False
         if bridge_state and str(row.get("bridge_state") or "") != bridge_state:
+            return False
+        if issue_code and str(((row.get("diagnosis") or {}).get("primary_code") if isinstance(row.get("diagnosis"), dict) else row.get("diagnosis_code")) or "") != issue_code:
             return False
         if reason_code and str(row.get("latest_reason_code") or "") != reason_code:
             return False
@@ -552,6 +690,29 @@ class CommandCenterService:
             started_at=run_item.get("started_at") or run_item.get("created_at"),
             completed_at=run_item.get("finished_at"),
         )
+        artifacts = {
+            "bundle": artifact_bundle,
+            "checkpoint_count": len(run_item.get("checkpoints") or []),
+            "audit_log_count": len(run_item.get("audit_logs") or []),
+            "available": [
+                name
+                for name, present in (
+                    ("runtime_bundle", artifact_bundle is not None),
+                    ("checkpoints", bool(run_item.get("checkpoints"))),
+                    ("audit_logs", bool(run_item.get("audit_logs"))),
+                )
+                if present
+            ],
+            "missing": [
+                name
+                for name, present in (
+                    ("runtime_bundle", artifact_bundle is not None),
+                    ("checkpoints", bool(run_item.get("checkpoints"))),
+                    ("audit_logs", bool(run_item.get("audit_logs"))),
+                )
+                if not present
+            ],
+        }
         stages = self._runtime_stage_items(
             run=run_item if isinstance(run_item, dict) else {},
             planner=planner,
@@ -560,6 +721,20 @@ class CommandCenterService:
             reasons=reasons,
             artifact_bundle=artifact_bundle,
         )
+        diagnosis = self._classify_runtime_diagnosis(summary=summary, stages=stages, artifacts=artifacts)
+        recurrence = None
+        if diagnosis.get("primary_code"):
+            issues_payload = await self.get_runtime_issues(limit=25)
+            for item in issues_payload.get("items", []):
+                if str(item.get("code") or "") == str(diagnosis.get("primary_code") or ""):
+                    recurrence = {
+                        "seen_in_recent_runs": f"{int(item.get('distinct_run_count', 0) or 0)} of last {int(item.get('window_run_count', 0) or 0)} runs",
+                        "recurrence_status": item.get("recurrence_status"),
+                        "trend": item.get("trend"),
+                        "first_seen_at": item.get("first_seen_at"),
+                        "last_seen_at": item.get("last_seen_at"),
+                    }
+                    break
         return {
             "scope": "command_center.runtime",
             "status": "ok" if resolved_run_id else "no_data",
@@ -601,29 +776,9 @@ class CommandCenterService:
                 "duration_ms": int(run_item.get("duration_ms", 0) or 0),
                 "error_message": run_item.get("error_message"),
             },
-            "artifacts": {
-                "bundle": artifact_bundle,
-                "checkpoint_count": len(run_item.get("checkpoints") or []),
-                "audit_log_count": len(run_item.get("audit_logs") or []),
-                "available": [
-                    name
-                    for name, present in (
-                        ("runtime_bundle", artifact_bundle is not None),
-                        ("checkpoints", bool(run_item.get("checkpoints"))),
-                        ("audit_logs", bool(run_item.get("audit_logs"))),
-                    )
-                    if present
-                ],
-                "missing": [
-                    name
-                    for name, present in (
-                        ("runtime_bundle", artifact_bundle is not None),
-                        ("checkpoints", bool(run_item.get("checkpoints"))),
-                        ("audit_logs", bool(run_item.get("audit_logs"))),
-                    )
-                    if not present
-                ],
-            },
+            "artifacts": artifacts,
+            "diagnosis": diagnosis,
+            "diagnosis_context": recurrence,
             "stages": stages,
             "timeline": self._timeline_items(events, limit=25),
             "raw": {
@@ -641,6 +796,7 @@ class CommandCenterService:
         limit: int = 20,
         operator_state: str | None = None,
         bridge_state: str | None = None,
+        issue_code: str | None = None,
         reason_code: str | None = None,
         blocking_component: str | None = None,
         degraded: bool | None = None,
@@ -676,6 +832,21 @@ class CommandCenterService:
             summary["error_message"] = str(run.get("error_message") or "") or None
             summary["triggered_by"] = str(run.get("triggered_by") or "") or None
             summary["artifact_available"] = self._artifact_bundle_for_run(run_id) is not None
+            stages = self._runtime_stage_items(
+                run=run,
+                planner=planner,
+                bridge=bridge,
+                events=events,
+                reasons=reasons,
+                artifact_bundle=self._artifact_bundle_for_run(run_id),
+            )
+            artifacts = {
+                "bundle": self._artifact_bundle_for_run(run_id),
+                "available": ["runtime_bundle"] if self._artifact_bundle_for_run(run_id) is not None else [],
+                "missing": [] if self._artifact_bundle_for_run(run_id) is not None else ["runtime_bundle"],
+            }
+            summary["diagnosis"] = self._classify_runtime_diagnosis(summary=summary, stages=stages, artifacts=artifacts)
+            summary["diagnosis_code"] = summary["diagnosis"]["primary_code"]
             return summary
 
         for result in await asyncio.gather(*(build_summary(run) for run in run_rows)):
@@ -683,6 +854,7 @@ class CommandCenterService:
                 result,
                 operator_state=operator_state,
                 bridge_state=bridge_state,
+                issue_code=issue_code,
                 reason_code=reason_code,
                 blocking_component=blocking_component,
                 degraded=degraded,
@@ -699,6 +871,7 @@ class CommandCenterService:
                 "limit": limit,
                 "operator_state": operator_state,
                 "bridge_state": bridge_state,
+                "issue_code": issue_code,
                 "reason_code": reason_code,
                 "blocking_component": blocking_component,
                 "degraded": degraded,
@@ -706,6 +879,71 @@ class CommandCenterService:
                 "artifact_available": artifact_available,
             },
             "as_of": utc_now_iso(),
+        }
+
+    async def get_runtime_issues(self, *, limit: int = 25) -> dict:
+        runs_payload = await self.get_runtime_runs(limit=limit)
+        rows = runs_payload.get("items") if isinstance(runs_payload.get("items"), list) else []
+        window_run_count = len(rows)
+        ordered_rows = list(rows)
+        split_index = max(1, len(ordered_rows) // 2) if ordered_rows else 1
+        recent_rows = ordered_rows[:split_index]
+        older_rows = ordered_rows[split_index:]
+        buckets: dict[str, dict] = {}
+        for row in rows:
+            diagnosis = row.get("diagnosis") if isinstance(row.get("diagnosis"), dict) else {}
+            code = str(diagnosis.get("primary_code") or "unknown_runtime_gap")
+            bucket = buckets.setdefault(
+                code,
+                {
+                    "code": code,
+                    "count": 0,
+                    "severity": diagnosis.get("severity"),
+                    "retryability": diagnosis.get("retryability"),
+                    "operator_action": diagnosis.get("operator_action"),
+                    "likely_component": diagnosis.get("likely_component"),
+                    "first_seen_at": row.get("completed_at") or row.get("started_at"),
+                    "last_seen_at": row.get("completed_at") or row.get("started_at"),
+                    "example_run_id": row.get("run_id"),
+                    "trend": "flat",
+                    "distinct_run_count": 0,
+                    "run_ids": set(),
+                },
+            )
+            bucket["count"] += 1
+            candidate_ts = row.get("completed_at") or row.get("started_at")
+            if candidate_ts and str(candidate_ts) > str(bucket.get("last_seen_at") or ""):
+                bucket["last_seen_at"] = candidate_ts
+                bucket["example_run_id"] = row.get("run_id")
+            if candidate_ts and str(candidate_ts) < str(bucket.get("first_seen_at") or candidate_ts):
+                bucket["first_seen_at"] = candidate_ts
+            if row.get("run_id"):
+                bucket["run_ids"].add(str(row.get("run_id")))
+
+        for code, bucket in buckets.items():
+            recent_count = sum(
+                1
+                for row in recent_rows
+                if str((((row.get("diagnosis") or {}) if isinstance(row.get("diagnosis"), dict) else {}).get("primary_code") or row.get("diagnosis_code") or "")) == code
+            )
+            older_count = sum(
+                1
+                for row in older_rows
+                if str((((row.get("diagnosis") or {}) if isinstance(row.get("diagnosis"), dict) else {}).get("primary_code") or row.get("diagnosis_code") or "")) == code
+            )
+            bucket["distinct_run_count"] = len(bucket.pop("run_ids"))
+            bucket["recurrence_status"] = self._issue_recurrence_status(int(bucket.get("count", 0) or 0), recent_count)
+            bucket["trend"] = self._issue_trend(recent_count, older_count)
+            bucket["window_run_count"] = window_run_count
+            bucket["window_start"] = ordered_rows[-1].get("started_at") if ordered_rows else None
+            bucket["window_end"] = ordered_rows[0].get("completed_at") or ordered_rows[0].get("started_at") if ordered_rows else None
+
+        items = sorted(buckets.values(), key=lambda item: (-int(item.get("count", 0) or 0), str(item.get("code") or "")))
+        return {
+            "status": "ok",
+            "count": len(items),
+            "items": items,
+            "as_of": runs_payload.get("as_of") or utc_now_iso(),
         }
 
     async def get_execution_debug(self) -> dict:

@@ -8,7 +8,7 @@ import { DataStatusBanner, DataStatusPill, resolveDataStatus } from '@/component
 import { LoadingState } from '@/components/shared/loading-state';
 import { RuntimeBlockCard, RuntimeStatusBadgeStrip, RuntimeSummaryCards, RuntimeTimelinePanel } from '@/components/shared/runtime-observability';
 import { SimpleTable } from '@/components/tables/simple-table';
-import { useCommandCenterRuntimeLatest, useCommandCenterRuntimeRuns, useExecutionLatest, useExecutionOrders, useExecutionPlannerLatest, useExecutionStateLatest, useExecutionSummary } from '@/lib/api/hooks';
+import { useCommandCenterRuntimeIssues, useCommandCenterRuntimeLatest, useCommandCenterRuntimeRuns, useExecutionLatest, useExecutionOrders, useExecutionPlannerLatest, useExecutionStateLatest, useExecutionSummary } from '@/lib/api/hooks';
 
 type RuntimeFilterKey =
   | 'all'
@@ -41,8 +41,19 @@ function labelize(value?: string) {
     .join(' ');
 }
 
+const diagnosisViews: Array<{ label: string; issueCode?: string; retryability?: string; reasonCode?: string }> = [
+  { label: 'Missing Price', issueCode: 'missing_price' },
+  { label: 'Risk Guard', issueCode: 'risk_guard_block' },
+  { label: 'Execution Bridge', issueCode: 'execution_bridge_missing' },
+  { label: 'Fill Capture Gap', issueCode: 'fill_not_captured' },
+  { label: 'Incomplete Chain', reasonCode: 'NO_POSITION_DELTA' },
+  { label: 'Persistent Issues' },
+  { label: 'Retryable Issues', retryability: 'retryable' },
+];
+
 export default function Page() {
   const [runtimeFilter, setRuntimeFilter] = useState<RuntimeFilterKey>('all');
+  const [issueCodeFilter, setIssueCodeFilter] = useState('');
   const [reasonFilter, setReasonFilter] = useState('');
   const [componentFilter, setComponentFilter] = useState('');
   const summary = useExecutionSummary();
@@ -51,9 +62,11 @@ export default function Page() {
   const planner = useExecutionPlannerLatest();
   const state = useExecutionStateLatest();
   const runtime = useCommandCenterRuntimeLatest();
+  const runtimeIssues = useCommandCenterRuntimeIssues(25);
   const runtimeViewFilters: {
     operatorState?: string;
     reasonCode?: string;
+    issueCode?: string;
     blockingComponent?: string;
     degraded?: boolean;
     eventChainComplete?: boolean;
@@ -76,6 +89,7 @@ export default function Page() {
     {
       limit: 25,
       ...runtimeViewFilters,
+      issueCode: issueCodeFilter || runtimeViewFilters.issueCode,
       reasonCode: reasonFilter || runtimeViewFilters.reasonCode,
       blockingComponent: componentFilter || runtimeViewFilters.blockingComponent,
     }
@@ -111,6 +125,7 @@ export default function Page() {
   const plannerStatus = resolveDataStatus({ isLoading: planner.isLoading, hasData: Boolean(plannerData), error: planner.error });
   const stateStatus = resolveDataStatus({ isLoading: state.isLoading, hasData: Boolean(stateData), error: state.error });
   const runtimeRunsData = runtimeRuns.data?.data ?? [];
+  const runtimeIssueRows = runtimeIssues.data?.data ?? [];
   const runtimeFilterOptions: Array<{ key: RuntimeFilterKey; label: string }> = [
     { key: 'all', label: 'All' },
     { key: 'blocked', label: 'Blocked' },
@@ -179,6 +194,85 @@ export default function Page() {
       <RuntimeTimelinePanel runtime={runtimeData} />
 
       <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <div className="font-medium text-slate-100">Active Runtime Issues</div>
+            <div className="text-sm text-slate-400">Diagnosis rollups highlight repeating runtime patterns and the next operator check.</div>
+          </div>
+          {issueCodeFilter || reasonFilter || componentFilter ? (
+            <button
+              type="button"
+              onClick={() => {
+                setIssueCodeFilter('');
+                setReasonFilter('');
+                setComponentFilter('');
+              }}
+              className="rounded-full border border-slate-700 bg-slate-800/70 px-3 py-1 text-xs text-slate-200 transition hover:border-slate-600 hover:text-slate-100"
+            >
+              Clear Diagnosis Filters
+            </button>
+          ) : null}
+        </div>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {issueCodeFilter ? (
+            <span className="rounded-full border border-cyan-500/40 bg-cyan-500/10 px-3 py-1 text-xs text-cyan-100">
+              Diagnosis: {labelize(issueCodeFilter)}
+            </span>
+          ) : null}
+          {reasonFilter ? (
+            <span className="rounded-full border border-cyan-500/40 bg-cyan-500/10 px-3 py-1 text-xs text-cyan-100">
+              Reason: {labelize(reasonFilter)}
+            </span>
+          ) : null}
+        </div>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {diagnosisViews.map((view) => (
+            <button
+              key={view.label}
+              type="button"
+              onClick={() => {
+                setIssueCodeFilter(view.issueCode || '');
+                setReasonFilter(view.reasonCode || '');
+              }}
+              className={`rounded-full border px-3 py-1 text-xs transition ${
+                (view.issueCode && issueCodeFilter === view.issueCode) || (view.reasonCode && reasonFilter === view.reasonCode)
+                  ? 'border-cyan-500/40 bg-cyan-500/10 text-cyan-100'
+                  : 'border-slate-700 bg-slate-800/70 text-slate-300 hover:border-slate-600 hover:text-slate-100'
+              }`}
+            >
+              {view.label}
+            </button>
+          ))}
+        </div>
+        <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          {runtimeIssueRows.length ? runtimeIssueRows.slice(0, 4).map((issue) => (
+            <button
+              key={issue.code}
+              type="button"
+              onClick={() => setIssueCodeFilter(issue.code)}
+              className={`rounded-2xl border p-4 text-left transition ${
+                issueCodeFilter === issue.code
+                  ? 'border-cyan-500/40 bg-cyan-500/10'
+                  : 'border-slate-800 bg-slate-950/60 hover:border-cyan-500/30'
+              }`}
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <div className="text-sm font-medium text-slate-100">{labelize(issue.code)}</div>
+                  <div className="rounded-full border border-slate-700 bg-slate-800/70 px-2 py-0.5 text-[11px] text-slate-200">{issue.count}</div>
+                </div>
+              <div className="mt-2 text-xs text-slate-400">{issue.severity} | {issue.retryability} | {issue.recurrenceStatus} | {issue.trend}</div>
+              <div className="mt-2 text-sm text-slate-300">{issue.operatorAction}</div>
+              <div className="mt-3 text-xs text-cyan-200">Component: {issue.likelyComponent || '-'}</div>
+              <div className="mt-1 text-xs text-slate-500">Seen in {issue.distinctRunCount} of last {issue.windowRunCount} runs</div>
+              <div className="mt-1 text-xs text-slate-500">Example run: {issue.exampleRunId || '-'}</div>
+            </button>
+          )) : (
+            <div className="text-sm text-slate-400">No active runtime issues detected.</div>
+          )}
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
             <div className="font-medium text-slate-100">Recent Runtime Runs</div>
@@ -231,6 +325,7 @@ export default function Page() {
                 <th className="px-3 py-2 text-left font-medium">Bridge</th>
                 <th className="px-3 py-2 text-left font-medium">Reason</th>
                 <th className="px-3 py-2 text-left font-medium">Plans / Orders / Fills</th>
+                <th className="px-3 py-2 text-left font-medium">Diagnosis</th>
                 <th className="px-3 py-2 text-left font-medium">Flags</th>
                 <th className="px-3 py-2 text-left font-medium">Detail</th>
               </tr>
@@ -252,6 +347,10 @@ export default function Page() {
                     </td>
                     <td className="px-3 py-3 align-top">{row.plannedCount} / {row.submittedCount} / {row.filledCount}</td>
                     <td className="px-3 py-3 align-top">
+                      <div>{labelize(row.diagnosisCode || row.diagnosis?.primaryCode)}</div>
+                      <div className="text-xs text-slate-400">{row.diagnosis?.retryability || '-'}</div>
+                    </td>
+                    <td className="px-3 py-3 align-top">
                       <div>{row.degraded ? 'Degraded' : 'Normal'}</div>
                       <div className="text-xs text-slate-400">
                         Chain {row.eventChainComplete ? 'complete' : 'incomplete'}{row.artifactAvailable ? ' · bundle' : ''}
@@ -270,7 +369,7 @@ export default function Page() {
                 ))
               ) : (
                 <tr className="text-slate-400">
-                  <td className="px-3 py-4" colSpan={8}>
+                  <td className="px-3 py-4" colSpan={9}>
                     {runtimeRuns.isLoading ? 'Loading recent runtime runs…' : 'No runs matched the current filter.'}
                   </td>
                 </tr>

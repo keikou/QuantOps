@@ -457,6 +457,41 @@ export function normalizeCommandCenterRuntimeRuns(input: any): CommandCenterRunt
     lastSuccessfulFillAt: toString(row.lastSuccessfulFillAt ?? row.last_successful_fill_at, ''),
     detailPath: toString(row.detailPath ?? row.detail_path, ''),
     artifactAvailable: toBool(row.artifactAvailable ?? row.artifact_available, false),
+    diagnosisCode: toString(row.diagnosisCode ?? row.diagnosis_code, ''),
+    diagnosis: row.diagnosis
+      ? {
+          primaryCode: toString(row.diagnosis.primaryCode ?? row.diagnosis.primary_code, ''),
+          secondaryCodes: Array.isArray(row.diagnosis.secondaryCodes ?? row.diagnosis.secondary_codes) ? (row.diagnosis.secondaryCodes ?? row.diagnosis.secondary_codes).map((item: any) => toString(item, '')).filter(Boolean) : [],
+          severity: toString(row.diagnosis.severity, ''),
+          retryability: toString(row.diagnosis.retryability, ''),
+          operatorAction: toString(row.diagnosis.operatorAction ?? row.diagnosis.operator_action, ''),
+          likelyComponent: toString(row.diagnosis.likelyComponent ?? row.diagnosis.likely_component, ''),
+          confidence: toNumber(row.diagnosis.confidence),
+          summary: toString(row.diagnosis.summary, ''),
+        }
+      : undefined,
+  }));
+}
+
+export function normalizeRuntimeIssueBuckets(input: any) {
+  const payload = getPayload<any>(input, {});
+  const rows = Array.isArray(payload.items) ? payload.items : getArray<any>(input);
+  return rows.map((row: any) => ({
+    code: toString(row.code, ''),
+    count: toNumber(row.count),
+    distinctRunCount: toNumber(row.distinctRunCount ?? row.distinct_run_count),
+    severity: toString(row.severity, ''),
+    retryability: toString(row.retryability, ''),
+    operatorAction: toString(row.operatorAction ?? row.operator_action, ''),
+    likelyComponent: toString(row.likelyComponent ?? row.likely_component, ''),
+    firstSeenAt: toString(row.firstSeenAt ?? row.first_seen_at, ''),
+    latestSeenAt: toString(row.latestSeenAt ?? row.last_seen_at ?? row.latest_seen_at, ''),
+    exampleRunId: toString(row.exampleRunId ?? row.example_run_id, ''),
+    recurrenceStatus: toString(row.recurrenceStatus ?? row.recurrence_status, ''),
+    trend: toString(row.trend, ''),
+    windowRunCount: toNumber(row.windowRunCount ?? row.window_run_count),
+    windowStart: toString(row.windowStart ?? row.window_start, ''),
+    windowEnd: toString(row.windowEnd ?? row.window_end, ''),
   }));
 }
 
@@ -529,6 +564,27 @@ export function normalizeCommandCenterRuntimeDebug(input: any): CommandCenterRun
       available: Array.isArray(x.artifacts?.available) ? x.artifacts.available.map((item: any) => toString(item, '')).filter(Boolean) : [],
       missing: Array.isArray(x.artifacts?.missing) ? x.artifacts.missing.map((item: any) => toString(item, '')).filter(Boolean) : [],
     },
+    diagnosis: x.diagnosis
+      ? {
+          primaryCode: toString(x.diagnosis.primaryCode ?? x.diagnosis.primary_code, ''),
+          secondaryCodes: Array.isArray(x.diagnosis.secondaryCodes ?? x.diagnosis.secondary_codes) ? (x.diagnosis.secondaryCodes ?? x.diagnosis.secondary_codes).map((item: any) => toString(item, '')).filter(Boolean) : [],
+          severity: toString(x.diagnosis.severity, ''),
+          retryability: toString(x.diagnosis.retryability, ''),
+          operatorAction: toString(x.diagnosis.operatorAction ?? x.diagnosis.operator_action, ''),
+          likelyComponent: toString(x.diagnosis.likelyComponent ?? x.diagnosis.likely_component, ''),
+          confidence: toNumber(x.diagnosis.confidence),
+          summary: toString(x.diagnosis.summary, ''),
+        }
+      : undefined,
+    diagnosisContext: x.diagnosis_context
+      ? {
+          seenInRecentRuns: toString(x.diagnosis_context.seen_in_recent_runs, ''),
+          recurrenceStatus: toString(x.diagnosis_context.recurrence_status, ''),
+          trend: toString(x.diagnosis_context.trend, ''),
+          firstSeenAt: toString(x.diagnosis_context.first_seen_at, ''),
+          lastSeenAt: toString(x.diagnosis_context.last_seen_at, ''),
+        }
+      : undefined,
     counts: x.counts ?? {},
     stages: stages.map((item: any) => ({
       key: toString(item.key, ''),

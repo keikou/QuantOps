@@ -114,6 +114,20 @@ export default function Page() {
         <RuntimeTimelinePanel runtime={runtimeCardData} />
       </div>
 
+      <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 text-sm text-slate-300">
+        <div className="font-medium text-slate-100">Diagnosis</div>
+        <div className="mt-3 grid gap-2 md:grid-cols-2">
+          <div>Primary: <span className="text-slate-100">{detail?.diagnosis?.primaryCode || '-'}</span></div>
+          <div>Severity: <span className="text-slate-100">{detail?.diagnosis?.severity || '-'}</span></div>
+          <div>Retryability: <span className="text-slate-100">{detail?.diagnosis?.retryability || '-'}</span></div>
+          <div>Likely component: <span className="text-slate-100">{detail?.diagnosis?.likelyComponent || '-'}</span></div>
+          <div>Recent recurrence: <span className="text-slate-100">{detail?.diagnosisContext?.seenInRecentRuns || '-'}</span></div>
+          <div>Trend / status: <span className="text-slate-100">{detail?.diagnosisContext?.trend || '-'} / {detail?.diagnosisContext?.recurrenceStatus || '-'}</span></div>
+        </div>
+        <div className="mt-3">Recommended check: <span className="text-slate-100">{detail?.diagnosis?.operatorAction || '-'}</span></div>
+        <div className="mt-1">Confidence: <span className="text-slate-100">{detail?.diagnosis?.confidence ?? 0}</span></div>
+      </div>
+
       <RuntimeStageTimelinePanel debug={detail} />
 
       <div className="grid gap-4 xl:grid-cols-2">
