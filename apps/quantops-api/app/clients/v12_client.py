@@ -119,6 +119,18 @@ class V12Client:
     async def get_runtime_status(self) -> dict[str, Any]:
         return await self._request_first("GET", ["/runtime/status", "/runtime/runs?limit=1", "/health"])
 
+    async def get_runtime_events_latest(self, limit: int = 50) -> dict[str, Any]:
+        return await self._request_first("GET", [f"/runtime/events/latest?limit={int(limit)}"])
+
+    async def get_runtime_events_by_run(self, run_id: str, limit: int = 50) -> dict[str, Any]:
+        return await self._request_first("GET", [f"/runtime/events/by-run/{run_id}?limit={int(limit)}"])
+
+    async def get_runtime_reasons_latest(self, limit: int = 50) -> dict[str, Any]:
+        return await self._request_first("GET", [f"/runtime/reasons/latest?limit={int(limit)}"])
+
+    async def get_runtime_reasons_by_run(self, run_id: str, limit: int = 50) -> dict[str, Any]:
+        return await self._request_first("GET", [f"/runtime/reasons/by-run/{run_id}?limit={int(limit)}"])
+
     async def get_strategy_registry(self) -> dict[str, Any]:
         return await self._request_first("GET", ["/strategy/registry"])
 
@@ -187,6 +199,12 @@ class V12Client:
     async def get_execution_planner_latest(self) -> dict[str, Any]:
         return await self._request_first("GET", ["/execution/planner/latest", "/execution/plans?limit=20"])
 
+    async def get_execution_plans_latest(self) -> dict[str, Any]:
+        return await self._request_first("GET", ["/execution/plans/latest"])
+
+    async def get_execution_plans_by_run(self, run_id: str) -> dict[str, Any]:
+        return await self._request_first("GET", [f"/execution/plans/by-run/{run_id}"])
+
     async def get_execution_orders(self, limit: int | None = None) -> dict[str, Any]:
         suffix = f"?limit={int(limit)}" if limit is not None else ""
         return await self._request_first("GET", [f"/execution/orders{suffix}", f"/execution/orders/latest{suffix}", "/execution/orders", "/execution/orders/latest"])
@@ -200,6 +218,12 @@ class V12Client:
 
     async def get_execution_block_reasons_latest(self) -> dict[str, Any]:
         return await self._request_first("GET", ["/execution/block-reasons/latest"])
+
+    async def get_execution_bridge_latest(self) -> dict[str, Any]:
+        return await self._request_first("GET", ["/execution/bridge/latest"])
+
+    async def get_execution_bridge_by_run(self, run_id: str) -> dict[str, Any]:
+        return await self._request_first("GET", [f"/execution/bridge/by-run/{run_id}"])
 
     async def get_health(self) -> dict[str, Any]:
         return await self._request_first("GET", ["/system/health", "/health"])

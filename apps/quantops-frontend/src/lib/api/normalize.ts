@@ -1,4 +1,4 @@
-import type { DataSourceStatus, DataStatus, MonitoringSystem, RiskSnapshot, UserRole } from '@/types/api';
+import type { CommandCenterRuntimeDebug, CommandCenterRuntimeLatest, DataSourceStatus, DataStatus, MonitoringSystem, RiskSnapshot, UserRole } from '@/types/api';
 
 export function getPayload<T>(input: any, fallback: T): T {
   if (input == null) return fallback;
@@ -387,5 +387,108 @@ export function normalizeExecutionState(input: any) {
     submittedOrderCount: toNumber(x.submittedOrderCount ?? x.submitted_order_count),
     asOf: toString(x.asOf ?? x.as_of),
     blockReasons: reasons.map((item: any) => ({ code: toString(item.code), severity: toString(item.severity), message: toString(item.message) })),
+  };
+}
+
+export function normalizeCommandCenterRuntimeLatest(input: any): CommandCenterRuntimeLatest {
+  const x = getPayload<any>(input, {});
+  const timeline = Array.isArray(x.timeline) ? x.timeline : [];
+  return {
+    status: toString(x.status, 'no_data'),
+    runId: toString(x.runId ?? x.run_id, ''),
+    cycleId: toString(x.cycleId ?? x.cycle_id, ''),
+    bridgeState: toString(x.bridgeState ?? x.bridge_state, 'no_decision'),
+    operatorState: toString(x.operatorState ?? x.operator_state ?? x.bridgeState ?? x.bridge_state, 'no_decision'),
+    plannerStatus: toString(x.plannerStatus ?? x.planner_status, 'unknown'),
+    plannedCount: toNumber(x.plannedCount ?? x.planned_count),
+    submittedCount: toNumber(x.submittedCount ?? x.submitted_count),
+    blockedCount: toNumber(x.blockedCount ?? x.blocked_count),
+    filledCount: toNumber(x.filledCount ?? x.filled_count),
+    eventChainComplete: toBool(x.eventChainComplete ?? x.event_chain_complete, false),
+    latestReasonCode: toString(x.latestReasonCode ?? x.latest_reason_code, ''),
+    latestReasonSummary: toString(x.latestReasonSummary ?? x.latest_reason_summary, ''),
+    blockingComponent: toString(x.blockingComponent ?? x.blocking_component, ''),
+    degraded: toBool(x.degraded, Array.isArray(x.degradedFlags ?? x.degraded_flags) && (x.degradedFlags ?? x.degraded_flags).length > 0),
+    degradedFlags: Array.isArray(x.degradedFlags ?? x.degraded_flags) ? (x.degradedFlags ?? x.degraded_flags) : [],
+    operatorMessage: toString(x.operatorMessage ?? x.operator_message, ''),
+    generatedAt: toString(x.generatedAt ?? x.generated_at, ''),
+    lastTransitionAt: toString(x.lastTransitionAt ?? x.last_transition_at, ''),
+    lastSuccessfulFillAt: toString(x.lastSuccessfulFillAt ?? x.last_successful_fill_at, ''),
+    lastSuccessfulPortfolioUpdateAt: toString(x.lastSuccessfulPortfolioUpdateAt ?? x.last_successful_portfolio_update_at, ''),
+    lastCycleCompletedAt: toString(x.lastCycleCompletedAt ?? x.last_cycle_completed_at, ''),
+    debugPath: toString(x.debugPath ?? x.debug_path, ''),
+    detailPath: toString(x.detailPath ?? x.detail_path, ''),
+    timeline: timeline.map((item: any) => ({
+      eventType: toString(item.eventType ?? item.event_type, ''),
+      summary: toString(item.summary, ''),
+      severity: toString(item.severity, 'info'),
+      status: toString(item.status, 'ok'),
+      reasonCode: toString(item.reasonCode ?? item.reason_code, ''),
+      symbol: toString(item.symbol, ''),
+      timestamp: toString(item.timestamp ?? item.created_at, ''),
+    })),
+  };
+}
+
+export function normalizeCommandCenterRuntimeDebug(input: any): CommandCenterRuntimeDebug {
+  const x = getPayload<any>(input, {});
+  const summary = getPayload<any>(x.summary, {});
+  const timeline = Array.isArray(x.timeline) ? x.timeline : [];
+  return {
+    scope: toString(x.scope, 'command_center.runtime'),
+    status: toString(x.status, 'no_data'),
+    source: toString(x.source, 'unknown'),
+    reason: toString(x.reason, ''),
+    asOf: toString(x.asOf ?? x.as_of, ''),
+    timings: {
+      snapshotAgeSec: toNumber(x.timings?.snapshot_age_sec ?? x.timings?.snapshotAgeSec),
+    },
+    summary: {
+      runId: toString(summary.runId ?? summary.run_id, ''),
+      cycleId: toString(summary.cycleId ?? summary.cycle_id, ''),
+      bridgeState: toString(summary.bridgeState ?? summary.bridge_state, ''),
+      operatorState: toString(summary.operatorState ?? summary.operator_state, ''),
+      plannerStatus: toString(summary.plannerStatus ?? summary.planner_status, ''),
+      plannedCount: toNumber(summary.plannedCount ?? summary.planned_count),
+      submittedCount: toNumber(summary.submittedCount ?? summary.submitted_count),
+      blockedCount: toNumber(summary.blockedCount ?? summary.blocked_count),
+      filledCount: toNumber(summary.filledCount ?? summary.filled_count),
+      eventChainComplete: toBool(summary.eventChainComplete ?? summary.event_chain_complete, false),
+      latestReasonCode: toString(summary.latestReasonCode ?? summary.latest_reason_code, ''),
+      latestReasonSummary: toString(summary.latestReasonSummary ?? summary.latest_reason_summary, ''),
+      blockingComponent: toString(summary.blockingComponent ?? summary.blocking_component, ''),
+      operatorMessage: toString(summary.operatorMessage ?? summary.operator_message, ''),
+      degraded: toBool(summary.degraded, false),
+      degradedFlags: Array.isArray(summary.degradedFlags ?? summary.degraded_flags) ? (summary.degradedFlags ?? summary.degraded_flags) : [],
+      lastSuccessfulFillAt: toString(summary.lastSuccessfulFillAt ?? summary.last_successful_fill_at, ''),
+      lastSuccessfulPortfolioUpdateAt: toString(summary.lastSuccessfulPortfolioUpdateAt ?? summary.last_successful_portfolio_update_at, ''),
+      lastCycleCompletedAt: toString(summary.lastCycleCompletedAt ?? summary.last_cycle_completed_at, ''),
+    },
+    provenance: {
+      ...(x.provenance ?? {}),
+      artifactBundle: x.provenance?.artifact_bundle
+        ? {
+            runId: toString(x.provenance.artifact_bundle.run_id, ''),
+            path: toString(x.provenance.artifact_bundle.path, ''),
+            name: toString(x.provenance.artifact_bundle.name, ''),
+          }
+        : undefined,
+    },
+    counts: x.counts ?? {},
+    timeline: timeline.map((item: any) => ({
+      eventType: toString(item.eventType ?? item.event_type, ''),
+      summary: toString(item.summary, ''),
+      severity: toString(item.severity, 'info'),
+      status: toString(item.status, 'ok'),
+      reasonCode: toString(item.reasonCode ?? item.reason_code, ''),
+      symbol: toString(item.symbol, ''),
+      timestamp: toString(item.timestamp ?? item.created_at, ''),
+    })),
+    raw: {
+      planner: x.raw?.planner ?? {},
+      bridge: x.raw?.bridge ?? {},
+      events: Array.isArray(x.raw?.events) ? x.raw.events : [],
+      reasons: Array.isArray(x.raw?.reasons) ? x.raw.reasons : [],
+    },
   };
 }

@@ -73,6 +73,26 @@ def runtime_status() -> dict:
     }
 
 
+@router.get('/events/latest')
+def runtime_events_latest(limit: int = Query(default=50, ge=1, le=200)) -> dict:
+    return {'status': 'ok', 'items': _service.runtime_repo.list_events(limit=limit)}
+
+
+@router.get('/events/by-run/{run_id}')
+def runtime_events_by_run(run_id: str, limit: int = Query(default=50, ge=1, le=200)) -> dict:
+    return {'status': 'ok', 'items': _service.runtime_repo.list_events(limit=limit, run_id=run_id)}
+
+
+@router.get('/reasons/latest')
+def runtime_reasons_latest(limit: int = Query(default=50, ge=1, le=200)) -> dict:
+    return {'status': 'ok', 'items': _service.runtime_repo.list_events(limit=limit, reason_only=True)}
+
+
+@router.get('/reasons/by-run/{run_id}')
+def runtime_reasons_by_run(run_id: str, limit: int = Query(default=50, ge=1, le=200)) -> dict:
+    return {'status': 'ok', 'items': _service.runtime_repo.list_events(limit=limit, run_id=run_id, reason_only=True)}
+
+
 @router.get('/trading-state')
 def trading_state() -> dict:
     return {'status': 'ok', **_service.get_trading_state()}

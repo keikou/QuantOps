@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 from typing import Any
 
@@ -39,6 +40,23 @@ class RuntimeRepository:
 
     def create_checkpoint(self, row: dict[str, Any]) -> None:
         self.store.append('runtime_checkpoints', row)
+
+    def create_event(self, row: dict[str, Any]) -> None:
+        event_id = str(row.get("event_id") or "")
+        if event_id:
+            existing = self.store.fetchone_dict(
+                "SELECT event_id FROM runtime_events WHERE event_id = ? LIMIT 1",
+                [event_id],
+            )
+            if existing:
+                return
+        payload = dict(row)
+        payload["details_json"] = self.store.to_json(payload.get("details_json") or {})
+        self.store.append("runtime_events", payload)
+
+    def create_events(self, rows: list[dict[str, Any]]) -> None:
+        for row in rows:
+            self.create_event(row)
 
     def list_runs(self, limit: int = 20) -> list[dict[str, Any]]:
         return self.store.fetchall_dict(
@@ -83,3 +101,51 @@ class RuntimeRepository:
             [run_id],
         )
         return run
+
+    def list_events(
+        self,
+        *,
+        limit: int = 50,
+        run_id: str | None = None,
+        event_type: str | None = None,
+        symbol: str | None = None,
+        reason_only: bool = False,
+    ) -> list[dict[str, Any]]:
+        clauses: list[str] = []
+        params: list[Any] = []
+        if run_id:
+            clauses.append("run_id = ?")
+            params.append(run_id)
+        if event_type:
+            clauses.append("event_type = ?")
+            params.append(event_type)
+        if symbol:
+            clauses.append("symbol = ?")
+            params.append(symbol)
+        if reason_only:
+            clauses.append("coalesce(reason_code, '') <> ''")
+        where_sql = f"WHERE {' AND '.join(clauses)}" if clauses else ""
+        rows = self.store.fetchall_dict(
+            f"""
+            SELECT event_id, run_id, cycle_id, event_type, reason_code, symbol, mode, source,
+                   status, severity, summary, details_json,
+                   CAST(timestamp AS VARCHAR) AS timestamp,
+                   CAST(created_at AS VARCHAR) AS created_at
+            FROM runtime_events
+            {where_sql}
+            ORDER BY timestamp DESC, created_at DESC
+            LIMIT ?
+            """,
+            [*params, limit],
+        )
+        for row in rows:
+            details_json = row.get("details_json")
+            if isinstance(details_json, str) and details_json:
+                try:
+                    row["details"] = json.loads(details_json)
+                except Exception:
+                    row["details"] = {}
+            else:
+                row["details"] = details_json or {}
+            row.pop("details_json", None)
+        return rows

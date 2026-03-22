@@ -15,3 +15,4 @@ __pycache__/
 
 apps/v12-api/runtime/
 source_of_truth/quantops_sprint3/services/v12-api/runtime/
+test_bundle/artifacts/

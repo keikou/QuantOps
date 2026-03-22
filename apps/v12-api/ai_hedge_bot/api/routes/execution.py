@@ -6,6 +6,7 @@ from typing import Any
 
 from fastapi import APIRouter
 from ai_hedge_bot.repositories.sprint5_repository import Sprint5Repository
+from ai_hedge_bot.services.execution_bridge_diagnostics_service import ExecutionBridgeDiagnosticsService
 from ai_hedge_bot.services.runtime.runtime_service import RuntimeService
 from ai_hedge_bot.services.truth_engine import TruthEngine
 from ai_hedge_bot.execution.state_machine import ExecutionStateInput, classify_execution_state, default_reason_codes, merge_reason_codes
@@ -14,6 +15,7 @@ router = APIRouter(prefix='/execution', tags=['execution'])
 _repo = Sprint5Repository()
 _runtime = RuntimeService()
 _truth = TruthEngine()
+_bridge = ExecutionBridgeDiagnosticsService()
 
 
 def _parse_ts(value) -> datetime | None:
@@ -178,6 +180,16 @@ def execution_plans(limit: int = 100) -> dict:
     }
 
 
+@router.get('/plans/latest')
+def execution_plans_latest() -> dict:
+    return _bridge.get_planner_truth()
+
+
+@router.get('/plans/by-run/{run_id}')
+def execution_plans_by_run(run_id: str) -> dict:
+    return _bridge.get_planner_truth(run_id=run_id)
+
+
 @router.get('/planner/latest')
 def execution_planner_latest() -> dict:
     plans = execution_plans(limit=20)
@@ -204,6 +216,16 @@ def execution_planner_latest() -> dict:
         'as_of': plans.get('as_of'),
         'latest_activity_at': newest_activity.isoformat() if newest_activity else None,
     }
+
+
+@router.get('/bridge/latest')
+def execution_bridge_latest() -> dict:
+    return _bridge.get_bridge_summary()
+
+
+@router.get('/bridge/by-run/{run_id}')
+def execution_bridge_by_run(run_id: str) -> dict:
+    return _bridge.get_bridge_summary(run_id=run_id)
 
 
 @router.get('/orders')

@@ -5,6 +5,8 @@ import {
   normalizeAlerts,
   normalizeApprovals,
   normalizeAuditLogs,
+  normalizeCommandCenterRuntimeLatest,
+  normalizeCommandCenterRuntimeDebug,
   normalizeConfig,
   normalizeCurrentUser,
   normalizeEquityHistory,
@@ -40,6 +42,8 @@ import type {
   RiskSnapshot,
   StrategyRow,
   AuditLogRow,
+  CommandCenterRuntimeLatest,
+  CommandCenterRuntimeDebug,
 } from '@/types/api';
 
 function envelope<T>(data: T): ApiEnvelope<T> {
@@ -177,6 +181,23 @@ export function useExecutionStateLatest() {
   return useQuery({
     queryKey: ['execution-state-latest'],
     queryFn: async () => envelope<ExecutionState>(normalizeExecutionState(await apiFetch<any>(endpoints.executionStateLatest))),
+    refetchInterval: 15000,
+    placeholderData: (previousData) => previousData,
+  });
+}
+export function useCommandCenterRuntimeLatest() {
+  return useQuery({
+    queryKey: ['command-center-runtime-latest'],
+    queryFn: async () => envelope<CommandCenterRuntimeLatest>(normalizeCommandCenterRuntimeLatest(await apiFetch<any>(endpoints.commandCenterRuntimeLatest))),
+    refetchInterval: 15000,
+    placeholderData: (previousData) => previousData,
+  });
+}
+export function useCommandCenterRuntimeDebug(runId: string) {
+  return useQuery({
+    queryKey: ['command-center-runtime-debug', runId],
+    queryFn: async () => envelope<CommandCenterRuntimeDebug>(normalizeCommandCenterRuntimeDebug(await apiFetch<any>(endpoints.commandCenterRuntimeDebugByRun(runId)))),
+    enabled: Boolean(runId),
     refetchInterval: 15000,
     placeholderData: (previousData) => previousData,
   });

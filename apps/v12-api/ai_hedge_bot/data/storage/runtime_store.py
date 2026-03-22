@@ -111,6 +111,22 @@ class RuntimeStore:
                     created_at TIMESTAMP,
                     payload_json VARCHAR
                 );
+                CREATE TABLE IF NOT EXISTS runtime_events (
+                    event_id VARCHAR,
+                    run_id VARCHAR,
+                    cycle_id VARCHAR,
+                    event_type VARCHAR,
+                    reason_code VARCHAR,
+                    symbol VARCHAR,
+                    mode VARCHAR,
+                    source VARCHAR,
+                    status VARCHAR,
+                    severity VARCHAR,
+                    summary VARCHAR,
+                    details_json VARCHAR,
+                    timestamp TIMESTAMP,
+                    created_at TIMESTAMP
+                );
                 CREATE TABLE IF NOT EXISTS audit_logs (
                     audit_id VARCHAR,
                     category VARCHAR,

@@ -3,6 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Iterable
 
+from ai_hedge_bot.contracts.reason_codes import EXECUTION_DISABLED, RISK_GUARD_BLOCK, STALE_MARKET_DATA
+
 RECENT_ACTIVITY_TTL_SEC = 180.0
 STALE_OPEN_ORDER_TTL_SEC = 300.0
 
@@ -28,11 +30,11 @@ def classify_execution_state(inp: ExecutionStateInput) -> str:
     has_orders = inp.open_order_count > 0 or inp.submitted_order_count > 0
     stale_orders = has_orders and inp.last_fill_age_sec is not None and inp.last_fill_age_sec > STALE_OPEN_ORDER_TTL_SEC
 
-    if trading_state == 'halted' or reasons & {'risk_halted', 'kill_switch_triggered'}:
+    if trading_state == 'halted' or reasons & {'risk_halted', 'kill_switch_triggered', EXECUTION_DISABLED}:
         return 'halted'
-    if trading_state == 'paused' or reasons & {'paused', 'blocked_by_risk'}:
+    if trading_state == 'paused' or reasons & {'paused', 'blocked_by_risk', EXECUTION_DISABLED, RISK_GUARD_BLOCK}:
         return 'blocked'
-    if reasons & {'insufficient_margin', 'stale_quote', 'adapter_error', 'simulator_disabled'}:
+    if reasons & {'insufficient_margin', 'stale_quote', 'adapter_error', 'simulator_disabled', STALE_MARKET_DATA, RISK_GUARD_BLOCK}:
         return 'blocked'
     if reasons & {'residual_orders_after_halt', 'open_orders_not_draining'}:
         return 'degraded'

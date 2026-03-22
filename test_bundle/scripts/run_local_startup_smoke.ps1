@@ -10,9 +10,11 @@ $RepoRoot = Resolve-Path (Join-Path $ScriptDir "../..")
 Set-Location $RepoRoot
 
 $env:NO_PAUSE = "1"
+$artifactRoot = Join-Path $RepoRoot "test_bundle\artifacts\runtime_diagnostics"
 
 $startedProcesses = @()
 $targetPorts = @(8000, 8010, 3000)
+$repoRootText = [string]$RepoRoot
 
 function Get-DescendantProcessIds {
   param([int]$ParentId)
@@ -71,6 +73,27 @@ function Stop-ListenerProcesses {
   }
 }
 
+function Stop-RepoRuntimeProcesses {
+  param([string]$RepoPath)
+
+  $repoPathLower = $RepoPath.ToLowerInvariant()
+  $candidates = Get-CimInstance Win32_Process -ErrorAction SilentlyContinue |
+    Where-Object {
+      ($_.Name -in @("python.exe", "node.exe", "cmd.exe")) -and
+      ($_.CommandLine -ne $null) -and
+      ($_.CommandLine.ToLowerInvariant().Contains($repoPathLower))
+    } |
+    Select-Object -ExpandProperty ProcessId -Unique
+
+  foreach ($candidateId in $candidates) {
+    try {
+      Stop-Process -Id $candidateId -Force -ErrorAction Stop
+    }
+    catch {
+    }
+  }
+}
+
 function Start-ServiceScript {
   param(
     [string]$Name,
@@ -116,7 +139,63 @@ function Wait-ForHttpOk {
   throw ("Timeout waiting for {0} at {1}. Last error: {2}" -f $Name, $Url, $lastError)
 }
 
+function Get-Json {
+  param(
+    [string]$Url,
+    [string]$Method = "GET",
+    [object]$Body = $null
+  )
+
+  if ($null -ne $Body) {
+    $jsonBody = $Body | ConvertTo-Json -Depth 8
+    return Invoke-RestMethod -Uri $Url -Method $Method -TimeoutSec $RequestTimeoutSec -ContentType "application/json" -Body $jsonBody
+  }
+
+  return Invoke-RestMethod -Uri $Url -Method $Method -TimeoutSec $RequestTimeoutSec
+}
+
+function Assert-True {
+  param(
+    [bool]$Condition,
+    [string]$Message
+  )
+
+  if (-not $Condition) {
+    throw $Message
+  }
+}
+
+function Write-RuntimeArtifactBundle {
+  param(
+    [string]$RunId,
+    [object]$RunPayload,
+    [object]$PlannerTruth,
+    [object]$BridgeTruth,
+    [object]$RuntimeEvents
+  )
+
+  if (-not (Test-Path $artifactRoot)) {
+    New-Item -ItemType Directory -Path $artifactRoot -Force | Out-Null
+  }
+
+  $timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
+  $artifactPath = Join-Path $artifactRoot ("{0}_{1}.json" -f $timestamp, $RunId)
+  $bundle = [ordered]@{
+    generated_at = (Get-Date).ToUniversalTime().ToString("o")
+    run_id = $RunId
+    run_payload = $RunPayload
+    planner_truth = $PlannerTruth
+    bridge_truth = $BridgeTruth
+    runtime_events = $RuntimeEvents.items
+  }
+  $bundle | ConvertTo-Json -Depth 12 | Set-Content -Path $artifactPath -Encoding UTF8
+  Write-Host ("Artifact bundle: {0}" -f $artifactPath)
+}
+
 try {
+  Stop-RepoRuntimeProcesses -RepoPath $repoRootText
+  Stop-ListenerProcesses -Ports $targetPorts
+
   $v12 = Start-ServiceScript -Name "V12 API" -ScriptPath "start_v12_api.cmd"
   $quantops = Start-ServiceScript -Name "QuantOps API" -ScriptPath "start_quantops_api.cmd"
   $frontend = Start-ServiceScript -Name "QuantOps Frontend" -ScriptPath "start_frontend.cmd"
@@ -126,6 +205,31 @@ try {
   Wait-ForHttpOk -Name "Frontend Home" -Url "http://127.0.0.1:3000/" -TimeoutSec $StartupTimeoutSec
 
   Wait-ForHttpOk -Name "QuantOps Overview" -Url "http://127.0.0.1:8010/api/v1/dashboard/overview" -TimeoutSec $RequestTimeoutSec
+
+  $null = Get-Json -Url "http://127.0.0.1:8000/runtime/resume" -Method "POST"
+  $runPayload = Get-Json -Url "http://127.0.0.1:8000/runtime/run-once?mode=paper" -Method "POST"
+  Assert-True -Condition ($runPayload.status -eq "ok") -Message "Runtime smoke cycle did not complete successfully."
+  $runId = [string]$runPayload.run_id
+  Assert-True -Condition (-not [string]::IsNullOrWhiteSpace($runId)) -Message "Runtime smoke cycle did not return a run_id."
+
+  $runtimeEvents = Get-Json -Url "http://127.0.0.1:8000/runtime/events/latest?limit=100"
+  $runEvents = @($runtimeEvents.items | Where-Object { $_.run_id -eq $runId })
+  $eventTypes = @($runEvents | ForEach-Object { [string]$_.event_type })
+  Assert-True -Condition ($eventTypes -contains "cycle_started") -Message "Runtime smoke did not emit cycle_started."
+  Assert-True -Condition ($eventTypes -contains "cycle_completed") -Message "Runtime smoke did not emit cycle_completed."
+
+  $plannerTruth = Get-Json -Url ("http://127.0.0.1:8000/execution/plans/by-run/{0}" -f $runId)
+  $bridgeTruth = Get-Json -Url ("http://127.0.0.1:8000/execution/bridge/by-run/{0}" -f $runId)
+
+  Assert-True -Condition ($plannerTruth.run_id -eq $runId) -Message "Planner truth run_id mismatch."
+  Assert-True -Condition ($bridgeTruth.run_id -eq $runId) -Message "Bridge diagnostics run_id mismatch."
+  Assert-True -Condition ($bridgeTruth.event_chain_complete -eq $true) -Message "Bridge diagnostics did not report a complete event chain."
+  Assert-True -Condition (@("no_decision","planned_blocked","planned_not_submitted","submitted_no_fill","filled","failed") -contains [string]$bridgeTruth.bridge_state) -Message "Bridge diagnostics returned an unexpected bridge_state."
+  if ([int]$bridgeTruth.submitted_count -eq 0) {
+    Assert-True -Condition (-not [string]::IsNullOrWhiteSpace([string]$bridgeTruth.zero_submit_reason_code)) -Message "Zero-submit bridge diagnostics lacked a reason code."
+  }
+
+  Write-RuntimeArtifactBundle -RunId $runId -RunPayload $runPayload -PlannerTruth $plannerTruth -BridgeTruth $bridgeTruth -RuntimeEvents $runtimeEvents
 
   Write-Host ""
   Write-Host "Local startup smoke passed."

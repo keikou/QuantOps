@@ -5,8 +5,9 @@ import { KpiCard } from '@/components/cards/kpi-card';
 import { ErrorState } from '@/components/shared/error-state';
 import { LoadingState } from '@/components/shared/loading-state';
 import { DataStatusBanner, DataStatusPill, resolveDataStatus } from '@/components/shared/data-status';
+import { RuntimeBlockCard, RuntimeStatusBadgeStrip, RuntimeSummaryCards, RuntimeTimelinePanel } from '@/components/shared/runtime-observability';
 import { SimpleTable } from '@/components/tables/simple-table';
-import { useAlerts, useEquityHistory, useMonitoringSystem, useOverview, useRiskSnapshot, useSchedulerJobs } from '@/lib/api/hooks';
+import { useAlerts, useCommandCenterRuntimeLatest, useEquityHistory, useMonitoringSystem, useOverview, useRiskSnapshot, useSchedulerJobs } from '@/lib/api/hooks';
 
 function fmtMetric(value?: number) {
   if (value == null || Number.isNaN(value)) return '-';
@@ -20,6 +21,7 @@ export function OverviewPage() {
   const monitoring = useMonitoringSystem();
   const risk = useRiskSnapshot();
   const equityHistory = useEquityHistory();
+  const runtime = useCommandCenterRuntimeLatest();
 
   const overviewEnvelope = overview.data;
   const hasOverviewData = Boolean(overviewEnvelope && 'data' in overviewEnvelope && overviewEnvelope.data);
@@ -35,6 +37,7 @@ export function OverviewPage() {
   const displayedOpenAlerts = data?.openAlerts != null ? Math.max(data.openAlerts, openAlertRows.length) : (openAlertRows.length || '-');
   const executionReason = monitoringData?.executionReason || '-';
   const riskData = risk.data?.data;
+  const runtimeData = runtime.data?.data;
   const overviewStatus = resolveDataStatus({ isLoading: overview.isLoading, hasData: Boolean(data), error: overview.error });
   const monitoringStatus = resolveDataStatus({ status: monitoringData?.dataStatus, isLoading: monitoring.isLoading, hasData: Boolean(monitoringData), error: monitoring.error });
   const riskStatus = resolveDataStatus({ status: riskData?.dataStatus, isLoading: risk.isLoading, hasData: Boolean(riskData), error: risk.error });
@@ -63,6 +66,13 @@ export function OverviewPage() {
         <KpiCard title="Net Exposure" value={fmtMetric(data?.netExposure)} />
       </div>
       <div className="text-xs text-slate-400">Equity formula: Total Equity = Used Margin + Free Margin = Balance + Unrealized {data?.asOf ? `| as of ${data.asOf}` : ''}</div>
+      <div className="space-y-3">
+        <div className="flex items-center justify-between gap-3">
+          <div className="text-sm font-medium text-slate-200">Runtime Status</div>
+          <RuntimeStatusBadgeStrip runtime={runtimeData} />
+        </div>
+        <RuntimeSummaryCards runtime={runtimeData} />
+      </div>
       <div className="grid gap-4 xl:grid-cols-3">
         <div className="xl:col-span-2"><PnlLineChart data={chartData ?? []} /></div>
         <div className="card p-4">
@@ -83,6 +93,10 @@ export function OverviewPage() {
             <div>Kill Switch: {riskData?.killSwitch || monitoringData?.killSwitch || '-'}</div>
           </div>
         </div>
+      </div>
+      <div className="grid gap-4 xl:grid-cols-2">
+        <RuntimeBlockCard runtime={runtimeData} />
+        <RuntimeTimelinePanel runtime={runtimeData} compact />
       </div>
       <div className="grid gap-4 xl:grid-cols-2">
         <SimpleTable

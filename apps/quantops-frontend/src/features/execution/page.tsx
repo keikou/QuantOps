@@ -3,8 +3,9 @@
 import { KpiCard } from '@/components/cards/kpi-card';
 import { DataStatusBanner, DataStatusPill, resolveDataStatus } from '@/components/shared/data-status';
 import { LoadingState } from '@/components/shared/loading-state';
+import { RuntimeBlockCard, RuntimeStatusBadgeStrip, RuntimeSummaryCards, RuntimeTimelinePanel } from '@/components/shared/runtime-observability';
 import { SimpleTable } from '@/components/tables/simple-table';
-import { useExecutionLatest, useExecutionOrders, useExecutionPlannerLatest, useExecutionStateLatest, useExecutionSummary } from '@/lib/api/hooks';
+import { useCommandCenterRuntimeLatest, useExecutionLatest, useExecutionOrders, useExecutionPlannerLatest, useExecutionStateLatest, useExecutionSummary } from '@/lib/api/hooks';
 
 function fmtSec(value?: number) {
   if (value == null || Number.isNaN(value)) return '-';
@@ -22,6 +23,7 @@ export default function Page() {
   const orders = useExecutionOrders();
   const planner = useExecutionPlannerLatest();
   const state = useExecutionStateLatest();
+  const runtime = useCommandCenterRuntimeLatest();
 
   if (summary.isLoading && !summary.data) return <LoadingState />;
 
@@ -30,6 +32,7 @@ export default function Page() {
   const orderRows = orders.data?.data ?? [];
   const plannerData = planner.data?.data;
   const stateData = state.data?.data;
+  const runtimeData = runtime.data?.data;
   const plannerItems = plannerData?.items ?? [];
   const plannerRows = plannerItems.length
     ? plannerItems.map((r) => [
@@ -63,6 +66,13 @@ export default function Page() {
         </div>
       </div>
       <DataStatusBanner label="Execution Summary" status={summaryStatus} reason={summary.error instanceof Error ? summary.error.message : undefined} asOf={data?.asOf} />
+      <div className="space-y-3">
+        <div className="flex items-center justify-between gap-3">
+          <div className="text-sm font-medium text-slate-200">Runtime Truth</div>
+          <RuntimeStatusBadgeStrip runtime={runtimeData} />
+        </div>
+        <RuntimeSummaryCards runtime={runtimeData} />
+      </div>
       <div className="page-grid">
         <KpiCard title="Fill Rate" value={fmtMetric(data?.fillRate)} />
         <KpiCard title="Avg Slippage (bps)" value={fmtMetric(data?.avgSlippageBps)} />
@@ -82,6 +92,22 @@ export default function Page() {
           <div>Submitted / Open orders: <span className="text-slate-100">{stateData?.submittedOrderCount ?? '-'} / {stateData?.openOrderCount ?? '-'}</span></div>
         </div>
       </div>
+      <div className="grid gap-4 xl:grid-cols-2">
+        <RuntimeBlockCard runtime={runtimeData} />
+        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 text-sm text-slate-300">
+          <div className="font-medium text-slate-100">Bridge Counters</div>
+          <div className="mt-3 grid gap-2 md:grid-cols-2">
+            <div>Operator state: <span className="text-slate-100">{runtimeData?.operatorState || '-'}</span></div>
+            <div>Planner status: <span className="text-slate-100">{runtimeData?.plannerStatus || '-'}</span></div>
+            <div>Planned count: <span className="text-slate-100">{runtimeData?.plannedCount ?? '-'}</span></div>
+            <div>Submitted count: <span className="text-slate-100">{runtimeData?.submittedCount ?? '-'}</span></div>
+            <div>Blocked count: <span className="text-slate-100">{runtimeData?.blockedCount ?? '-'}</span></div>
+            <div>Filled count: <span className="text-slate-100">{runtimeData?.filledCount ?? '-'}</span></div>
+            <div>Latest transition: <span className="text-slate-100">{runtimeData?.lastTransitionAt || '-'}</span></div>
+          </div>
+        </div>
+      </div>
+      <RuntimeTimelinePanel runtime={runtimeData} />
       <SimpleTable
         headers={['Symbol', 'Side', 'Qty', 'Fill Price', 'Slippage', 'Latency', 'Status']}
         rows={rows.length ? rows.map((r) => [r.symbol, r.side || '-', r.fillQty ?? '-', r.fillPrice ?? '-', r.slippageBps ?? '-', r.latencyMs ?? '-', r.status || '-']) : [['-', '-', '-', '-', '-', '-', 'no fills']]}

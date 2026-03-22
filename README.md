@@ -1,4 +1,4 @@
-# QuantOps Sprint6H-9.2.7.12
+# QuantOps Sprint6H-9.2.8
 
 QuantOps is a local integrated trading operations workspace composed of three main applications:
 
@@ -6,7 +6,7 @@ QuantOps is a local integrated trading operations workspace composed of three ma
 - `apps/quantops-api`: the QuantOps control-plane and aggregation API
 - `apps/quantops-frontend`: the Next.js operator GUI
 
-The current version focuses on stabilized local startup, frontend-to-backend truth binding, reduced slow GUI-facing API paths, debug/provenance surfaces for operator validation, and the first CI/regression-pack hardening for the Sprint6H stack.
+The current version focuses on runtime observability and operator truth telemetry on top of the stabilized local stack: canonical runtime events/reasons, planner and execution-bridge diagnostics, command-center runtime aggregation, run-detail drilldown, runtime diagnostic bundles, and the previously completed CI/regression-pack hardening for the Sprint6H stack.
 
 ## Project Summary
 
@@ -39,6 +39,11 @@ The repo also contains `source_of_truth/` reference implementations and supporti
 - typed API normalization and query hooks
 - scoped status rendering for degraded, stale, and no-data states
 - debug/status UI components for operator visibility
+- runtime observability surfaces for:
+  - timeline and block/degraded status
+  - truth-based runtime badges and summary cards
+  - run-detail drilldown at `/execution/runs/[runId]`
+  - local runtime diagnostic bundle path visibility
 
 ### QuantOps API
 
@@ -64,6 +69,10 @@ The repo also contains `source_of_truth/` reference implementations and supporti
 - request timing instrumentation for handler, serialization, and total request time
 - debug/provenance endpoints for risk, monitoring, execution, overview, and portfolio validation
 - live bridge logic from QuantOps to V12 for execution and overview truth
+- command-center runtime aggregation for:
+  - latest runtime truth
+  - run-scoped debug/runtime drilldown
+  - artifact bundle detection for local smoke outputs
 
 ### V12 API
 
@@ -71,10 +80,13 @@ The repo also contains `source_of_truth/` reference implementations and supporti
 - strategy, execution, portfolio, analytics, scheduler, market, runtime, and governance route surfaces
 - startup paper loop support for local integrated runs
 - upstream data source for QuantOps API aggregation
+- runtime event/reason truth store and by-run diagnostics routes
+- planner truth and execution-bridge diagnostics routes used by QuantOps run-detail pages
 
 ## TODO
 
-- continue operator UX cleanup and debug discoverability across frontend pages
+- add recent-runs / historical triage views after the current single-run drilldown flow
+- continue operator UX cleanup around artifact presentation and evidence portability
 - expand end-to-end validation for live GUI flows and slow first-load paths
 - harden remaining write flows and permission gating
 - add more build/test automation across the three-app stack
@@ -122,6 +134,8 @@ powershell -ExecutionPolicy Bypass -File test_bundle/scripts/run_local_startup_s
 ```
 
 This smoke script starts the three local services, checks core health routes, verifies the frontend home page and QuantOps overview endpoint, and then shuts the started processes down so the next run begins clean.
+
+It also runs a paper cycle, validates runtime observability truth for the returned `run_id`, and writes a timestamped diagnostic bundle under `test_bundle/artifacts/runtime_diagnostics/`.
 
 ### Startup behavior
 

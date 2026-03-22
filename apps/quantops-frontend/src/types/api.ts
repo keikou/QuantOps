@@ -254,3 +254,86 @@ export type ExecutionState = {
   asOf: string;
   blockReasons?: Array<{ code: string; severity?: string; message?: string }>;
 };
+
+export type RuntimeTimelineEvent = {
+  eventType: string;
+  summary: string;
+  severity: string;
+  status: string;
+  reasonCode?: string;
+  symbol?: string;
+  timestamp: string;
+};
+
+export type CommandCenterRuntimeLatest = {
+  status: string;
+  runId?: string;
+  cycleId?: string;
+  bridgeState: string;
+  operatorState: string;
+  plannerStatus: string;
+  plannedCount: number;
+  submittedCount: number;
+  blockedCount: number;
+  filledCount: number;
+  eventChainComplete: boolean;
+  latestReasonCode?: string;
+  latestReasonSummary?: string;
+  blockingComponent?: string;
+  degraded: boolean;
+  degradedFlags: string[];
+  operatorMessage?: string;
+  generatedAt?: string;
+  lastTransitionAt?: string;
+  lastSuccessfulFillAt?: string;
+  lastSuccessfulPortfolioUpdateAt?: string;
+  lastCycleCompletedAt?: string;
+  debugPath?: string;
+  detailPath?: string;
+  timeline: RuntimeTimelineEvent[];
+};
+
+export type CommandCenterRuntimeDebug = {
+  scope: string;
+  status: string;
+  source: string;
+  reason?: string;
+  asOf?: string;
+  timings?: { snapshotAgeSec?: number };
+  summary: {
+    runId?: string;
+    cycleId?: string;
+    bridgeState?: string;
+    operatorState?: string;
+    plannerStatus?: string;
+    plannedCount?: number;
+    submittedCount?: number;
+    blockedCount?: number;
+    filledCount?: number;
+    eventChainComplete?: boolean;
+    latestReasonCode?: string;
+    latestReasonSummary?: string;
+    blockingComponent?: string;
+    operatorMessage?: string;
+    degraded?: boolean;
+    degradedFlags?: string[];
+    lastSuccessfulFillAt?: string;
+    lastSuccessfulPortfolioUpdateAt?: string;
+    lastCycleCompletedAt?: string;
+  };
+  provenance?: Record<string, unknown> & {
+    artifactBundle?: {
+      runId?: string;
+      path?: string;
+      name?: string;
+    };
+  };
+  counts?: Record<string, number>;
+  timeline: RuntimeTimelineEvent[];
+  raw: {
+    planner?: Record<string, unknown>;
+    bridge?: Record<string, unknown>;
+    events?: Array<Record<string, unknown>>;
+    reasons?: Array<Record<string, unknown>>;
+  };
+};

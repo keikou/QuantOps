@@ -4,6 +4,8 @@
 
 It also adds lightweight repo-level guard checks for startup hardening, proxy URL normalization, and frontend timeout policy.
 
+`Sprint6H-9.2.8` extends this with a V12-side runtime observability pack that protects the event chain, planner truth, and bridge diagnostics contract.
+
 ## Pack Layout
 
 ### `truth`
@@ -65,6 +67,33 @@ Run all packs:
 
 The script creates an isolated DuckDB file under `runtime/` for each pack and sets `V12_MOCK_MODE=true` so the checks remain deterministic in CI and local development.
 
+## V12 Runtime Observability Pack
+
+Purpose:
+Protect the runtime event chain and the operator-facing planner/bridge diagnostics derived from it.
+
+Script:
+- `test_bundle/scripts/run_v12_runtime_observability_pack.ps1`
+
+Pack names:
+- `blocked`
+- `no_op`
+- `degraded`
+- `success`
+- `all`
+
+Coverage:
+- blocked runtime cycles retain explicit reason codes
+- no-decision cycles retain explicit zero-submit reasons
+- stale-price and submitted-no-fill paths stay observable
+- planner truth and bridge diagnostics stay aligned with runtime events
+
+Run all:
+
+```powershell
+./test_bundle/scripts/run_v12_runtime_observability_pack.ps1 -Pack all
+```
+
 ## Runtime Guard Checks
 
 These checks are narrower than the pytest packs and are intended to protect operational hardening that is easy to regress accidentally in scripts or frontend config:
@@ -84,3 +113,4 @@ Coverage:
 - `CI-007` heavy frontend routes still keep their extended timeout budgets
 - `CI-008` debug routes keep a stable envelope contract across risk, monitoring, execution, overview, and portfolio
 - `CI-010` optional Windows smoke can run the real local startup path through GitHub Actions when invoked manually
+- `QOPS-928-010` local startup smoke now asserts the runtime event chain and planner/bridge diagnostics after a real paper cycle

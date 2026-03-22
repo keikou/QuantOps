@@ -3,6 +3,8 @@ from __future__ import annotations
 from time import perf_counter
 
 from ai_hedge_bot.app.container import CONTAINER
+from ai_hedge_bot.contracts.reason_codes import EXECUTION_DISABLED, build_reason
+from ai_hedge_bot.contracts.runtime_events import CYCLE_COMPLETED, CYCLE_FAILED, CYCLE_STARTED, build_runtime_event
 from ai_hedge_bot.core.clock import utc_now_iso
 from ai_hedge_bot.core.ids import new_cycle_id
 from ai_hedge_bot.execution.state_machine import ExecutionStateInput, classify_execution_state
@@ -144,6 +146,9 @@ class RuntimeService:
             }),
         })
 
+    def _append_runtime_event(self, payload: dict) -> None:
+        self.runtime_repo.create_event(payload)
+
     def halt_trading(self, note: str = "Kill switch triggered", actor: str = "system") -> dict:
         state = self.set_trading_state("halted", note)
         cancelled_orders = self.cancel_open_execution_orders("risk_halted")
@@ -186,16 +191,46 @@ class RuntimeService:
     def run_once(self, mode: str | None = None, job_name: str = "runtime_run_once", triggered_by: str = "api") -> dict:
         self.seed_defaults()
         trading_state = self.get_trading_state()
-        if str(trading_state.get("trading_state", "running")).lower() in {"halted", "paused"}:
+        blocked_state = str(trading_state.get("trading_state", "running")).lower()
+        if blocked_state in {"halted", "paused"}:
+            run_id = new_cycle_id()
+            cycle_id = new_cycle_id()
+            as_of = utc_now_iso()
+            reason = build_reason(
+                EXECUTION_DISABLED,
+                detail={
+                    "trading_state": blocked_state,
+                    "note": trading_state.get("note", ""),
+                },
+            )
+            self._append_runtime_event(
+                build_runtime_event(
+                    event_type=CYCLE_FAILED,
+                    run_id=run_id,
+                    cycle_id=cycle_id,
+                    mode=mode or CONTAINER.mode.value,
+                    source="runtime_service",
+                    severity=reason["severity"],
+                    status="blocked",
+                    summary=f"Runtime blocked by trading_state={blocked_state}",
+                    reason_code=reason["code"],
+                    details=reason["details"],
+                    timestamp=as_of,
+                )
+            )
             return {
                 "status": "blocked",
                 "blocked": True,
+                "run_id": run_id,
+                "cycle_id": cycle_id,
                 "trading_state": trading_state.get("trading_state"),
                 "message": f"runtime blocked: trading_state={trading_state.get('trading_state')}",
-                "as_of": utc_now_iso(),
+                "reason_code": reason["code"],
+                "as_of": as_of,
             }
         effective_mode = mode or CONTAINER.mode.value
         ctx = RunContext(job_name=job_name, mode=effective_mode, triggered_by=triggered_by)
+        cycle_id = new_cycle_id()
         self.runtime_repo.create_run(
             {
                 "run_id": ctx.run_id,
@@ -236,9 +271,22 @@ class RuntimeService:
                 "error_message": None,
             }
         )
+        self._append_runtime_event(
+            build_runtime_event(
+                event_type=CYCLE_STARTED,
+                run_id=ctx.run_id,
+                cycle_id=cycle_id,
+                mode=ctx.mode,
+                source="runtime_service",
+                status="running",
+                summary=f"Runtime cycle started via {ctx.triggered_by}",
+                details={"job_name": ctx.job_name, "triggered_by": ctx.triggered_by},
+                timestamp=ctx.started_at,
+            )
+        )
         try:
             step = self._start_step(ctx, "orchestrator_cycle")
-            result = self.orchestrator.run(ctx.mode, run_id=ctx.run_id)
+            result = self.orchestrator.run(ctx.mode, run_id=ctx.run_id, cycle_id=cycle_id)
             self._finish_step(step, payload=result)
 
             checkpoint_payload = {
@@ -276,6 +324,19 @@ class RuntimeService:
                     "actor": triggered_by,
                 }
             )
+            self._append_runtime_event(
+                build_runtime_event(
+                    event_type=CYCLE_COMPLETED,
+                    run_id=ctx.run_id,
+                    cycle_id=cycle_id,
+                    mode=ctx.mode,
+                    source="runtime_service",
+                    status="ok",
+                    summary="Runtime cycle completed successfully.",
+                    details={"result_status": result.get("status"), "details": result.get("details", {})},
+                    timestamp=finished_at,
+                )
+            )
             return {"status": "ok", "run_id": ctx.run_id, "mode": ctx.mode, "result": result}
         except Exception as exc:
             finished_at = utc_now_iso()
@@ -292,6 +353,20 @@ class RuntimeService:
                     "payload_json": CONTAINER.runtime_store.to_json({"error": str(exc)}),
                     "actor": triggered_by,
                 }
+            )
+            self._append_runtime_event(
+                build_runtime_event(
+                    event_type=CYCLE_FAILED,
+                    run_id=ctx.run_id,
+                    cycle_id=cycle_id,
+                    mode=ctx.mode,
+                    source="runtime_service",
+                    severity="critical",
+                    status="failed",
+                    summary="Runtime cycle failed.",
+                    details={"error": str(exc)},
+                    timestamp=finished_at,
+                )
             )
             raise
 

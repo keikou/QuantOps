@@ -3,9 +3,21 @@ from __future__ import annotations
 from statistics import median
 
 from ai_hedge_bot.app.container import CONTAINER
+from ai_hedge_bot.contracts.reason_codes import (
+    DEGRADED_MODE,
+    EXECUTION_DISABLED,
+    MISSING_PRICE,
+    NO_POSITION_DELTA,
+    ORDER_REJECTED,
+    RISK_GUARD_BLOCK,
+    STALE_MARKET_DATA,
+    build_reason,
+)
+from ai_hedge_bot.contracts.runtime_events import FILL_RECORDED, ORDER_BLOCKED, ORDER_SUBMITTED, PLANNER_GENERATED, PORTFOLIO_UPDATED, build_runtime_event
 from ai_hedge_bot.orchestrator.cycle_runner import run_mode_cycle
 from ai_hedge_bot.core.ids import new_cycle_id, new_signal_id
 from ai_hedge_bot.data.storage.jsonl_logger import JsonlLogger
+from ai_hedge_bot.repositories.runtime_repository import RuntimeRepository
 from ai_hedge_bot.repositories.sprint5_repository import Sprint5Repository
 from ai_hedge_bot.signal.signal_service import SignalService
 from ai_hedge_bot.portfolio.portfolio_service_phaseg import PhaseGPortfolioService
@@ -28,6 +40,7 @@ class OrchestrationService:
         self._truth = TruthEngine()
         self._truth.ensure_schema()
         self._planner = ExecutionPlanner()
+        self._runtime_repo = RuntimeRepository()
 
     def _cancel_open_execution_orders(self, reason: str) -> int:
         count_row = CONTAINER.runtime_store.fetchone_dict(
@@ -49,7 +62,38 @@ class OrchestrationService:
             )
         return cancelled
 
-    def run(self, mode: str, run_id: str | None = None) -> dict:
+    def _append_runtime_events(self, rows: list[dict]) -> None:
+        self._runtime_repo.create_events(rows)
+
+    def _bridge_reason_event(
+        self,
+        *,
+        result: dict,
+        mode: str,
+        code: str,
+        summary: str,
+        severity: str,
+        symbol: str | None = None,
+        details: dict | None = None,
+    ) -> dict:
+        payload = dict(details or {})
+        payload.setdefault('blocking_component', 'execution_bridge')
+        return build_runtime_event(
+            event_type=ORDER_BLOCKED,
+            run_id=result['run_id'],
+            cycle_id=result['cycle_id'],
+            mode=mode,
+            source='execution_bridge',
+            severity=severity,
+            status='blocked',
+            summary=summary,
+            reason_code=code,
+            symbol=symbol,
+            details=payload,
+            timestamp=result['timestamp'],
+        )
+
+    def run(self, mode: str, run_id: str | None = None, cycle_id: str | None = None) -> dict:
         self._truth.ensure_initial_capital()
         state_row = CONTAINER.runtime_store.fetchone_dict(
             "SELECT trading_state, note, CAST(created_at AS VARCHAR) AS as_of FROM runtime_control_state ORDER BY created_at DESC LIMIT 1"
@@ -73,10 +117,10 @@ class OrchestrationService:
                 latest_order_id=None,
                 latest_fill_id=None,
                 reasons=[{
-                    'code': 'risk_halted' if state_name == 'halted' else 'paused',
-                    'severity': 'critical' if state_name == 'halted' else 'high',
-                    'message': f"Execution blocked by trading_state={state_name}",
-                    'details': {**trading_state, 'cancelled_open_orders': cancelled_orders},
+                'code': 'risk_halted' if state_name == 'halted' else 'paused',
+                'severity': 'critical' if state_name == 'halted' else 'high',
+                'message': f"Execution blocked by trading_state={state_name}",
+                'details': {**trading_state, 'cancelled_open_orders': cancelled_orders},
                 }],
             )
             return {
@@ -91,6 +135,8 @@ class OrchestrationService:
         result = run_mode_cycle(mode)
         if run_id:
             result['run_id'] = run_id
+        if cycle_id:
+            result['cycle_id'] = cycle_id
         signal_summary = self._record_signal_runtime(result, mode)
         portfolio_summary = self._record_portfolio_runtime(result, mode)
         prices = self._truth.synthesize_prices(portfolio_summary['decisions'], result['timestamp'], mode)
@@ -329,6 +375,22 @@ class OrchestrationService:
             'summary_json': CONTAINER.runtime_store.to_json({'target_symbols': [p['symbol'] for p in positions]}),
         })
         CONTAINER.latest_portfolio_diagnostics = prepared['diagnostics']
+        self._append_runtime_events([
+            build_runtime_event(
+                event_type=PORTFOLIO_UPDATED,
+                run_id=result['run_id'],
+                cycle_id=result['cycle_id'],
+                mode=mode,
+                source='orchestration_service',
+                summary=f"Portfolio updated with {len(positions)} target positions.",
+                details={
+                    'target_count': len(positions),
+                    'gross_exposure': round(gross, 6),
+                    'cash_fraction': cash_fraction,
+                },
+                timestamp=created_at,
+            )
+        ])
         return {'decisions': decisions, 'target_count': len(positions), 'gross_exposure': round(gross, 6)}
 
     def _record_execution_runtime(self, result: dict, mode: str, decisions: list[dict], market_prices: list[dict] | None = None) -> dict:
@@ -339,11 +401,15 @@ class OrchestrationService:
         trading_state = str((state_row or {}).get('trading_state', 'running') or 'running').lower()
         if trading_state in {'halted', 'paused'}:
             cancelled_orders = self._cancel_open_execution_orders('risk_halted' if trading_state == 'halted' else 'paused')
+            blocked_reason = build_reason(
+                EXECUTION_DISABLED,
+                detail={**(state_row or {}), 'cancelled_open_orders': cancelled_orders},
+            )
             reasons = [{
-                'code': 'risk_halted' if trading_state == 'halted' else 'paused',
-                'severity': 'critical' if trading_state == 'halted' else 'high',
-                'message': f'Execution planner skipped because trading_state={trading_state}',
-                'details': {**(state_row or {}), 'cancelled_open_orders': cancelled_orders},
+                'code': blocked_reason['code'],
+                'severity': blocked_reason['severity'],
+                'message': blocked_reason['message'],
+                'details': blocked_reason['details'],
             }]
             self._record_execution_state(
                 as_of=created_at,
@@ -375,6 +441,7 @@ class OrchestrationService:
         plans = []
         fills = []
         orders = []
+        blocked_events = []
         shadow_orders = []
         shadow_fills = []
         latencies = []
@@ -392,9 +459,45 @@ class OrchestrationService:
         capital_base = float((latest_equity_row or {}).get('total_equity', 0.0) or 0.0)
         available_margin = float((latest_equity_row or {}).get('available_margin', capital_base) or capital_base)
         capital_base = capital_base if capital_base > 1000.0 else self._truth.initial_capital
+        if not decisions:
+            blocked_events.append(
+                self._bridge_reason_event(
+                    result=result,
+                    mode=mode,
+                    code=NO_POSITION_DELTA,
+                    summary='Planner received no actionable portfolio decisions.',
+                    severity='info',
+                    details={
+                        'decision_count': 0,
+                        'input_snapshot': {
+                            'capital_base': capital_base,
+                            'available_margin': available_margin,
+                        },
+                    },
+                )
+            )
         for idx, decision in enumerate(decisions):
             weight = float(decision['target_weight'])
             quote = price_map.get(str(decision['symbol'])) or {}
+            used_price_fallback = str(decision['symbol']) not in price_map
+            if used_price_fallback:
+                blocked_events.append(
+                    self._bridge_reason_event(
+                        result=result,
+                        mode=mode,
+                        code=MISSING_PRICE,
+                        summary=f"Missing live quote for {decision['symbol']}; using synthetic fallback pricing.",
+                        severity='high',
+                        symbol=decision['symbol'],
+                        details={
+                            'blocking_component': 'execution_planner',
+                            'decision_snapshot': {
+                                'side': decision['side'],
+                                'target_weight': decision['target_weight'],
+                            },
+                        },
+                    )
+                )
             arrival_mid = float(quote.get('mid', 100.0 + idx * 5.0) or (100.0 + idx * 5.0))
             bid = float(quote.get('bid', arrival_mid) or arrival_mid)
             ask = float(quote.get('ask', arrival_mid) or arrival_mid)
@@ -404,6 +507,27 @@ class OrchestrationService:
             current_signed_qty = float(current_positions.get(str(decision['symbol']), 0.0) or 0.0)
             delta_qty = target_signed_qty - current_signed_qty
             if abs(delta_qty) * arrival_mid < 25.0:
+                blocked_events.append(
+                    self._bridge_reason_event(
+                        result=result,
+                        mode=mode,
+                        code=NO_POSITION_DELTA,
+                        summary=f"No actionable delta for {decision['symbol']}.",
+                        severity='info',
+                        symbol=decision['symbol'],
+                        details={
+                            'blocking_component': 'execution_planner',
+                            'arrival_mid': arrival_mid,
+                            'target_signed_qty': target_signed_qty,
+                            'current_signed_qty': current_signed_qty,
+                            'delta_qty': delta_qty,
+                            'decision_snapshot': {
+                                'side': decision['side'],
+                                'target_weight': decision['target_weight'],
+                            },
+                        },
+                    )
+                )
                 continue
             qty = round(max(abs(delta_qty), 1e-6), 8)
             trade_side = 'buy' if delta_qty > 0 else 'sell'
@@ -420,6 +544,26 @@ class OrchestrationService:
                 qty = round(max(available_margin / max(arrival_mid, 1e-9), 0.0), 8)
                 required_margin = qty * arrival_mid
                 if qty <= 0.0:
+                    blocked_events.append(
+                        self._bridge_reason_event(
+                            result=result,
+                            mode=mode,
+                            code=RISK_GUARD_BLOCK,
+                            summary=f"Risk guard blocked {decision['symbol']} due to margin limits.",
+                            severity='high',
+                            symbol=decision['symbol'],
+                            details={
+                                'blocking_component': 'risk_guard',
+                                'arrival_mid': arrival_mid,
+                                'required_margin': required_margin,
+                                'available_margin': available_margin,
+                                'decision_snapshot': {
+                                    'side': decision['side'],
+                                    'target_weight': decision['target_weight'],
+                                },
+                            },
+                        )
+                    )
                     continue
             plan_meta = self._planner.build_plan(
                 symbol=decision['symbol'],
@@ -454,6 +598,27 @@ class OrchestrationService:
                 'slice_count': plan_meta['slice_count'],
                 'metadata_json': CONTAINER.runtime_store.to_json(plan_meta),
             })
+            if plan_meta.get('stale_quote'):
+                blocked_events.append(
+                    self._bridge_reason_event(
+                        result=result,
+                        mode=mode,
+                        code=STALE_MARKET_DATA,
+                        summary=f"Stale quote degraded execution for {decision['symbol']}.",
+                        severity='high',
+                        symbol=decision['symbol'],
+                        details={
+                            'blocking_component': 'execution_planner',
+                            'plan_id': plan_id,
+                            'quote_age_sec': plan_meta.get('quote_age_sec'),
+                            'plan_snapshot': {
+                                'algo': plan_meta.get('algo'),
+                                'route': plan_meta.get('route'),
+                                'slice_count': plan_meta.get('slice_count'),
+                            },
+                        },
+                    )
+                )
             child_orders = list(plan_meta.get('child_orders') or [{'child_index': 1, 'child_qty': qty, 'route': plan_meta['route'], 'style': plan_meta['algo'], 'time_bucket_sec': 0}])
             observed_volume_qty = float(plan_meta.get('observed_volume_qty', 0.0) or 0.0)
             submitted_count = 0
@@ -623,6 +788,116 @@ class OrchestrationService:
             latest_fill_id=latest_fill_id,
             reasons=reasons,
         )
+        runtime_events: list[dict] = []
+        planner_status = 'ok'
+        planner_severity = 'info'
+        planner_summary = f"Planner generated {len(plans)} execution plans."
+        planner_reason_code = None
+        if not plans:
+            planner_status = 'blocked'
+            planner_severity = 'info'
+            planner_summary = 'Planner generated zero execution plans.'
+            planner_reason_code = NO_POSITION_DELTA if decisions == [] else (blocked_events[0].get('reason_code') if blocked_events else NO_POSITION_DELTA)
+        elif child_order_count == 0:
+            planner_status = 'blocked'
+            planner_severity = 'high'
+            planner_summary = 'Planner generated plans but bridge submitted zero child orders.'
+            planner_reason_code = blocked_events[0].get('reason_code') if blocked_events else DEGRADED_MODE
+        runtime_events.append(
+            build_runtime_event(
+                event_type=PLANNER_GENERATED,
+                run_id=result['run_id'],
+                cycle_id=result['cycle_id'],
+                mode=mode,
+                source='execution_planner',
+                status=planner_status,
+                severity=planner_severity,
+                summary=planner_summary,
+                reason_code=planner_reason_code,
+                details={
+                    'decision_count': len(decisions),
+                    'plan_count': len(plans),
+                    'order_count': child_order_count,
+                    'fill_count': child_fill_count,
+                    'blocked_count': len(blocked_events),
+                },
+                timestamp=created_at,
+            )
+        )
+        if plans and child_order_count == 0:
+            runtime_events.append(
+                self._bridge_reason_event(
+                    result=result,
+                    mode=mode,
+                    code=blocked_events[0].get('reason_code') if blocked_events else DEGRADED_MODE,
+                    summary='Execution bridge produced zero child orders for generated plans.',
+                    severity='high',
+                    symbol=plans[0].get('symbol') if len(plans) == 1 else None,
+                    details={
+                        'plan_count': len(plans),
+                        'blocked_count': len(blocked_events),
+                        'blocking_component': 'execution_bridge',
+                    },
+                )
+            )
+        if child_order_count > 0 and child_fill_count == 0:
+            runtime_events.append(
+                self._bridge_reason_event(
+                    result=result,
+                    mode=mode,
+                    code=ORDER_REJECTED,
+                    summary='Child orders were submitted but no fills were recorded.',
+                    severity='high',
+                    details={
+                        'order_count': child_order_count,
+                        'fill_count': child_fill_count,
+                        'blocking_component': 'execution_bridge',
+                    },
+                )
+            )
+        runtime_events.extend(
+            build_runtime_event(
+                event_type=ORDER_SUBMITTED,
+                run_id=result['run_id'],
+                cycle_id=result['cycle_id'],
+                mode=mode,
+                source='execution_planner',
+                status='ok',
+                summary=f"Submitted {order['side']} {order['symbol']} order.",
+                symbol=order['symbol'],
+                details={
+                    'order_id': order['order_id'],
+                    'plan_id': order['plan_id'],
+                    'qty': order['qty'],
+                    'status': order['status'],
+                },
+                timestamp=created_at,
+            )
+            for order in orders
+        )
+        runtime_events.extend(
+            build_runtime_event(
+                event_type=FILL_RECORDED,
+                run_id=result['run_id'],
+                cycle_id=result['cycle_id'],
+                mode=mode,
+                source='execution_bridge',
+                status='ok',
+                summary=f"Recorded fill for {fill['symbol']}.",
+                symbol=fill['symbol'],
+                details={
+                    'fill_id': fill['fill_id'],
+                    'plan_id': fill['plan_id'],
+                    'order_id': fill['order_id'],
+                    'fill_qty': fill['fill_qty'],
+                    'fill_price': fill['fill_price'],
+                },
+                timestamp=created_at,
+            )
+            for fill in fills
+        )
+        runtime_events.extend(blocked_events)
+        self._append_runtime_events(runtime_events)
         if mode == 'shadow':
             pnl_row = {
                 'snapshot_id': new_cycle_id(),

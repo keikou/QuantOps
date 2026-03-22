@@ -41,10 +41,23 @@ async def execution_latest(service: CommandCenterService = Depends(get_command_c
     return CommandCenterExecutionLatestResponse(**await service.get_execution_latest())
 
 
+@router.get('/runtime/latest')
+async def runtime_latest(service: CommandCenterService = Depends(get_command_center_service)) -> dict:
+    return await service.get_runtime_latest()
+
+
 @router.get('/debug/execution')
 async def execution_debug(request: Request, service: CommandCenterService = Depends(get_command_center_service)) -> dict:
     started = time.perf_counter()
     payload = await service.get_execution_debug()
+    request.state.handler_duration_ms = round((time.perf_counter() - started) * 1000.0, 2)
+    return payload
+
+
+@router.get('/debug/runtime')
+async def runtime_debug(request: Request, run_id: str | None = None, service: CommandCenterService = Depends(get_command_center_service)) -> dict:
+    started = time.perf_counter()
+    payload = await service.get_runtime_debug(run_id=run_id)
     request.state.handler_duration_ms = round((time.perf_counter() - started) * 1000.0, 2)
     return payload
 
