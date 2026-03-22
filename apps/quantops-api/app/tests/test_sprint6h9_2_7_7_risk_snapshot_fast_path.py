@@ -93,7 +93,8 @@ def test_build_snapshot_parallelizes_upstream_calls() -> None:
 
     assert payload["gross_exposure"] == 0.6
     assert payload["net_exposure"] == 0.2
-    assert payload["data_status"] == "ok"
-    assert payload["data_source"] == "live"
-    assert payload["is_stale"] is False
+    assert payload["alert_state"] == "ok"
+    assert "data_status" not in payload
+    assert "data_source" not in payload
+    assert "is_stale" not in payload
     assert elapsed < 0.15

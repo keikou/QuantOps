@@ -1,0 +1,35 @@
+name: QuantOps API Regressions
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  regressions:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        pack:
+          - truth
+          - stale
+          - debug
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install QuantOps API dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r apps/quantops-api/requirements.txt pytest
+
+      - name: Run regression pack
+        shell: pwsh
+        run: ./test_bundle/scripts/run_quantops_api_regression_pack.ps1 -Pack ${{ matrix.pack }}

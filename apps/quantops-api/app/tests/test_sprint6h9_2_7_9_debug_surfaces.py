@@ -1,11 +1,15 @@
 from __future__ import annotations
 
 import os
+from pathlib import Path
+from tempfile import gettempdir
 
 from fastapi.testclient import TestClient
 
-DB_PATH = '/tmp/quantops_sprint6h9_2_7_9_debug.duckdb'
-os.environ['QUANTOPS_DB_PATH'] = DB_PATH
+DB_PATH = Path(gettempdir()) / 'quantops_sprint6h9_2_7_9_debug.sqlite3'
+if DB_PATH.exists():
+    DB_PATH.unlink()
+os.environ['QUANTOPS_DB_PATH'] = str(DB_PATH)
 os.environ.setdefault('V12_MOCK_MODE', 'true')
 
 from app.db.migrate import main as migrate_main

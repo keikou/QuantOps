@@ -1,4 +1,4 @@
-# QuantOps Sprint6H-9.2.7.2
+# QuantOps Sprint6H-9.2.7.12
 
 QuantOps is a local integrated trading operations workspace composed of three main applications:
 
@@ -6,7 +6,7 @@ QuantOps is a local integrated trading operations workspace composed of three ma
 - `apps/quantops-api`: the QuantOps control-plane and aggregation API
 - `apps/quantops-frontend`: the Next.js operator GUI
 
-The current version focuses on connecting the frontend to real backend data, improving truth binding between V12 and QuantOps, reducing slow GUI-facing API paths, and exposing debug/provenance surfaces for operator validation.
+The current version focuses on stabilized local startup, frontend-to-backend truth binding, reduced slow GUI-facing API paths, debug/provenance surfaces for operator validation, and the first CI/regression-pack hardening for the Sprint6H stack.
 
 ## Project Summary
 
@@ -80,6 +80,13 @@ The repo also contains `source_of_truth/` reference implementations and supporti
 - add more build/test automation across the three-app stack
 - review and reduce duplicated historical/reference content under `source_of_truth/`
 - continue cleanup of legacy sprint-era docs and backup files where no longer needed
+
+## CI And Regression Packs
+
+- GitHub Actions frontend build workflow: `.github/workflows/frontend-build.yml`
+- GitHub Actions QuantOps API regression workflow: `.github/workflows/quantops-api-regressions.yml`
+- QuantOps API regression pack runner: `test_bundle/scripts/run_quantops_api_regression_pack.ps1`
+- Regression pack documentation: `docs/ci_regression_packs.md`
 
 ## How To Run
 
