@@ -144,6 +144,20 @@ def portfolio_overview() -> dict:
     }
 
 
+@router.get('/overview-summary/latest')
+def portfolio_overview_summary_latest() -> dict:
+    payload = _repo.latest_portfolio_overview_summary()
+    summary = payload.get('summary') or {}
+    snapshot = payload.get('snapshot') or {}
+    return {
+        'status': 'ok',
+        'summary': summary,
+        'snapshot': snapshot,
+        'positions': [],
+        'as_of': summary.get('as_of') or snapshot.get('created_at'),
+    }
+
+
 @router.get('/positions/latest')
 def portfolio_positions_latest() -> dict:
     overview = _repo.latest_portfolio_overview()

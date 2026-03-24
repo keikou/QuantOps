@@ -105,7 +105,7 @@ class V12Client:
         return await self._request_first("GET", ["/dashboard/global"])
 
     async def get_portfolio_dashboard(self) -> dict[str, Any]:
-        return await self._request_first("GET", ["/portfolio/overview", "/dashboard/portfolio"])
+        return await self._request_first("GET", ["/portfolio/overview-summary/latest", "/portfolio/overview", "/dashboard/portfolio"])
 
     async def get_portfolio_analytics(self) -> dict[str, Any]:
         return await self._request_first("GET", ["/portfolio/diagnostics/latest", "/portfolio/overview"])

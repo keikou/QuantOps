@@ -228,6 +228,71 @@ class Sprint5Repository:
             'positions': positions,
         }
 
+    def latest_portfolio_overview_summary(self) -> dict[str, Any]:
+        equity = self.latest_equity_snapshot() or {}
+        active_version = self._active_position_snapshot_version()
+        if active_version:
+            latest_positions = self.store.fetchall_dict(
+                """
+                SELECT symbol, strategy_id, alpha_family, exposure_notional, quote_time, stale
+                FROM position_snapshots_latest
+                WHERE snapshot_version = ?
+                ORDER BY exposure_notional DESC, symbol ASC
+                """,
+                [active_version],
+            )
+        else:
+            latest_positions = self.store.fetchall_dict(
+                """
+                SELECT symbol, strategy_id, alpha_family, exposure_notional, quote_time, stale
+                FROM position_snapshots_latest
+                ORDER BY exposure_notional DESC, symbol ASC
+                """
+            )
+        latest_run = self.store.fetchone_dict(
+            """
+            SELECT run_id, created_at
+            FROM execution_fills
+            ORDER BY created_at DESC
+            LIMIT 1
+            """
+        ) or {}
+        summary = {
+            'total_equity': float(equity.get('total_equity', 0.0) or 0.0),
+            'cash_balance': float(equity.get('cash_balance', 0.0) or 0.0),
+            'free_cash': float(equity.get('free_cash', equity.get('cash_balance', 0.0)) or 0.0),
+            'used_margin': float(equity.get('used_margin', 0.0) or 0.0),
+            'collateral_equity': float(equity.get('collateral_equity', float(equity.get('free_cash', 0.0) or 0.0) + float(equity.get('used_margin', 0.0) or 0.0)) or 0.0),
+            'available_margin': float(equity.get('available_margin', 0.0) or 0.0),
+            'margin_utilization': float(equity.get('margin_utilization', 0.0) or 0.0),
+            'gross_exposure': float(equity.get('gross_exposure', 0.0) or 0.0),
+            'net_exposure': float(equity.get('net_exposure', 0.0) or 0.0),
+            'long_exposure': float(equity.get('long_exposure', 0.0) or 0.0),
+            'short_exposure': float(equity.get('short_exposure', 0.0) or 0.0),
+            'realized_pnl': float(equity.get('realized_pnl', 0.0) or 0.0),
+            'unrealized_pnl': float(equity.get('unrealized_pnl', 0.0) or 0.0),
+            'fees_paid': float(equity.get('fees_paid', 0.0) or 0.0),
+            'drawdown': float(equity.get('drawdown', 0.0) or 0.0),
+            'as_of': equity.get('snapshot_time'),
+            'quotes_as_of': max((row.get('quote_time') for row in latest_positions if row.get('quote_time')), default=None),
+            'stale_positions': sum(1 for row in latest_positions if row.get('stale')),
+            'position_row_count': len(latest_positions),
+            'strategy_row_count': len({str(row.get('strategy_id') or '') for row in latest_positions}),
+            'active_snapshot_version': active_version,
+            'source_snapshot_time': equity.get('snapshot_time'),
+        }
+        return {
+            'status': 'ok',
+            'summary': summary,
+            'snapshot': {
+                'created_at': equity.get('snapshot_time') or latest_run.get('created_at'),
+                'run_id': latest_run.get('run_id'),
+                'target_count': len(latest_positions),
+                'active_snapshot_version': active_version,
+            },
+            'positions': [],
+        }
+
     def latest_execution_quality(self) -> dict[str, Any]:
         quality = self.store.fetchone_dict(
             """

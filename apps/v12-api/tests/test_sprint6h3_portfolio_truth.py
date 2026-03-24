@@ -97,3 +97,47 @@ def test_same_symbol_multiple_strategies_remain_distinct_positions() -> None:
     assert len(btc_positions) == 2
     strategy_ids = {p['strategy_id'] for p in btc_positions}
     assert strategy_ids == {'trend_core', 'mean_reversion_core'}
+
+
+def test_portfolio_overview_summary_latest_returns_lightweight_summary() -> None:
+    _reset_runtime_state()
+    truth = TruthEngine()
+    truth.ensure_schema()
+    truth.ensure_initial_capital()
+    as_of = '2026-03-25T00:10:00'
+    CONTAINER.runtime_store.append('execution_fills', {
+        'fill_id': 'f-summary-1',
+        'run_id': 'run-summary-1',
+        'plan_id': 'plan-summary-1',
+        'strategy_id': 'trend_core',
+        'alpha_family': 'trend',
+        'symbol': 'BTCUSDT',
+        'side': 'buy',
+        'fill_qty': 0.1,
+        'fill_price': 70000.0,
+        'fee_bps': 0.0,
+        'created_at': as_of,
+    })
+    CONTAINER.runtime_store.append('market_prices_latest', {
+        'symbol': 'BTCUSDT',
+        'bid': 70490.0,
+        'ask': 70510.0,
+        'mid': 70500.0,
+        'last': 70500.0,
+        'mark_price': 70500.0,
+        'source': 'test',
+        'price_time': as_of,
+        'quote_age_sec': 0.0,
+        'stale': False,
+        'fallback_reason': None,
+        'updated_at': as_of,
+    })
+    positions = truth.rebuild_positions(as_of)
+    truth.compute_equity_snapshot(positions, as_of)
+
+    payload = client.get('/portfolio/overview-summary/latest').json()
+    assert payload['status'] == 'ok'
+    assert payload['positions'] == []
+    assert float(payload['summary']['total_equity']) > 0.0
+    assert payload['summary']['position_row_count'] == 1
+    assert payload['summary']['active_snapshot_version']
