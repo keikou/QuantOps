@@ -24,3 +24,39 @@ async def _main():
 
 def test_execution_service_passthrough_endpoints():
     asyncio.run(_main())
+
+
+class _OldSnapshotExecutionClient:
+    async def get_execution_orders(self, limit: int = 100) -> dict:
+        return {
+            "status": "ok",
+            "as_of": "2026-03-24T19:31:01+00:00",
+            "items": [
+                {"order_id": "order-1", "symbol": "BTCUSDT", "status": "filled", "updated_at": "2026-03-24T19:31:01+00:00"},
+            ],
+        }
+
+    async def get_execution_fills(self, limit: int = 100) -> dict:
+        return {
+            "status": "ok",
+            "as_of": "2026-03-24T19:31:01+00:00",
+            "items": [
+                {"fill_id": "fill-1", "symbol": "BTCUSDT", "status": "filled", "created_at": "2026-03-24T19:31:01+00:00"},
+            ],
+        }
+
+
+async def _cache_main():
+    service = ExecutionService(_OldSnapshotExecutionClient())  # type: ignore[arg-type]
+    first_orders = await service.get_orders(limit=10)
+    second_orders = await service.get_orders(limit=10)
+    first_fills = await service.get_fills(limit=10)
+    second_fills = await service.get_fills(limit=10)
+    assert first_orders["build_status"] == "live"
+    assert second_orders["build_status"] == "fresh_cache"
+    assert first_fills["build_status"] == "live"
+    assert second_fills["build_status"] == "fresh_cache"
+
+
+def test_execution_service_feed_cache_uses_cached_at_not_source_snapshot_age():
+    asyncio.run(_cache_main())

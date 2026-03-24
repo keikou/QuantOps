@@ -105,9 +105,15 @@ class CommandCenterService:
             "source_snapshot_time": source_snapshot_time,
             "data_freshness_sec": self._snapshot_age_sec(source_snapshot_time),
             "build_status": build_status,
+            "_cached_at": utc_now_iso(),
         }
         result.update(extra)
         return result
+
+    def _cache_age_sec(self, payload: dict | None) -> float | None:
+        if not isinstance(payload, dict):
+            return None
+        return self._snapshot_age_sec(payload.get("_cached_at"))
 
     async def _coalesced_runtime_feed(
         self,
@@ -118,10 +124,12 @@ class CommandCenterService:
         builder,
     ) -> dict:
         cached = cache.get(key)
-        if self._is_fresh_as_of((cached or {}).get("source_snapshot_time") or (cached or {}).get("as_of"), self.RUNTIME_FEED_TTL_SECONDS):
+        cache_age = self._cache_age_sec(cached)
+        if cache_age is not None and cache_age <= self.RUNTIME_FEED_TTL_SECONDS:
             result = dict(cached)
             result["build_status"] = "fresh_cache"
             result["data_freshness_sec"] = self._snapshot_age_sec(result.get("source_snapshot_time") or result.get("as_of"))
+            result.pop("_cached_at", None)
             return result
 
         existing = inflight.get(key)
@@ -130,6 +138,7 @@ class CommandCenterService:
             result = dict(payload)
             result["build_status"] = "fresh_cache"
             result["data_freshness_sec"] = self._snapshot_age_sec(result.get("source_snapshot_time") or result.get("as_of"))
+            result.pop("_cached_at", None)
             return result
 
         task = asyncio.create_task(builder())
@@ -137,7 +146,9 @@ class CommandCenterService:
         try:
             payload = await task
             cache[key] = payload
-            return payload
+            result = dict(payload)
+            result.pop("_cached_at", None)
+            return result
         finally:
             if inflight.get(key) is task:
                 inflight.pop(key, None)

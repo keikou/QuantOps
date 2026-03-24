@@ -253,3 +253,19 @@ def test_runtime_issues_rollup_window_metadata_present() -> None:
     assert first["last_seen_at"] == "2026-03-23T01:00:04+00:00"
     assert first["window_start"] == "2026-03-23T00:50:00+00:00"
     assert first["window_end"] == "2026-03-23T01:00:04+00:00"
+
+
+def test_runtime_feed_cache_uses_cached_at_not_source_snapshot_age() -> None:
+    service = _build_service()
+
+    async def _main():
+        first = await service.get_runtime_runs(limit=10, window_minutes=30)
+        second = await service.get_runtime_runs(limit=10, window_minutes=30)
+        first_issues = await service.get_runtime_issues(limit=10, window_minutes=30)
+        second_issues = await service.get_runtime_issues(limit=10, window_minutes=30)
+        assert first["build_status"] == "live"
+        assert second["build_status"] == "fresh_cache"
+        assert first_issues["build_status"] == "live"
+        assert second_issues["build_status"] == "fresh_cache"
+
+    asyncio.run(_main())

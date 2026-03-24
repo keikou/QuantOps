@@ -19,6 +19,12 @@ class ExecutionService:
         self._fills_cache: dict[int, dict] = {}
         self._fills_inflight: dict[int, asyncio.Task] = {}
 
+    @staticmethod
+    def _cache_age_sec(payload: dict | None) -> float | None:
+        if not isinstance(payload, dict):
+            return None
+        return ExecutionService._snapshot_age_sec(payload.get("_cached_at"))
+
     async def get_planner_latest(self) -> dict:
         payload = await self.v12_client.get_execution_planner_latest()
         payload.setdefault('status', 'ok')
@@ -72,6 +78,7 @@ class ExecutionService:
             'build_status': 'live',
             'source_snapshot_time': as_of,
             'data_freshness_sec': self._snapshot_age_sec(as_of),
+            '_cached_at': utc_now_iso(),
         }
 
     def _is_fresh_payload(self, payload: dict | None) -> bool:
@@ -82,10 +89,12 @@ class ExecutionService:
 
     async def _coalesced_feed(self, *, cache: dict[int, dict], inflight: dict[int, asyncio.Task], limit: int, builder) -> dict:
         cached = cache.get(limit)
-        if self._is_fresh_payload(cached):
+        cache_age = self._cache_age_sec(cached)
+        if cache_age is not None and cache_age <= self.FEED_CACHE_TTL_SECONDS:
             result = dict(cached)
             result['build_status'] = 'fresh_cache'
             result['data_freshness_sec'] = self._snapshot_age_sec(result.get('source_snapshot_time') or result.get('as_of'))
+            result.pop('_cached_at', None)
             return result
 
         existing = inflight.get(limit)
@@ -94,6 +103,7 @@ class ExecutionService:
             result = dict(payload)
             result['build_status'] = 'fresh_cache'
             result['data_freshness_sec'] = self._snapshot_age_sec(result.get('source_snapshot_time') or result.get('as_of'))
+            result.pop('_cached_at', None)
             return result
 
         task = asyncio.create_task(builder())
@@ -101,7 +111,9 @@ class ExecutionService:
         try:
             payload = await task
             cache[limit] = payload
-            return payload
+            result = dict(payload)
+            result.pop('_cached_at', None)
+            return result
         finally:
             if inflight.get(limit) is task:
                 inflight.pop(limit, None)
