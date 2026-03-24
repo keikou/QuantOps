@@ -483,12 +483,12 @@ class OrchestrationService:
         active_snapshot_version = self._active_position_snapshot_version()
         position_rows = (
             CONTAINER.runtime_store.fetchall_dict(
-                "SELECT symbol, signed_qty FROM position_snapshots_latest WHERE snapshot_version = ?",
+                "SELECT symbol, SUM(signed_qty) AS signed_qty FROM position_snapshots_latest WHERE snapshot_version = ? GROUP BY symbol",
                 [active_snapshot_version],
             )
             if active_snapshot_version
             else CONTAINER.runtime_store.fetchall_dict(
-                "SELECT symbol, signed_qty FROM position_snapshots_latest"
+                "SELECT symbol, SUM(signed_qty) AS signed_qty FROM position_snapshots_latest GROUP BY symbol"
             )
         )
         current_positions = {

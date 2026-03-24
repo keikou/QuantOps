@@ -26,6 +26,14 @@ def _fill_signed_qty(fill: dict[str, Any]) -> float:
     return qty
 
 
+def _position_state_key(symbol: str, strategy_id: str | None, alpha_family: str | None) -> tuple[str, str, str]:
+    return (
+        str(symbol),
+        str(strategy_id or "paper_runtime"),
+        str(alpha_family or "runtime"),
+    )
+
+
 @dataclass
 class TruthEngine:
     initial_capital: float = 100000.0
@@ -367,14 +375,14 @@ class TruthEngine:
         if not created_at or not fill_id:
             return store.fetchall_dict(
                 """
-                SELECT fill_id, run_id, plan_id, symbol, side, fill_qty, fill_price, fee_bps, created_at
+                SELECT fill_id, run_id, plan_id, strategy_id, alpha_family, symbol, side, fill_qty, fill_price, fee_bps, created_at
                 FROM execution_fills
                 ORDER BY created_at ASC, fill_id ASC
                 """
             )
         return store.fetchall_dict(
             """
-            SELECT fill_id, run_id, plan_id, symbol, side, fill_qty, fill_price, fee_bps, created_at
+            SELECT fill_id, run_id, plan_id, strategy_id, alpha_family, symbol, side, fill_qty, fill_price, fee_bps, created_at
             FROM execution_fills
             WHERE created_at > ? OR (created_at = ? AND fill_id > ?)
             ORDER BY created_at ASC, fill_id ASC
@@ -547,14 +555,16 @@ class TruthEngine:
             total_fees += fees
         return states, round(total_realized, 8), round(total_fees, 8)
 
-    def _apply_fill_to_position_states(self, states: dict[str, dict[str, Any]], fill: dict[str, Any]) -> tuple[float, float]:
+    def _apply_fill_to_position_states(self, states: dict[tuple[str, str, str], dict[str, Any]], fill: dict[str, Any]) -> tuple[float, float]:
             symbol = str(fill["symbol"])
+            strategy_id = str(fill.get("strategy_id") or fill.get("run_id") or "paper_runtime")
+            alpha_family = str(fill.get("alpha_family") or "runtime")
             state = states.setdefault(
-                symbol,
+                _position_state_key(symbol, strategy_id, alpha_family),
                 {
                     "symbol": symbol,
-                    "strategy_id": fill.get("strategy_id") or fill.get("run_id") or "paper_runtime",
-                    "alpha_family": fill.get("alpha_family") or "runtime",
+                    "strategy_id": strategy_id,
+                    "alpha_family": alpha_family,
                     "signed_qty": 0.0,
                     "avg_entry_price": None,
                     "realized_pnl": 0.0,
@@ -595,14 +605,16 @@ class TruthEngine:
                 state["avg_entry_price"] = price
             return total_realized, total_fees
 
-    def _build_position_states_from_snapshot(self, rows: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
-        states: dict[str, dict[str, Any]] = {}
+    def _build_position_states_from_snapshot(self, rows: list[dict[str, Any]]) -> dict[tuple[str, str, str], dict[str, Any]]:
+        states: dict[tuple[str, str, str], dict[str, Any]] = {}
         for row in rows:
             symbol = str(row["symbol"])
-            states[symbol] = {
+            strategy_id = str(row.get("strategy_id") or "paper_runtime")
+            alpha_family = str(row.get("alpha_family") or "runtime")
+            states[_position_state_key(symbol, strategy_id, alpha_family)] = {
                 "symbol": symbol,
-                "strategy_id": row.get("strategy_id") or "paper_runtime",
-                "alpha_family": row.get("alpha_family") or "runtime",
+                "strategy_id": strategy_id,
+                "alpha_family": alpha_family,
                 "signed_qty": float(row.get("signed_qty", 0.0) or 0.0),
                 "avg_entry_price": float(row.get("avg_entry_price", 0.0) or 0.0) if row.get("avg_entry_price") is not None else None,
                 "realized_pnl": float(row.get("realized_pnl", 0.0) or 0.0),
@@ -617,7 +629,7 @@ class TruthEngine:
         full_rebuild = not active_rows or not watermark_created_at or not watermark_fill_id
         fills = self._fetch_new_fills(watermark_created_at, watermark_fill_id) if not full_rebuild else store.fetchall_dict(
             """
-            SELECT fill_id, run_id, plan_id, symbol, side, fill_qty, fill_price, fee_bps, created_at
+            SELECT fill_id, run_id, plan_id, strategy_id, alpha_family, symbol, side, fill_qty, fill_price, fee_bps, created_at
             FROM execution_fills
             ORDER BY created_at ASC, fill_id ASC
             """
@@ -649,7 +661,8 @@ class TruthEngine:
         latest_rows = []
         history_rows = []
         valued = []
-        for symbol, state in states.items():
+        for _, state in states.items():
+            symbol = str(state["symbol"])
             signed_qty = float(state["signed_qty"])
             abs_qty = abs(signed_qty)
             if abs_qty < 1e-12:
@@ -732,7 +745,7 @@ class TruthEngine:
         full_rebuild = previous is None or not watermark_created_at or not watermark_fill_id
         fills = self._fetch_new_fills(watermark_created_at, watermark_fill_id) if not full_rebuild else store.fetchall_dict(
             """
-            SELECT fill_id, run_id, plan_id, symbol, side, fill_qty, fill_price, fee_bps, created_at
+            SELECT fill_id, run_id, plan_id, strategy_id, alpha_family, symbol, side, fill_qty, fill_price, fee_bps, created_at
             FROM execution_fills
             ORDER BY created_at ASC, fill_id ASC
             """
