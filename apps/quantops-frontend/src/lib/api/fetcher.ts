@@ -164,21 +164,23 @@ async function request<T>(path: string, init?: RequestInit): Promise<ApiEnvelope
             message: error instanceof Error ? error.message : `Network error while requesting ${path}`,
           });
 
-    reportClientError({
-      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-      path: err.path,
-      requestUrl: err.requestUrl,
-      method: err.method,
-      page: err.page,
-      kind: err.kind,
-      message: err.message,
-      status: err.status,
-      statusText: err.statusText,
-      responseSnippet: err.responseSnippet,
-      correlationId: err.correlationId,
-      durationMs: err.durationMs,
-      createdAt: new Date().toISOString(),
-    });
+    if (err.kind !== 'abort') {
+      reportClientError({
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        path: err.path,
+        requestUrl: err.requestUrl,
+        method: err.method,
+        page: err.page,
+        kind: err.kind,
+        message: err.message,
+        status: err.status,
+        statusText: err.statusText,
+        responseSnippet: err.responseSnippet,
+        correlationId: err.correlationId,
+        durationMs: err.durationMs,
+        createdAt: new Date().toISOString(),
+      });
+    }
 
     if (!init && ENABLE_MOCK_FALLBACK) {
       console.warn('[QuantOps API] mock fallback requested but disabled in Sprint6H-9.2.4 hardening path', { path, requestUrl });
