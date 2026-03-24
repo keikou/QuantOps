@@ -225,6 +225,9 @@ export type ExecutionPlannerLatest = {
   visiblePlanCount?: number;
   expiredCount: number;
   asOf: string;
+  buildStatus?: string;
+  sourceSnapshotTime?: string;
+  dataFreshnessSec?: number;
   latestActivityAt?: string;
   algoMix: Record<string, number>;
   routeMix: Record<string, number>;
@@ -248,6 +251,9 @@ export type ExecutionState = {
   tradingState: string;
   executionState: string;
   reason?: string;
+  buildStatus?: string;
+  sourceSnapshotTime?: string;
+  dataFreshnessSec?: number;
   plannerAgeSec?: number;
   executionAgeSec?: number;
   lastFillAgeSec?: number;
@@ -313,6 +319,9 @@ export type CommandCenterRuntimeLatest = {
   status: string;
   runId?: string;
   cycleId?: string;
+  buildStatus?: string;
+  sourceSnapshotTime?: string;
+  dataFreshnessSec?: number;
   bridgeState: string;
   operatorState: string;
   plannerStatus: string;

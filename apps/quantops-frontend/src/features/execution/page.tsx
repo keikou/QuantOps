@@ -12,7 +12,7 @@ import { RuntimeBlockCard, RuntimeStatusBadgeStrip, RuntimeSummaryCards, Runtime
 import { SimpleTable } from '@/components/tables/simple-table';
 import { normalizeCommandCenterRuntimeRuns, normalizeRuntimeIssueBuckets } from '@/lib/api/normalize';
 import { useCommandCenterRuntimeIssues, useCommandCenterRuntimeLatest, useCommandCenterRuntimeRuns, useExecutionLatest, useExecutionOrders, useExecutionPlannerLatest, useExecutionStateLatest, useExecutionSummary } from '@/lib/api/hooks';
-import type { ApiEnvelope, CommandCenterRealtimeEvent, CommandCenterRuntimeRunSummary, RuntimeIssueBucket } from '@/types/api';
+import type { ApiEnvelope, CommandCenterRealtimeEvent, CommandCenterRuntimeRunSummary, DataStatus, RuntimeIssueBucket } from '@/types/api';
 
 type RuntimeFilterKey =
   | 'all'
@@ -43,6 +43,28 @@ function labelize(value?: string) {
     .filter(Boolean)
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(' ');
+}
+
+function mapBuildStatus(buildStatus?: string, hasData = false): DataStatus | undefined {
+  switch (buildStatus) {
+    case 'stale_cache':
+      return 'stale';
+    case 'degraded_live':
+      return hasData ? 'fallback' : 'no_data';
+    case 'live':
+    case 'fresh_cache':
+      return 'ok';
+    default:
+      return undefined;
+  }
+}
+
+function fmtFreshness(buildStatus?: string, sourceSnapshotTime?: string, dataFreshnessSec?: number) {
+  const parts: string[] = [];
+  if (buildStatus) parts.push(labelize(buildStatus));
+  if (dataFreshnessSec != null && Number.isFinite(dataFreshnessSec)) parts.push(`age ${Math.round(dataFreshnessSec)}s`);
+  if (sourceSnapshotTime) parts.push(`snapshot ${sourceSnapshotTime}`);
+  return parts.length ? parts.join(' | ') : '-';
 }
 
 const diagnosisViews: Array<{ label: string; issueCode?: string; retryability?: string; reasonCode?: string }> = [
@@ -232,8 +254,24 @@ export default function Page() {
   const topRoute = Object.entries(plannerData?.routeMix || {}).sort((a, b) => Number(b[1]) - Number(a[1]))[0]?.[0] ?? '-';
   const primaryReason = stateData?.blockReasons?.[0]?.message || stateData?.blockReasons?.[0]?.code || stateData?.reason || '-';
   const summaryStatus = resolveDataStatus({ isLoading: summary.isLoading, hasData: Boolean(data), error: summary.error });
-  const plannerStatus = resolveDataStatus({ isLoading: planner.isLoading, hasData: Boolean(plannerData), error: planner.error });
-  const stateStatus = resolveDataStatus({ isLoading: state.isLoading, hasData: Boolean(stateData), error: state.error });
+  const runtimeStatus = resolveDataStatus({
+    status: mapBuildStatus(runtimeData?.buildStatus, Boolean(runtimeData)),
+    isLoading: runtime.isLoading,
+    hasData: Boolean(runtimeData),
+    error: runtime.error,
+  });
+  const plannerStatus = resolveDataStatus({
+    status: mapBuildStatus(plannerData?.buildStatus, Boolean(plannerData)),
+    isLoading: planner.isLoading,
+    hasData: Boolean(plannerData),
+    error: planner.error,
+  });
+  const stateStatus = resolveDataStatus({
+    status: mapBuildStatus(stateData?.buildStatus, Boolean(stateData)),
+    isLoading: state.isLoading,
+    hasData: Boolean(stateData),
+    error: state.error,
+  });
   const runtimeRunsData = runtimeRuns.data?.data ?? [];
   const runtimeIssueRows = runtimeIssues.data?.data ?? [];
   const runtimeFilterOptions: Array<{ key: RuntimeFilterKey; label: string }> = [
@@ -266,6 +304,7 @@ export default function Page() {
         <h1 className="section-title">Execution</h1>
         <div className="flex flex-wrap items-center gap-2">
           <DataStatusPill label="Summary" status={summaryStatus} />
+          <DataStatusPill label="Runtime" status={runtimeStatus} />
           <DataStatusPill label="Planner" status={plannerStatus} />
           <DataStatusPill label="State" status={stateStatus} />
         </div>
@@ -291,6 +330,9 @@ export default function Page() {
         <div className="mt-2 grid gap-2 md:grid-cols-2">
           <div>Trading state: <span className="text-slate-100">{stateData?.tradingState || plannerData?.tradingState || '-'}</span></div>
           <div>Primary reason: <span className="text-slate-100">{primaryReason}</span></div>
+          <div>Runtime snapshot: <span className="text-slate-100">{fmtFreshness(runtimeData?.buildStatus, runtimeData?.sourceSnapshotTime, runtimeData?.dataFreshnessSec)}</span></div>
+          <div>Planner snapshot: <span className="text-slate-100">{fmtFreshness(plannerData?.buildStatus, plannerData?.sourceSnapshotTime, plannerData?.dataFreshnessSec)}</span></div>
+          <div>State snapshot: <span className="text-slate-100">{fmtFreshness(stateData?.buildStatus, stateData?.sourceSnapshotTime, stateData?.dataFreshnessSec)}</span></div>
           <div>Planner age: <span className="text-slate-100">{fmtSec(stateData?.plannerAgeSec)}</span></div>
           <div>Last execution age: <span className="text-slate-100">{fmtSec(stateData?.executionAgeSec)}</span></div>
           <div>Last fill age: <span className="text-slate-100">{fmtSec(stateData?.lastFillAgeSec)}</span></div>
