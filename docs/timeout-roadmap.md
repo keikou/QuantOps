@@ -39,6 +39,22 @@ The target architecture is:
 - API reads move to read models
 - UI displays stable summary and live feed separately
 
+The separation between stable summary and live data should be explicit rather than implicit. When an API needs to combine both, prefer returning:
+
+- `stable_value`
+- `live_delta`
+- `display_value`
+
+instead of a single ambiguous "latest" value.
+
+Read models should also carry freshness/build metadata so operators and APIs can explain data age and build state:
+
+- `source_snapshot_time`
+- `source_fill_watermark`
+- `rebuilt_at`
+- `data_freshness_sec`
+- `build_status`
+
 ## Sprint Plan
 
 ### Sprint 1
@@ -57,12 +73,14 @@ Objective: make the current system observable and remove the most dangerous snap
 - Add writer observability for cycle cost and rebuild metrics
 - Add read freshness metadata to summary endpoints
 - Document freshness contracts for `stable`, `stale-allowed`, and `live`
+- Define stable/live/display value contract for mixed responses
 
 #### Acceptance Criteria
 
 - Writer cost per cycle is visible in logs/metrics
 - Timeout cases can be classified as stale serve, build in progress, or writer pressure
 - Readers never observe empty or partially rebuilt latest position state
+- Summary endpoints expose freshness/build fields consistently
 
 ### Sprint 2
 
@@ -106,12 +124,14 @@ Objective: move the main GUI endpoints to stable read models and explicit stable
 - Optionally add `execution_state_latest` / `execution_quality_latest` read models
 - Split API outputs into stable summary and live feed responsibilities
 - Restrict stale-first cache to thin response optimization over read models
+- Add explicit `stable_value` / `live_delta` / `display_value` fields where merged output is unavoidable
 
 #### Acceptance Criteria
 
 - Overview, Portfolio, and Execution major paths serve from read models
 - Heavy truth-table fallback is removed from the main request path
 - UI can explain any stable/live mismatch via explicit fields or explicit endpoint separation
+- Read models expose freshness/build metadata for operator debugging
 
 ## Prioritized Issue Backlog
 
@@ -174,6 +194,21 @@ Acceptance:
 
 - summary APIs expose freshness explicitly
 - stale and rebuilding states are distinguishable
+
+### Define explicit stable/live/display contract for mixed responses
+
+When a response includes both stable snapshot data and live delta overlays, make the merge explicit instead of hiding it behind a single "latest" field.
+
+Preferred fields:
+
+- `stable_value`
+- `live_delta`
+- `display_value`
+
+Acceptance:
+
+- mixed responses are explainable
+- UI can indicate why totals may differ slightly from stable snapshots
 
 ### Add fill watermark and delta-based writer processing
 
@@ -268,3 +303,12 @@ flowchart TD
 7. `portfolio_metrics_latest`
 8. Stable/live API split
 9. Thin cache layer over read models
+
+## Notes From Project Review
+
+The project-context review in ChatGPT reinforced these implementation details:
+
+- `position_snapshots_latest` should move to a versioned build-and-switch model, not just a partial rewrite of delete/rebuild
+- mixed snapshot/live values should be represented explicitly via stable/live/display fields
+- read models should always carry freshness metadata so stale data is explainable
+- future DB-level read/write separation may help, but it should follow read-model adoption rather than precede it
