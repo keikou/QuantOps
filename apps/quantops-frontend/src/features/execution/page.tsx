@@ -67,6 +67,15 @@ function fmtFreshness(buildStatus?: string, sourceSnapshotTime?: string, dataFre
   return parts.length ? parts.join(' | ') : '-';
 }
 
+function fmtFeedFreshness(status: DataStatus, hasRows: boolean) {
+  if (status === 'stale') return hasRows ? 'cached live rows' : 'stale';
+  if (status === 'loading') return 'connecting';
+  if (status === 'timed_out') return 'timed out';
+  if (status === 'fallback') return 'fallback';
+  if (status === 'no_data') return hasRows ? 'ok' : 'empty';
+  return hasRows ? 'live' : 'empty';
+}
+
 const diagnosisViews: Array<{ label: string; issueCode?: string; retryability?: string; reasonCode?: string }> = [
   { label: 'Missing Price', issueCode: 'missing_price' },
   { label: 'Risk Guard', issueCode: 'risk_guard_block' },
@@ -274,6 +283,10 @@ export default function Page() {
   });
   const runtimeRunsData = runtimeRuns.data?.data ?? [];
   const runtimeIssueRows = runtimeIssues.data?.data ?? [];
+  const fillsStatus = resolveDataStatus({ isLoading: latest.isLoading, hasData: rows.length > 0, error: latest.error });
+  const ordersStatus = resolveDataStatus({ isLoading: orders.isLoading, hasData: orderRows.length > 0, error: orders.error });
+  const issuesStatus = resolveDataStatus({ isLoading: runtimeIssues.isLoading, hasData: runtimeIssueRows.length > 0, error: runtimeIssues.error });
+  const runsStatus = resolveDataStatus({ isLoading: runtimeRuns.isLoading, hasData: runtimeRunsData.length > 0, error: runtimeRuns.error });
   const runtimeFilterOptions: Array<{ key: RuntimeFilterKey; label: string }> = [
     { key: 'all', label: 'All' },
     { key: 'blocked', label: 'Blocked' },
@@ -312,7 +325,10 @@ export default function Page() {
       <DataStatusBanner label="Execution Summary" status={summaryStatus} reason={summary.error instanceof Error ? summary.error.message : undefined} asOf={data?.asOf} />
       <div className="space-y-3">
         <div className="flex items-center justify-between gap-3">
-          <div className="text-sm font-medium text-slate-200">Runtime Truth</div>
+          <div>
+            <div className="text-sm font-medium text-slate-200">Stable Summary</div>
+            <div className="text-xs text-slate-500">Read-model backed status used for KPI and operator health.</div>
+          </div>
           <RuntimeStatusBadgeStrip runtime={runtimeData} />
         </div>
         <RuntimeSummaryCards runtime={runtimeData} />
@@ -355,6 +371,21 @@ export default function Page() {
         </div>
       </div>
       <RuntimeTimelinePanel runtime={runtimeData} />
+
+      <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div>
+            <div className="font-medium text-slate-100">Live Feed</div>
+            <div className="text-sm text-slate-400">Recent runs, issues, fills, and orders update separately from the stable summary cards.</div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <DataStatusPill label={`Runs ${fmtFeedFreshness(runsStatus, runtimeRunsData.length > 0)}`} status={runsStatus} />
+            <DataStatusPill label={`Issues ${fmtFeedFreshness(issuesStatus, runtimeIssueRows.length > 0)}`} status={issuesStatus} />
+            <DataStatusPill label={`Fills ${fmtFeedFreshness(fillsStatus, rows.length > 0)}`} status={fillsStatus} />
+            <DataStatusPill label={`Orders ${fmtFeedFreshness(ordersStatus, orderRows.length > 0)}`} status={ordersStatus} />
+          </div>
+        </div>
+      </div>
 
       <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
         <div className="flex items-center justify-between gap-3">
