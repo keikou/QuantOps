@@ -21,6 +21,29 @@ PORTFOLIO_EQUITY_HISTORY_CACHE_TTL_SECONDS = 5.0
 _equity_history_cache: dict[tuple[int], dict[str, object]] = {}
 
 
+def _build_equity_history_payload(limit: int) -> dict:
+    rows = CONTAINER.runtime_store.fetchall_dict(
+        """
+        SELECT snapshot_time, total_equity, unrealized_pnl + realized_pnl AS pnl, drawdown
+        FROM equity_snapshots
+        ORDER BY snapshot_time DESC
+        LIMIT ?
+        """,
+        [limit],
+    )
+    items = [
+        {
+            'name': str(row.get('snapshot_time')),
+            'value': float(row.get('total_equity', 0.0) or 0.0),
+            'pnl': float(row.get('pnl', 0.0) or 0.0),
+            'drawdown': float(row.get('drawdown', 0.0) or 0.0),
+            'as_of': str(row.get('snapshot_time')),
+        }
+        for row in reversed(rows)
+    ]
+    return {'status': 'ok', 'items': items, 'as_of': items[-1]['as_of'] if items else None}
+
+
 def _load_latest_signals() -> list[dict]:
     rows = CONTAINER.runtime_store.fetchall_dict(
         """
@@ -173,28 +196,14 @@ def equity_history(limit: int = 200) -> dict:
         payload = cached_entry.get('payload')
         if isinstance(expires_at, datetime) and payload and expires_at > now:
             return payload  # type: ignore[return-value]
-    rows = CONTAINER.runtime_store.fetchall_dict(
-        """
-        SELECT snapshot_time, total_equity, unrealized_pnl + realized_pnl AS pnl, drawdown
-        FROM equity_snapshots
-        ORDER BY snapshot_time DESC
-        LIMIT ?
-        """,
-        [limit],
-    )
-    items = [
-        {
-            'name': str(row.get('snapshot_time')),
-            'value': float(row.get('total_equity', 0.0) or 0.0),
-            'pnl': float(row.get('pnl', 0.0) or 0.0),
-            'drawdown': float(row.get('drawdown', 0.0) or 0.0),
-            'as_of': str(row.get('snapshot_time')),
-        }
-        for row in reversed(rows)
-    ]
-    payload = {'status': 'ok', 'items': items, 'as_of': items[-1]['as_of'] if items else None}
+    payload = _build_equity_history_payload(int(limit))
     _equity_history_cache[cache_key] = {
         'expires_at': now + timedelta(seconds=PORTFOLIO_EQUITY_HISTORY_CACHE_TTL_SECONDS),
         'payload': payload,
     }
     return payload
+
+
+@router.get('/equity-history/live')
+def equity_history_live(limit: int = 200) -> dict:
+    return _build_equity_history_payload(int(limit))

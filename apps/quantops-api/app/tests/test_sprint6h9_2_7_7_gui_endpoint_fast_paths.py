@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+from datetime import datetime, timedelta, timezone
 import time
 
 from app.core.deps import get_dashboard_service, get_portfolio_service
@@ -107,15 +108,15 @@ class _PortfolioClient:
             "as_of": "2026-03-22T00:00:00+00:00",
         }
 
-    async def get_execution_quality(self) -> dict:
+    async def get_execution_quality(self, *, live: bool = False) -> dict:
         self.execution_quality_calls += 1
         await self._sleep()
         return {"fill_rate": 1.0}
 
-    async def get_equity_history(self) -> dict:
+    async def get_equity_history(self, *, limit: int | None = None, live: bool = False) -> dict:
         self.equity_history_calls += 1
         await self._sleep()
-        return {"items": [{"value": 100.0}, {"value": 101.0}, {"value": 102.0}]}
+        return {"items": [{"value": 100.0}, {"value": 101.0}, {"value": 102.0}], "limit": limit, "live": live}
 
 
 class _CountingDashboardService(DashboardService):
@@ -215,6 +216,28 @@ def test_portfolio_metrics_uses_short_ttl_cache_and_coalesces() -> None:
     assert client.equity_history_calls == 1
 
 
+def test_portfolio_metrics_returns_stale_cache_and_refreshes_in_background() -> None:
+    client = _PortfolioClient()
+    service = PortfolioService(client)  # type: ignore[arg-type]
+    stale_payload = {"fill_rate": 0.4, "expected_sharpe": 0.2, "expected_volatility": 0.1, "as_of": "2026-03-22T00:00:00+00:00"}
+    service._metrics_cache = dict(stale_payload)
+    service._metrics_cache_updated_at = datetime.now(timezone.utc)
+    service._metrics_cache_expires_at = datetime.now(timezone.utc) - timedelta(seconds=1)
+
+    async def run_test() -> dict:
+        payload = await service.get_metrics()
+        await asyncio.sleep(0.12)
+        return payload
+
+    payload = asyncio.run(run_test())
+
+    assert payload == stale_payload
+    assert client.execution_quality_calls == 1
+    assert client.equity_history_calls == 1
+    assert service._metrics_cache is not None
+    assert service._metrics_cache["fill_rate"] == 1.0
+
+
 def test_get_portfolio_service_is_shared_singleton() -> None:
     first = get_portfolio_service()
     second = get_portfolio_service()
@@ -233,6 +256,30 @@ def test_dashboard_overview_coalesces_concurrent_live_builds() -> None:
     assert first["total_equity"] == 100.0
     assert second["latest_run_id"] == "run-1"
     assert service.build_calls == 1
+
+
+def test_dashboard_overview_returns_stale_cache_and_refreshes_in_background() -> None:
+    service = _CountingDashboardService()
+    stale_payload = {
+        "total_equity": 90.0,
+        "active_strategies": 1,
+        "open_alerts": 0,
+        "latest_run_id": "run-stale",
+        "as_of": "2026-03-22T00:00:00+00:00",
+    }
+    service._overview_cache = dict(stale_payload)
+
+    async def run_test() -> dict:
+        payload = await service.get_overview()
+        await asyncio.sleep(0.12)
+        return payload
+
+    payload = asyncio.run(run_test())
+
+    assert payload == stale_payload
+    assert service.build_calls == 1
+    assert service._overview_cache is not None
+    assert service._overview_cache["latest_run_id"] == "run-1"
 
 
 def test_get_dashboard_service_is_shared_singleton() -> None:

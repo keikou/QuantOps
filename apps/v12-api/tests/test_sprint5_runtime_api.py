@@ -122,3 +122,29 @@ def test_portfolio_equity_history_reuses_short_ttl_cache_by_limit(monkeypatch) -
     assert first.json() == second.json()
     assert first.json() != third.json()
     assert call_count['count'] == 2
+
+
+def test_portfolio_equity_history_live_bypasses_cache(monkeypatch) -> None:
+    portfolio_routes._equity_history_cache.clear()
+    call_count = {'count': 0}
+
+    def fake_fetchall_dict(query: str, params=None):
+        call_count['count'] += 1
+        return [
+            {
+                'snapshot_time': f'2026-03-24T00:00:0{call_count["count"]}+00:00',
+                'total_equity': 100.0 + call_count['count'],
+                'pnl': 1.0,
+                'drawdown': 0.0,
+            }
+        ]
+
+    monkeypatch.setattr(CONTAINER.runtime_store, 'fetchall_dict', fake_fetchall_dict)
+
+    cached = client.get('/portfolio/equity-history?limit=20')
+    live = client.get('/portfolio/equity-history/live?limit=20')
+
+    assert cached.status_code == 200
+    assert live.status_code == 200
+    assert cached.json() != live.json()
+    assert call_count['count'] == 2

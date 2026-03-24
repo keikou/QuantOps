@@ -199,7 +199,9 @@ class V12Client:
     async def get_execution_quality_latest(self) -> dict[str, Any]:
         return await self._request_first("GET", ["/execution/quality/latest"])
 
-    async def get_execution_quality(self) -> dict[str, Any]:
+    async def get_execution_quality(self, *, live: bool = False) -> dict[str, Any]:
+        if live:
+            return await self._request_first("GET", ["/execution/quality/latest"])
         return await self._request_first("GET", ["/execution/quality/latest_summary", "/execution/quality/latest"])
 
     async def get_execution_planner_latest(self) -> dict[str, Any]:
@@ -307,8 +309,11 @@ class V12Client:
         return await self._request_first("POST", ["/runtime/run-with-mode"], json={"mode": mode})
 
 
-    async def get_equity_history(self) -> dict[str, Any]:
-        return await self._request_first("GET", ["/portfolio/equity-history"])
+    async def get_equity_history(self, *, limit: int | None = None, live: bool = False) -> dict[str, Any]:
+        suffix = f"?limit={int(limit)}" if limit is not None else ""
+        if live:
+            return await self._request_first("GET", [f"/portfolio/equity-history/live{suffix}", f"/portfolio/equity-history{suffix}", "/portfolio/equity-history/live", "/portfolio/equity-history"])
+        return await self._request_first("GET", [f"/portfolio/equity-history{suffix}", "/portfolio/equity-history"])
 
     async def get_shadow_summary(self) -> dict[str, Any]:
         return await self._request_first("GET", ["/analytics/shadow-summary"])

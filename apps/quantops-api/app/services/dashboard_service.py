@@ -26,6 +26,7 @@ class DashboardService:
     OVERVIEW_TTL_SECONDS = 5.0
     OVERVIEW_PRIMARY_TIMEOUT_SECONDS = 3.5
     OVERVIEW_AUX_TIMEOUT_SECONDS = 1.5
+    OVERVIEW_PORTFOLIO_CACHE_TTL_SECONDS = 15.0
     OVERVIEW_RUNTIME_CACHE_TTL_SECONDS = 15.0
     OVERVIEW_REGISTRY_CACHE_TTL_SECONDS = 60.0
 
@@ -41,6 +42,8 @@ class DashboardService:
         self._overview_cache: dict | None = None
         self._overview_refresh_task: asyncio.Task | None = None
         self._overview_inflight_task: asyncio.Task | None = None
+        self._overview_portfolio_cache: dict | None = None
+        self._overview_portfolio_cache_at: float = 0.0
         self._overview_runtime_cache: dict | None = None
         self._overview_runtime_cache_at: float = 0.0
         self._overview_registry_cache: dict | None = None
@@ -169,7 +172,12 @@ class DashboardService:
             runtime_payload,
             registry_payload,
         ) = await asyncio.gather(
-            self._call_with_timeout(self.v12_client.get_portfolio_dashboard(), self.OVERVIEW_PRIMARY_TIMEOUT_SECONDS),
+            self._get_optional_aux_payload(
+                cache_name="portfolio",
+                operation_factory=self.v12_client.get_portfolio_dashboard,
+                ttl_seconds=self.OVERVIEW_PORTFOLIO_CACHE_TTL_SECONDS,
+                timeout_seconds=self.OVERVIEW_PRIMARY_TIMEOUT_SECONDS,
+            ),
             self._get_optional_aux_payload(
                 cache_name="runtime",
                 operation_factory=self.v12_client.get_runtime_status,
@@ -347,13 +355,13 @@ class DashboardService:
         if cached is not None and self._is_fresh_as_of(cached.get("as_of")):
             return dict(cached)
 
-        live = await self._await_overview_live()
-        if self._overview_has_truth(live):
-            return self._store_overview_cache(live)
-
         if cached is not None:
             self._schedule_overview_refresh()
             return dict(cached)
+
+        live = await self._await_overview_live()
+        if self._overview_has_truth(live):
+            return self._store_overview_cache(live)
 
         return live
 

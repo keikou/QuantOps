@@ -13,11 +13,14 @@ logger = logging.getLogger(__name__)
 
 class PortfolioService:
     METRICS_CACHE_TTL_SECONDS = 5.0
+    METRICS_STALE_MAX_AGE_SECONDS = 60.0
+    METRICS_EQUITY_HISTORY_LIMIT = 60
 
     def __init__(self, v12_client: V12Client) -> None:
         self.v12_client = v12_client
         self._metrics_cache: dict | None = None
         self._metrics_cache_expires_at: datetime | None = None
+        self._metrics_cache_updated_at: datetime | None = None
         self._metrics_inflight_task: asyncio.Task | None = None
 
     @staticmethod
@@ -71,18 +74,24 @@ class PortfolioService:
         sharpe = mean_ret / std
         return round(max(-10.0, min(10.0, sharpe)), 6)
 
-    def _get_cached_metrics(self) -> dict | None:
+    def _get_cached_metrics(self, *, allow_stale: bool = False) -> dict | None:
         expires_at = self._metrics_cache_expires_at
-        if self._metrics_cache is None or expires_at is None:
+        updated_at = self._metrics_cache_updated_at
+        if self._metrics_cache is None or expires_at is None or updated_at is None:
             return None
-        if expires_at <= datetime.now(timezone.utc):
+        now = datetime.now(timezone.utc)
+        if expires_at > now:
+            return dict(self._metrics_cache)
+        if not allow_stale:
+            return None
+        if (now - updated_at).total_seconds() > self.METRICS_STALE_MAX_AGE_SECONDS:
             return None
         return dict(self._metrics_cache)
 
     async def _build_metrics_live(self) -> dict:
         execution_quality, equity_history = await asyncio.gather(
             self.v12_client.get_execution_quality(),
-            self.v12_client.get_equity_history(),
+            self.v12_client.get_equity_history(limit=self.METRICS_EQUITY_HISTORY_LIMIT),
         )
         execution_quality = execution_quality if isinstance(execution_quality, dict) else {}
         equity_history = equity_history if isinstance(equity_history, dict) else {}
@@ -111,8 +120,27 @@ class PortfolioService:
             "as_of": execution_quality.get("as_of") or equity_history.get("as_of") or utc_now_iso(),
         }
         self._metrics_cache = dict(payload)
-        self._metrics_cache_expires_at = datetime.now(timezone.utc) + timedelta(seconds=self.METRICS_CACHE_TTL_SECONDS)
+        now = datetime.now(timezone.utc)
+        self._metrics_cache_updated_at = now
+        self._metrics_cache_expires_at = now + timedelta(seconds=self.METRICS_CACHE_TTL_SECONDS)
         return payload
+
+    def _schedule_metrics_refresh(self) -> None:
+        task = self._metrics_inflight_task
+        if task is not None and not task.done():
+            return
+        self._metrics_inflight_task = asyncio.create_task(self._build_metrics_live())
+
+        def _clear_task(finished: asyncio.Task) -> None:
+            try:
+                finished.exception()
+            except Exception:
+                logger.exception("portfolio_metrics_background_refresh_failed")
+            finally:
+                if self._metrics_inflight_task is finished:
+                    self._metrics_inflight_task = None
+
+        self._metrics_inflight_task.add_done_callback(_clear_task)
 
     async def get_overview(self) -> dict:
         overview_payload = await self.v12_client.get_portfolio_dashboard()
@@ -187,6 +215,11 @@ class PortfolioService:
         cached = self._get_cached_metrics()
         if cached is not None:
             return cached
+
+        stale_cached = self._get_cached_metrics(allow_stale=True)
+        if stale_cached is not None:
+            self._schedule_metrics_refresh()
+            return stale_cached
 
         task = self._metrics_inflight_task
         if task is not None and not task.done():
@@ -447,8 +480,8 @@ class PortfolioService:
 
     async def get_metrics_debug(self) -> dict:
         execution_quality, equity_history = await asyncio.gather(
-            self.v12_client.get_execution_quality(),
-            self.v12_client.get_equity_history(),
+            self.v12_client.get_execution_quality(live=True),
+            self.v12_client.get_equity_history(limit=self.METRICS_EQUITY_HISTORY_LIMIT, live=True),
         )
         execution_quality = execution_quality if isinstance(execution_quality, dict) else {}
         equity_history = equity_history if isinstance(equity_history, dict) else {}
@@ -472,7 +505,7 @@ class PortfolioService:
                 "background_refresh_scheduled": False,
                 "upstream_dependencies": [
                     "v12:/execution/quality/latest",
-                    "v12:/portfolio/equity-history",
+                    f"v12:/portfolio/equity-history/live?limit={self.METRICS_EQUITY_HISTORY_LIMIT}",
                 ],
             },
             "counts": {
