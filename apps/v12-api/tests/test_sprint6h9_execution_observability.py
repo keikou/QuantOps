@@ -1,9 +1,11 @@
 from datetime import datetime, timedelta, timezone
+import json
 
 from fastapi.testclient import TestClient
 
 from ai_hedge_bot.app.main import app
 from ai_hedge_bot.app.container import CONTAINER
+from ai_hedge_bot.services.truth_engine import TruthEngine
 
 client = TestClient(app)
 
@@ -14,6 +16,7 @@ def _reset_runtime_state() -> None:
         'execution_state_snapshots','execution_block_reasons','orchestrator_runs','orchestrator_cycles','signals',
         'signal_evaluations','portfolio_signal_decisions','portfolio_diagnostics','portfolio_positions','portfolio_snapshots',
         'rebalance_plans','market_prices_latest','market_prices_history','position_snapshots_latest','position_snapshots_history',
+        'position_snapshot_versions',
         'equity_snapshots','cash_ledger'
     ]:
         try:
@@ -94,3 +97,83 @@ def test_sprint6h9_execution_state_exposes_visible_and_submitted_counts() -> Non
     assert 'visible_plan_count' in state
     assert 'submitted_order_count' in state
     assert state['visible_plan_count'] >= state['active_plan_count']
+
+
+def test_sprint6h9_position_snapshots_use_active_version() -> None:
+    _reset_runtime_state()
+    truth = TruthEngine()
+    first_as_of = datetime.now(timezone.utc).isoformat()
+    CONTAINER.runtime_store.append('execution_fills', {
+        'fill_id': 'fill-v1',
+        'run_id': 'run-v1',
+        'plan_id': 'plan-v1',
+        'symbol': 'BTCUSDT',
+        'side': 'buy',
+        'fill_qty': 1.0,
+        'fill_price': 100.0,
+        'fee_bps': 0.0,
+        'created_at': first_as_of,
+    })
+    CONTAINER.runtime_store.append('market_prices_latest', {
+        'symbol': 'BTCUSDT',
+        'mark_price': 101.0,
+        'source': 'test',
+        'price_time': first_as_of,
+        'quote_age_sec': 0.0,
+        'stale': False,
+        'fallback_reason': None,
+        'updated_at': first_as_of,
+    })
+    positions_v1 = truth.rebuild_positions(first_as_of)
+    metrics_v1 = dict(truth.last_rebuild_positions_metrics)
+    assert len(positions_v1) == 1
+    assert metrics_v1['snapshot_version']
+
+    second_as_of = (datetime.now(timezone.utc) + timedelta(seconds=1)).isoformat()
+    CONTAINER.runtime_store.append('execution_fills', {
+        'fill_id': 'fill-v2',
+        'run_id': 'run-v2',
+        'plan_id': 'plan-v2',
+        'symbol': 'BTCUSDT',
+        'side': 'sell',
+        'fill_qty': 1.0,
+        'fill_price': 102.0,
+        'fee_bps': 0.0,
+        'created_at': second_as_of,
+    })
+    positions_v2 = truth.rebuild_positions(second_as_of)
+    metrics_v2 = dict(truth.last_rebuild_positions_metrics)
+    assert positions_v2 == []
+    assert metrics_v1['snapshot_version'] != metrics_v2['snapshot_version']
+    assert metrics_v2['rebuild_mode'] == 'incremental'
+    assert metrics_v2['new_fills_applied'] == 1
+
+    active = CONTAINER.runtime_store.fetchone_dict(
+        "SELECT version_id FROM position_snapshot_versions WHERE build_status = 'active' ORDER BY activated_at DESC LIMIT 1"
+    )
+    assert active is not None
+    assert active['version_id'] == metrics_v2['snapshot_version']
+
+    overview = client.get('/portfolio/overview').json()
+    assert overview['status'] == 'ok'
+    assert overview['positions'] == []
+
+
+def test_sprint6h9_runtime_run_once_emits_writer_metrics() -> None:
+    _reset_runtime_state()
+    writer_log = CONTAINER.runtime_dir / 'logs' / 'writer_cycles.jsonl'
+    if writer_log.exists():
+        writer_log.unlink()
+
+    out = client.post('/runtime/run-once?mode=paper').json()
+    assert out['status'] == 'ok'
+    result = out['result']
+    metrics = result['details'].get('writer_metrics')
+    assert metrics is not None
+    assert metrics['position_snapshot_version']
+    assert metrics['cycle_duration_ms'] >= 0.0
+
+    assert writer_log.exists()
+    entries = [json.loads(line) for line in writer_log.read_text(encoding='utf-8').splitlines() if line.strip()]
+    assert entries
+    assert any(entry['cycle_id'] == result['cycle_id'] for entry in entries)

@@ -12,6 +12,40 @@ class Sprint5Repository:
     def __post_init__(self) -> None:
         self.store = CONTAINER.runtime_store
 
+    def _active_position_snapshot_version(self) -> str | None:
+        row = self.store.fetchone_dict(
+            """
+            SELECT version_id
+            FROM position_snapshot_versions
+            WHERE build_status = 'active'
+            ORDER BY activated_at DESC, created_at DESC
+            LIMIT 1
+            """
+        )
+        version_id = str((row or {}).get('version_id') or '')
+        if not version_id:
+            return None
+        count_row = self.store.fetchone_dict(
+            "SELECT COUNT(*) AS cnt FROM position_snapshots_latest WHERE snapshot_version = ?",
+            [version_id],
+        ) or {'cnt': 0}
+        active_rows = int(count_row.get('cnt', 0) or 0)
+        if active_rows > 0:
+            return version_id
+        row_counts = self.store.fetchone_dict(
+            """
+            SELECT
+                COUNT(*) AS total_rows,
+                COUNT(snapshot_version) AS versioned_rows
+            FROM position_snapshots_latest
+            """
+        ) or {'total_rows': 0, 'versioned_rows': 0}
+        total_rows = int(row_counts.get('total_rows', 0) or 0)
+        versioned_rows = int(row_counts.get('versioned_rows', 0) or 0)
+        if total_rows == 0:
+            return version_id
+        return None if versioned_rows == 0 else version_id
+
     def create_alpha_signal_snapshot(self, row: dict[str, Any]) -> None:
         self.store.append('alpha_signal_snapshots', row)
 
@@ -88,15 +122,29 @@ class Sprint5Repository:
 
     def latest_portfolio_overview(self) -> dict[str, Any]:
         equity = self.latest_equity_snapshot()
-        latest_positions = self.store.fetchall_dict(
-            """
-            SELECT symbol, strategy_id, alpha_family, signed_qty, abs_qty, side, avg_entry_price,
-                   mark_price, market_value, unrealized_pnl, realized_pnl, exposure_notional,
-                   price_source, quote_time, quote_age_sec, stale, updated_at
-            FROM position_snapshots_latest
-            ORDER BY exposure_notional DESC, symbol ASC
-            """
-        )
+        active_version = self._active_position_snapshot_version()
+        if active_version:
+            latest_positions = self.store.fetchall_dict(
+                """
+                SELECT symbol, strategy_id, alpha_family, signed_qty, abs_qty, side, avg_entry_price,
+                       mark_price, market_value, unrealized_pnl, realized_pnl, exposure_notional,
+                       price_source, quote_time, quote_age_sec, stale, updated_at
+                FROM position_snapshots_latest
+                WHERE snapshot_version = ?
+                ORDER BY exposure_notional DESC, symbol ASC
+                """,
+                [active_version],
+            )
+        else:
+            latest_positions = self.store.fetchall_dict(
+                """
+                SELECT symbol, strategy_id, alpha_family, signed_qty, abs_qty, side, avg_entry_price,
+                       mark_price, market_value, unrealized_pnl, realized_pnl, exposure_notional,
+                       price_source, quote_time, quote_age_sec, stale, updated_at
+                FROM position_snapshots_latest
+                ORDER BY exposure_notional DESC, symbol ASC
+                """
+            )
         if equity or latest_positions:
             latest_run = self.store.fetchone_dict(
                 """

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+import time
 from dataclasses import dataclass
 from typing import Any
 
@@ -31,6 +32,9 @@ class TruthEngine:
 
     def __post_init__(self) -> None:
         self.quote_client = BinancePublicClient()
+        self.last_record_orders_and_fills_metrics: dict[str, Any] = {}
+        self.last_rebuild_positions_metrics: dict[str, Any] = {}
+        self.last_compute_equity_snapshot_metrics: dict[str, Any] = {}
 
     def ensure_schema(self) -> None:
         store = CONTAINER.runtime_store
@@ -93,6 +97,7 @@ class TruthEngine:
             """,
             """
             CREATE TABLE IF NOT EXISTS position_snapshots_latest (
+                snapshot_version VARCHAR,
                 symbol VARCHAR,
                 strategy_id VARCHAR,
                 alpha_family VARCHAR,
@@ -114,6 +119,7 @@ class TruthEngine:
             """,
             """
             CREATE TABLE IF NOT EXISTS position_snapshots_history (
+                snapshot_version VARCHAR,
                 snapshot_time TIMESTAMP,
                 symbol VARCHAR,
                 strategy_id VARCHAR,
@@ -189,6 +195,25 @@ class TruthEngine:
                 details_json VARCHAR
             )
             """,
+            """
+            CREATE TABLE IF NOT EXISTS position_snapshot_versions (
+                version_id VARCHAR,
+                build_status VARCHAR,
+                snapshot_time TIMESTAMP,
+                row_count INTEGER,
+                fills_scanned INTEGER,
+                build_duration_ms DOUBLE,
+                created_at TIMESTAMP,
+                activated_at TIMESTAMP
+            )
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS truth_engine_state (
+                state_key VARCHAR,
+                state_value VARCHAR,
+                updated_at TIMESTAMP
+            )
+            """,
         ]
         for stmt in statements:
             store.execute(stmt)
@@ -228,10 +253,12 @@ class TruthEngine:
             "ALTER TABLE market_prices_history ADD COLUMN quote_age_sec DOUBLE",
             "ALTER TABLE market_prices_history ADD COLUMN stale BOOLEAN",
             "ALTER TABLE market_prices_history ADD COLUMN fallback_reason VARCHAR",
+            "ALTER TABLE position_snapshots_latest ADD COLUMN snapshot_version VARCHAR",
             "ALTER TABLE position_snapshots_latest ADD COLUMN price_source VARCHAR",
             "ALTER TABLE position_snapshots_latest ADD COLUMN quote_time TIMESTAMP",
             "ALTER TABLE position_snapshots_latest ADD COLUMN quote_age_sec DOUBLE",
             "ALTER TABLE position_snapshots_latest ADD COLUMN stale BOOLEAN",
+            "ALTER TABLE position_snapshots_history ADD COLUMN snapshot_version VARCHAR",
             "ALTER TABLE position_snapshots_history ADD COLUMN price_source VARCHAR",
             "ALTER TABLE position_snapshots_history ADD COLUMN quote_time TIMESTAMP",
             "ALTER TABLE position_snapshots_history ADD COLUMN quote_age_sec DOUBLE",
@@ -251,6 +278,109 @@ class TruthEngine:
             return max(0.0, (__import__('datetime').datetime.fromisoformat(as_of_ts) - __import__('datetime').datetime.fromisoformat(quote_ts)).total_seconds())
         except Exception:
             return 0.0
+
+    def _get_state_value(self, key: str) -> str | None:
+        row = CONTAINER.runtime_store.fetchone_dict(
+            """
+            SELECT state_value
+            FROM truth_engine_state
+            WHERE state_key = ?
+            ORDER BY updated_at DESC
+            LIMIT 1
+            """,
+            [key],
+        )
+        value = (row or {}).get("state_value")
+        return str(value) if value is not None else None
+
+    def _set_state_value(self, key: str, value: str, as_of: str) -> None:
+        store = CONTAINER.runtime_store
+        store.execute("DELETE FROM truth_engine_state WHERE state_key = ?", [key])
+        store.append(
+            "truth_engine_state",
+            {
+                "state_key": key,
+                "state_value": value,
+                "updated_at": as_of,
+            },
+        )
+
+    def _get_fill_watermark(self, key: str) -> tuple[str | None, str | None]:
+        raw = self._get_state_value(key)
+        if not raw:
+            return None, None
+        try:
+            created_at, fill_id = raw.split("|", 1)
+            return created_at or None, fill_id or None
+        except Exception:
+            return None, None
+
+    def _set_fill_watermark(self, key: str, fill: dict[str, Any] | None, as_of: str) -> None:
+        if not fill:
+            return
+        created_at = str(fill.get("created_at") or as_of)
+        fill_id = str(fill.get("fill_id") or "")
+        if not fill_id:
+            return
+        self._set_state_value(key, f"{created_at}|{fill_id}", as_of)
+
+    def _active_position_snapshot_version(self) -> str | None:
+        row = CONTAINER.runtime_store.fetchone_dict(
+            """
+            SELECT version_id
+            FROM position_snapshot_versions
+            WHERE build_status = 'active'
+            ORDER BY activated_at DESC, created_at DESC
+            LIMIT 1
+            """
+        )
+        version_id = str((row or {}).get("version_id") or "")
+        return version_id or None
+
+    def _fetch_active_position_rows(self) -> list[dict[str, Any]]:
+        store = CONTAINER.runtime_store
+        active_version = self._active_position_snapshot_version()
+        if active_version:
+            return store.fetchall_dict(
+                """
+                SELECT symbol, strategy_id, alpha_family, signed_qty, abs_qty, side, avg_entry_price,
+                       mark_price, market_value, unrealized_pnl, realized_pnl, exposure_notional,
+                       price_source, quote_time, quote_age_sec, stale, updated_at
+                FROM position_snapshots_latest
+                WHERE snapshot_version = ?
+                ORDER BY exposure_notional DESC, symbol ASC
+                """,
+                [active_version],
+            )
+        return store.fetchall_dict(
+            """
+            SELECT symbol, strategy_id, alpha_family, signed_qty, abs_qty, side, avg_entry_price,
+                   mark_price, market_value, unrealized_pnl, realized_pnl, exposure_notional,
+                   price_source, quote_time, quote_age_sec, stale, updated_at
+            FROM position_snapshots_latest
+            ORDER BY exposure_notional DESC, symbol ASC
+            """
+        )
+
+    def _fetch_new_fills(self, created_at: str | None, fill_id: str | None) -> list[dict[str, Any]]:
+        store = CONTAINER.runtime_store
+        if not created_at or not fill_id:
+            return store.fetchall_dict(
+                """
+                SELECT fill_id, run_id, plan_id, symbol, side, fill_qty, fill_price, fee_bps, created_at
+                FROM execution_fills
+                ORDER BY created_at ASC, fill_id ASC
+                """
+            )
+        return store.fetchall_dict(
+            """
+            SELECT fill_id, run_id, plan_id, symbol, side, fill_qty, fill_price, fee_bps, created_at
+            FROM execution_fills
+            WHERE created_at > ? OR (created_at = ? AND fill_id > ?)
+            ORDER BY created_at ASC, fill_id ASC
+            """,
+            [created_at, created_at, fill_id],
+        )
 
     def get_latest_market_prices(self, symbols: list[str] | None = None) -> dict[str, dict[str, Any]]:
         store = CONTAINER.runtime_store
@@ -333,7 +463,7 @@ class TruthEngine:
             store.append("market_prices_latest", latest_rows)
             store.append("market_prices_history", history_rows)
 
-    def record_orders_and_fills(self, fills: list[dict[str, Any]], as_of: str) -> None:
+    def record_orders_and_fills(self, fills: list[dict[str, Any]], as_of: str) -> dict[str, Any]:
         store = CONTAINER.runtime_store
         orders = []
         ledger_rows = []
@@ -379,6 +509,12 @@ class TruthEngine:
         if orders:
             store.append("execution_orders", orders)
             store.append("cash_ledger", ledger_rows)
+        self.last_record_orders_and_fills_metrics = {
+            "fill_rows": len(fills),
+            "order_rows": len(orders),
+            "ledger_rows": len(ledger_rows),
+        }
+        return self.last_record_orders_and_fills_metrics
 
     def latest_cash_balance(self) -> float:
         row = CONTAINER.runtime_store.fetchone_dict(
@@ -406,13 +542,19 @@ class TruthEngine:
         total_realized = 0.0
         total_fees = 0.0
         for fill in fills:
+            realized, fees = self._apply_fill_to_position_states(states, fill)
+            total_realized += realized
+            total_fees += fees
+        return states, round(total_realized, 8), round(total_fees, 8)
+
+    def _apply_fill_to_position_states(self, states: dict[str, dict[str, Any]], fill: dict[str, Any]) -> tuple[float, float]:
             symbol = str(fill["symbol"])
             state = states.setdefault(
                 symbol,
                 {
                     "symbol": symbol,
-                    "strategy_id": fill.get("run_id") or "paper_runtime",
-                    "alpha_family": "runtime",
+                    "strategy_id": fill.get("strategy_id") or fill.get("run_id") or "paper_runtime",
+                    "alpha_family": fill.get("alpha_family") or "runtime",
                     "signed_qty": 0.0,
                     "avg_entry_price": None,
                     "realized_pnl": 0.0,
@@ -422,18 +564,19 @@ class TruthEngine:
             qty = abs(signed_fill)
             price = float(fill.get("fill_price", 0.0) or 0.0)
             fee_bps = float(fill.get("fee_bps", 0.0) or 0.0)
-            total_fees += qty * price * fee_bps / 10000.0
+            total_fees = qty * price * fee_bps / 10000.0
             current_qty = float(state["signed_qty"])
             avg = state["avg_entry_price"]
+            total_realized = 0.0
             if current_qty == 0.0 or avg is None:
                 state["signed_qty"] = signed_fill
                 state["avg_entry_price"] = price if signed_fill != 0 else None
-                continue
+                return total_realized, total_fees
             if current_qty * signed_fill > 0:
                 new_qty = current_qty + signed_fill
                 state["avg_entry_price"] = ((abs(current_qty) * float(avg)) + (abs(signed_fill) * price)) / max(abs(new_qty), 1e-12)
                 state["signed_qty"] = new_qty
-                continue
+                return total_realized, total_fees
             close_qty = min(abs(current_qty), abs(signed_fill))
             if current_qty > 0:
                 realized = (price - float(avg)) * close_qty
@@ -450,11 +593,29 @@ class TruthEngine:
             else:
                 state["signed_qty"] = new_qty
                 state["avg_entry_price"] = price
-        return states, round(total_realized, 8), round(total_fees, 8)
+            return total_realized, total_fees
+
+    def _build_position_states_from_snapshot(self, rows: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
+        states: dict[str, dict[str, Any]] = {}
+        for row in rows:
+            symbol = str(row["symbol"])
+            states[symbol] = {
+                "symbol": symbol,
+                "strategy_id": row.get("strategy_id") or "paper_runtime",
+                "alpha_family": row.get("alpha_family") or "runtime",
+                "signed_qty": float(row.get("signed_qty", 0.0) or 0.0),
+                "avg_entry_price": float(row.get("avg_entry_price", 0.0) or 0.0) if row.get("avg_entry_price") is not None else None,
+                "realized_pnl": float(row.get("realized_pnl", 0.0) or 0.0),
+            }
+        return states
 
     def rebuild_positions(self, as_of: str) -> list[dict[str, Any]]:
+        started_at = time.perf_counter()
         store = CONTAINER.runtime_store
-        fills = store.fetchall_dict(
+        watermark_created_at, watermark_fill_id = self._get_fill_watermark("positions_last_fill")
+        active_rows = self._fetch_active_position_rows()
+        full_rebuild = not active_rows or not watermark_created_at or not watermark_fill_id
+        fills = self._fetch_new_fills(watermark_created_at, watermark_fill_id) if not full_rebuild else store.fetchall_dict(
             """
             SELECT fill_id, run_id, plan_id, symbol, side, fill_qty, fill_price, fee_bps, created_at
             FROM execution_fills
@@ -465,8 +626,26 @@ class TruthEngine:
             "SELECT symbol, mark_price, source, price_time, quote_age_sec, stale, fallback_reason FROM market_prices_latest"
         )
         price_by_symbol = {str(r["symbol"]): r for r in price_rows}
-        states, _, _ = self._build_position_states_from_fills(fills)
-        store.execute("DELETE FROM position_snapshots_latest")
+        if full_rebuild:
+            states, _, _ = self._build_position_states_from_fills(fills)
+        else:
+            states = self._build_position_states_from_snapshot(active_rows)
+            for fill in fills:
+                self._apply_fill_to_position_states(states, fill)
+        snapshot_version = new_cycle_id()
+        store.append(
+            "position_snapshot_versions",
+            {
+                "version_id": snapshot_version,
+                "build_status": "building",
+                "snapshot_time": as_of,
+                "row_count": 0,
+                "fills_scanned": len(fills),
+                "build_duration_ms": 0.0,
+                "created_at": as_of,
+                "activated_at": None,
+            },
+        )
         latest_rows = []
         history_rows = []
         valued = []
@@ -482,6 +661,7 @@ class TruthEngine:
             unrealized = round((mark - avg_entry) * signed_qty, 8)
             side = "long" if signed_qty > 0 else "short"
             row = {
+                "snapshot_version": snapshot_version,
                 "symbol": symbol,
                 "strategy_id": state.get("strategy_id") or "paper_runtime",
                 "alpha_family": state.get("alpha_family") or "runtime",
@@ -506,19 +686,74 @@ class TruthEngine:
         if latest_rows:
             store.append("position_snapshots_latest", latest_rows)
             store.append("position_snapshots_history", history_rows)
+        build_duration_ms = round((time.perf_counter() - started_at) * 1000.0, 2)
+        store.execute(
+            """
+            UPDATE position_snapshot_versions
+            SET build_status = 'superseded'
+            WHERE build_status = 'active'
+            """,
+        )
+        store.execute(
+            """
+            UPDATE position_snapshot_versions
+            SET build_status = 'active',
+                row_count = ?,
+                fills_scanned = ?,
+                build_duration_ms = ?,
+                activated_at = ?
+            WHERE version_id = ?
+            """,
+            [len(latest_rows), len(fills), build_duration_ms, as_of, snapshot_version],
+        )
+        self._set_fill_watermark("positions_last_fill", fills[-1] if fills else None, as_of)
+        self.last_rebuild_positions_metrics = {
+            "snapshot_version": snapshot_version,
+            "fills_scanned": len(fills),
+            "new_fills_applied": len(fills),
+            "position_rows": len(latest_rows),
+            "build_duration_ms": build_duration_ms,
+            "rebuild_mode": "full" if full_rebuild else "incremental",
+        }
         return valued
 
     def compute_equity_snapshot(self, positions: list[dict[str, Any]], as_of: str) -> dict[str, Any]:
+        started_at = time.perf_counter()
         store = CONTAINER.runtime_store
-        fills = store.fetchall_dict(
+        watermark_created_at, watermark_fill_id = self._get_fill_watermark("equity_last_fill")
+        previous = store.fetchone_dict(
+            """
+            SELECT cash_balance, fees_paid, realized_pnl, peak_equity
+            FROM equity_snapshots
+            ORDER BY snapshot_time DESC
+            LIMIT 1
+            """
+        )
+        full_rebuild = previous is None or not watermark_created_at or not watermark_fill_id
+        fills = self._fetch_new_fills(watermark_created_at, watermark_fill_id) if not full_rebuild else store.fetchall_dict(
             """
             SELECT fill_id, run_id, plan_id, symbol, side, fill_qty, fill_price, fee_bps, created_at
             FROM execution_fills
             ORDER BY created_at ASC, fill_id ASC
             """
         )
-        _, realized_total, _ = self._build_position_states_from_fills(fills)
-        cash_balance, fees_paid = self._compute_cash_balance_from_fills(fills)
+        if full_rebuild:
+            _, realized_total, _ = self._build_position_states_from_fills(fills)
+            cash_balance, fees_paid = self._compute_cash_balance_from_fills(fills)
+        else:
+            prev_cash = float((previous or {}).get("cash_balance", self.initial_capital) or self.initial_capital)
+            prev_fees = float((previous or {}).get("fees_paid", 0.0) or 0.0)
+            prev_realized = float((previous or {}).get("realized_pnl", 0.0) or 0.0)
+            delta_cash_balance, delta_fees = self._compute_cash_balance_from_fills(fills)
+            delta_cash = round(delta_cash_balance - self.initial_capital, 8)
+            delta_realized = 0.0
+            delta_states: dict[str, dict[str, Any]] = {}
+            for fill in fills:
+                realized_delta, _ = self._apply_fill_to_position_states(delta_states, fill)
+                delta_realized += realized_delta
+            cash_balance = round(prev_cash + delta_cash, 8)
+            fees_paid = round(prev_fees + delta_fees, 8)
+            realized_total = round(prev_realized + delta_realized, 8)
         unrealized = round(sum(float(p.get("unrealized_pnl", 0.0) or 0.0) for p in positions), 8)
         used_margin = round(sum(float(p.get("avg_entry_price", 0.0) or 0.0) * float(p.get("abs_qty", 0.0) or 0.0) for p in positions), 8)
         current_long_notional = round(sum(max(0.0, float(p.get("market_value", 0.0) or 0.0)) for p in positions), 8)
@@ -555,6 +790,14 @@ class TruthEngine:
             "peak_equity": round(peak, 8),
         }
         store.append("equity_snapshots", row)
+        self._set_fill_watermark("equity_last_fill", fills[-1] if fills else None, as_of)
+        self.last_compute_equity_snapshot_metrics = {
+            "fills_scanned": len(fills),
+            "new_fills_applied": len(fills),
+            "position_rows": len(positions),
+            "build_duration_ms": round((time.perf_counter() - started_at) * 1000.0, 2),
+            "rebuild_mode": "full" if full_rebuild else "incremental",
+        }
         return row
 
     def price_runtime_config(self) -> dict[str, Any]:
