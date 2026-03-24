@@ -31,6 +31,11 @@ _execution_quality_summary_cache: dict[str, Any] = {
     'expires_at': None,
     'payload': None,
 }
+EXECUTION_BRIDGE_CACHE_TTL_SECONDS = 3.0
+_execution_bridge_cache: dict[str, Any] = {
+    'expires_at': None,
+    'payload': None,
+}
 
 
 def _parse_ts(value) -> datetime | None:
@@ -261,6 +266,22 @@ def _get_execution_quality_latest_summary() -> dict[str, Any]:
     return payload
 
 
+def _get_execution_bridge_latest() -> dict[str, Any]:
+    now = datetime.now(timezone.utc)
+    expires_at = _execution_bridge_cache.get('expires_at')
+    cached_payload = _execution_bridge_cache.get('payload')
+    if isinstance(expires_at, datetime) and cached_payload and expires_at > now:
+        return _decorate_execution_payload(cached_payload, build_status='fresh_cache')
+    payload = _bridge.get_bridge_summary()
+    payload = {
+        **payload,
+        'source_snapshot_time': payload.get('last_transition_at'),
+    }
+    _execution_bridge_cache['payload'] = payload
+    _execution_bridge_cache['expires_at'] = now + timedelta(seconds=EXECUTION_BRIDGE_CACHE_TTL_SECONDS)
+    return _decorate_execution_payload(payload, build_status='live')
+
+
 def _enrich_plan_activity(items: list[dict], orders: list[dict], fills: list[dict], trading_state: str = 'running') -> tuple[list[dict], int, int]:
     now = datetime.now(timezone.utc)
     orders_by_plan: dict[str, list[dict[str, Any]]] = {}
@@ -400,7 +421,7 @@ def execution_planner_latest() -> dict:
 
 @router.get('/bridge/latest')
 def execution_bridge_latest() -> dict:
-    return _bridge.get_bridge_summary()
+    return _get_execution_bridge_latest()
 
 
 @router.get('/bridge/by-run/{run_id}')

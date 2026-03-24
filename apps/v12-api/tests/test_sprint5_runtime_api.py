@@ -182,3 +182,43 @@ def test_portfolio_metrics_latest_reuses_short_ttl_cache(monkeypatch) -> None:
     assert first.json()['expected_sharpe'] == second.json()['expected_sharpe']
     assert second.json()['build_status'] == 'fresh_cache'
     assert call_count['count'] == 1
+
+
+def test_execution_bridge_latest_reuses_short_ttl_cache(monkeypatch) -> None:
+    from ai_hedge_bot.api.routes import execution as execution_routes
+
+    execution_routes._execution_bridge_cache['expires_at'] = None
+    execution_routes._execution_bridge_cache['payload'] = None
+    call_count = {'count': 0}
+
+    def fake_bridge_summary() -> dict:
+        call_count['count'] += 1
+        return {
+            'status': 'ok',
+            'run_id': f'run-{call_count["count"]}',
+            'cycle_id': f'cycle-{call_count["count"]}',
+            'bridge_state': 'filled',
+            'planned_count': 2,
+            'submitted_count': 2,
+            'blocked_count': 0,
+            'filled_count': 2,
+            'event_chain_complete': True,
+            'latest_reason_code': None,
+            'latest_reason_summary': None,
+            'blocking_component': None,
+            'degraded_flags': [],
+            'operator_message': 'ok',
+            'last_transition_at': f'2026-03-24T00:00:0{call_count["count"]}+00:00',
+        }
+
+    monkeypatch.setattr(execution_routes._bridge, 'get_bridge_summary', fake_bridge_summary)
+
+    first = client.get('/execution/bridge/latest')
+    second = client.get('/execution/bridge/latest')
+
+    assert first.status_code == 200
+    assert second.status_code == 200
+    assert first.json()['run_id'] == second.json()['run_id']
+    assert first.json()['build_status'] == 'live'
+    assert second.json()['build_status'] == 'fresh_cache'
+    assert call_count['count'] == 1
