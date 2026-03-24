@@ -55,6 +55,7 @@ const OVERVIEW_LIVE_EVENT_TYPES: CommandCenterLiveEventType[] = ['pnl_update'];
 const OVERVIEW_METRICS_DELAY_MS = 800;
 const OVERVIEW_RUNTIME_DELAY_MS = 1400;
 const OVERVIEW_SECONDARY_DELAY_MS = 2400;
+const OVERVIEW_HISTORY_DELAY_MS = 3600;
 
 function useDelayedEnable(enabled: boolean, delayMs: number) {
   const [active, setActive] = useState(false);
@@ -177,13 +178,14 @@ export function OverviewPage() {
   const monitoringReady = secondaryEnabled && runtimeReady && Boolean(monitoring.data?.data || monitoring.error);
   const risk = useRiskSnapshot(secondaryEnabled && monitoringReady);
   const riskReady = secondaryEnabled && monitoringReady && Boolean(risk.data?.data || risk.error);
+  const historyEnabled = useDelayedEnable(riskReady, OVERVIEW_HISTORY_DELAY_MS);
   const secondaryReady = riskReady && Boolean(
     runtime.data?.data || monitoring.data?.data || risk.data?.data || runtime.error || monitoring.error || risk.error
   );
   const portfolioMetricsQuery = usePortfolioMetrics(metricsEnabled);
   const alerts = useAlerts(secondaryReady);
   const jobs = useSchedulerJobs(secondaryReady);
-  const equityHistory = useEquityHistory(secondaryReady);
+  const equityHistory = useEquityHistory(historyEnabled);
 
   const overviewEnvelope = overview.data;
   if (overview.isLoading && !hasOverviewData) return <LoadingState />;
