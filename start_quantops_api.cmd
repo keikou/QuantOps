@@ -1,4 +1,9 @@
 @echo off
+setlocal
+set SKIP_MIGRATE=0
+if /I "%~1"=="--skip-migrate" set SKIP_MIGRATE=1
+if /I "%SKIP_DB_MIGRATE%"=="1" set SKIP_MIGRATE=1
+
 cd /d %~dp0\apps\quantops-api
 
 echo ==== QuantOps API ====
@@ -30,8 +35,10 @@ if not exist .venv\installed.flag (
     echo done > .venv\installed.flag
 )
 
-"%VENV_PYTHON%" -m app.db.migrate
-if errorlevel 1 goto :error
+if not "%SKIP_MIGRATE%"=="1" (
+    "%VENV_PYTHON%" -m app.db.migrate
+    if errorlevel 1 goto :error
+)
 
 "%VENV_PYTHON%" -m uvicorn app.main:app --host 0.0.0.0 --port 8010
 goto :end

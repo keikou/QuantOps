@@ -170,12 +170,12 @@ $v12Log = Join-Path $logDir "v12.log"
 $quantopsLog = Join-Path $logDir "quantops.log"
 $frontendLog = Join-Path $logDir "frontend-start.log"
 $quantopsCommand = if ($SkipQuantopsMigrate) {
-  "set SKIP_DB_MIGRATE=1 && start_quantops_api.cmd > `"$quantopsLog`" 2>&1"
+  "start_quantops_api.cmd --skip-migrate > `"$quantopsLog`" 2>&1"
 } else {
   "start_quantops_api.cmd > `"$quantopsLog`" 2>&1"
 }
 $frontendCommand = if ($SkipFrontendBuild) {
-  "set SKIP_FRONTEND_BUILD=1 && start_frontend_prod.cmd > `"$frontendLog`" 2>&1"
+  "start_frontend_prod.cmd --skip-build > `"$frontendLog`" 2>&1"
 } else {
   "start_frontend_prod.cmd > `"$frontendLog`" 2>&1"
 }
