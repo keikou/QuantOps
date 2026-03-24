@@ -22,6 +22,7 @@ from app.services.notification_service import NotificationService
 class CommandCenterService:
     ARTIFACT_ROOT = Path(__file__).resolve().parents[4] / "test_bundle" / "artifacts" / "runtime_diagnostics"
     RUNTIME_LATEST_TTL_SECONDS = 5.0
+    RUNTIME_LATEST_REFRESH_COOLDOWN_SECONDS = 5.0
     RUNTIME_LATEST_PRIMARY_TIMEOUT_SECONDS = 3.0
     RUNTIME_LATEST_AUX_TIMEOUT_SECONDS = 1.5
     RUNTIME_FEED_TTL_SECONDS = 5.0
@@ -58,6 +59,7 @@ class CommandCenterService:
         self._runtime_latest_cache: dict | None = None
         self._runtime_latest_refresh_task: asyncio.Task | None = None
         self._runtime_latest_inflight_task: asyncio.Task | None = None
+        self._runtime_latest_refresh_requested_at: str | None = None
         self._runtime_runs_cache: dict[tuple, dict] = {}
         self._runtime_runs_inflight: dict[tuple, asyncio.Task] = {}
         self._runtime_issues_cache: dict[tuple, dict] = {}
@@ -101,6 +103,9 @@ class CommandCenterService:
         if not isinstance(payload, dict):
             return None
         return self._snapshot_age_sec(payload.get("_cached_at"))
+
+    def _runtime_latest_refresh_age_sec(self) -> float | None:
+        return self._snapshot_age_sec(self._runtime_latest_refresh_requested_at)
 
     def _decorate_runtime_feed_response(self, payload: dict, *, items: list[dict], build_status: str = "live", **extra: object) -> dict:
         source_snapshot_time = payload.get("as_of") or utc_now_iso()
@@ -943,7 +948,11 @@ class CommandCenterService:
         task = self._runtime_latest_refresh_task
         if task is not None and not task.done():
             return
+        refresh_age = self._runtime_latest_refresh_age_sec()
+        if refresh_age is not None and refresh_age <= self.RUNTIME_LATEST_REFRESH_COOLDOWN_SECONDS:
+            return
         loop = asyncio.get_running_loop()
+        self._runtime_latest_refresh_requested_at = utc_now_iso()
 
         def _start_refresh() -> None:
             current = self._runtime_latest_refresh_task

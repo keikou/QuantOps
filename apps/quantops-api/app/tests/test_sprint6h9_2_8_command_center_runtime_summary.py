@@ -273,3 +273,24 @@ def test_command_center_runtime_latest_skips_detail_upstreams_on_summary_path() 
     assert payload["run_id"] == "run-123"
     assert client.events_calls == 0
     assert client.reasons_calls == 0
+
+
+def test_command_center_runtime_latest_refresh_has_cooldown() -> None:
+    service = _CountingRuntimeService()
+    service._runtime_latest_cache = {
+        "run_id": "run-stale",
+        "operator_state": "blocked",
+        "latest_reason_code": "STALE_REASON",
+        "last_transition_at": "2026-03-23T00:00:09+00:00",
+        "source_snapshot_time": "2026-03-23T00:00:09+00:00",
+        "as_of": "2026-03-23T00:00:10+00:00",
+        "_cached_at": "2026-03-23T00:00:10+00:00",
+    }
+    service._runtime_latest_refresh_requested_at = "2999-01-01T00:00:00+00:00"
+
+    first = asyncio.run(service.get_runtime_latest())
+    second = asyncio.run(service.get_runtime_latest())
+
+    assert first["build_status"] == "stale_cache"
+    assert second["build_status"] == "stale_cache"
+    assert service.build_calls == 0
