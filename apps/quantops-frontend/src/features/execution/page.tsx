@@ -92,7 +92,7 @@ const diagnosisViews: Array<{ label: string; issueCode?: string; retryability?: 
 ];
 
 const RUNTIME_WINDOW_MINUTES = 5;
-const RUNTIME_ISSUE_LIMIT = 5;
+const RUNTIME_ISSUE_LIMIT = 3;
 const RUNTIME_RUN_LIMIT = 10;
 const EXECUTION_ROW_LIMIT = 5;
 
