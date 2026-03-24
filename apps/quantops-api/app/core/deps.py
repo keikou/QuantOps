@@ -64,6 +64,7 @@ def get_dashboard_service() -> DashboardService:
     return DashboardService(get_v12_client(), get_scheduler_repository(), get_alert_service())
 
 
+@lru_cache(maxsize=1)
 def get_portfolio_service() -> PortfolioService:
     return PortfolioService(get_v12_client())
 

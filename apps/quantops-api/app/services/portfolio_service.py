@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import asyncio
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 import logging
 
 from app.clients.v12_client import V12Client, utc_now_iso
@@ -12,8 +12,13 @@ logger = logging.getLogger(__name__)
 
 
 class PortfolioService:
+    METRICS_CACHE_TTL_SECONDS = 5.0
+
     def __init__(self, v12_client: V12Client) -> None:
         self.v12_client = v12_client
+        self._metrics_cache: dict | None = None
+        self._metrics_cache_expires_at: datetime | None = None
+        self._metrics_inflight_task: asyncio.Task | None = None
 
     @staticmethod
     def _safe_float(value: object, default: float = 0.0) -> float:
@@ -65,6 +70,49 @@ class PortfolioService:
             return 0.0
         sharpe = mean_ret / std
         return round(max(-10.0, min(10.0, sharpe)), 6)
+
+    def _get_cached_metrics(self) -> dict | None:
+        expires_at = self._metrics_cache_expires_at
+        if self._metrics_cache is None or expires_at is None:
+            return None
+        if expires_at <= datetime.now(timezone.utc):
+            return None
+        return dict(self._metrics_cache)
+
+    async def _build_metrics_live(self) -> dict:
+        execution_quality, equity_history = await asyncio.gather(
+            self.v12_client.get_execution_quality(),
+            self.v12_client.get_equity_history(),
+        )
+        execution_quality = execution_quality if isinstance(execution_quality, dict) else {}
+        equity_history = equity_history if isinstance(equity_history, dict) else {}
+        equity_items = equity_history.get("items") or []
+        if not isinstance(equity_items, list):
+            equity_items = []
+
+        returns: list[float] = []
+        prev = None
+        for item in equity_items:
+            value = self._safe_float(item.get("value"))
+            if prev and abs(prev) > 1e-9:
+                returns.append((value - prev) / abs(prev))
+            prev = value
+
+        expected_volatility = 0.0
+        if returns:
+            mean_ret = sum(returns) / len(returns)
+            variance = sum((r - mean_ret) ** 2 for r in returns) / max(len(returns) - 1, 1)
+            expected_volatility = round(variance ** 0.5, 6)
+
+        payload = {
+            "fill_rate": self._safe_float(execution_quality.get("fill_rate"), 0.0),
+            "expected_sharpe": self._safe_expected_sharpe_from_equity_history(equity_items),
+            "expected_volatility": expected_volatility,
+            "as_of": execution_quality.get("as_of") or equity_history.get("as_of") or utc_now_iso(),
+        }
+        self._metrics_cache = dict(payload)
+        self._metrics_cache_expires_at = datetime.now(timezone.utc) + timedelta(seconds=self.METRICS_CACHE_TTL_SECONDS)
+        return payload
 
     async def get_overview(self) -> dict:
         overview_payload = await self.v12_client.get_portfolio_dashboard()
@@ -136,36 +184,21 @@ class PortfolioService:
         }
 
     async def get_metrics(self) -> dict:
-        execution_quality, equity_history = await asyncio.gather(
-            self.v12_client.get_execution_quality(),
-            self.v12_client.get_equity_history(),
-        )
-        execution_quality = execution_quality if isinstance(execution_quality, dict) else {}
-        equity_history = equity_history if isinstance(equity_history, dict) else {}
-        equity_items = equity_history.get("items") or []
-        if not isinstance(equity_items, list):
-            equity_items = []
+        cached = self._get_cached_metrics()
+        if cached is not None:
+            return cached
 
-        returns: list[float] = []
-        prev = None
-        for item in equity_items:
-            value = self._safe_float(item.get("value"))
-            if prev and abs(prev) > 1e-9:
-                returns.append((value - prev) / abs(prev))
-            prev = value
+        task = self._metrics_inflight_task
+        if task is not None and not task.done():
+            return await task
 
-        expected_volatility = 0.0
-        if returns:
-            mean_ret = sum(returns) / len(returns)
-            variance = sum((r - mean_ret) ** 2 for r in returns) / max(len(returns) - 1, 1)
-            expected_volatility = round(variance ** 0.5, 6)
-
-        return {
-            "fill_rate": self._safe_float(execution_quality.get("fill_rate"), 0.0),
-            "expected_sharpe": self._safe_expected_sharpe_from_equity_history(equity_items),
-            "expected_volatility": expected_volatility,
-            "as_of": execution_quality.get("as_of") or equity_history.get("as_of") or utc_now_iso(),
-        }
+        task = asyncio.create_task(self._build_metrics_live())
+        self._metrics_inflight_task = task
+        try:
+            return await task
+        finally:
+            if self._metrics_inflight_task is task:
+                self._metrics_inflight_task = None
 
     async def get_positions(self) -> list[dict]:
         payload = await self.v12_client.get_portfolio_positions()

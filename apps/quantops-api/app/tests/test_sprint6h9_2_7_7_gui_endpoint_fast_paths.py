@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import time
 
-from app.core.deps import get_dashboard_service
+from app.core.deps import get_dashboard_service, get_portfolio_service
 from app.services.dashboard_service import DashboardService
 from app.services.portfolio_service import PortfolioService
 
@@ -73,6 +73,7 @@ class _SlowDashboardClient(_DashboardClient):
 class _PortfolioClient:
     def __init__(self) -> None:
         self.execution_quality_calls = 0
+        self.equity_history_calls = 0
 
     async def _sleep(self) -> None:
         await asyncio.sleep(0.05)
@@ -112,6 +113,7 @@ class _PortfolioClient:
         return {"fill_rate": 1.0}
 
     async def get_equity_history(self) -> dict:
+        self.equity_history_calls += 1
         await self._sleep()
         return {"items": [{"value": 100.0}, {"value": 101.0}, {"value": 102.0}]}
 
@@ -193,6 +195,31 @@ def test_portfolio_metrics_parallelizes_upstream_reads() -> None:
 
     assert payload["fill_rate"] == 1.0
     assert elapsed < 0.15
+
+
+def test_portfolio_metrics_uses_short_ttl_cache_and_coalesces() -> None:
+    client = _PortfolioClient()
+    service = PortfolioService(client)  # type: ignore[arg-type]
+
+    async def run_test() -> tuple[dict, dict, dict]:
+        first, second = await asyncio.gather(service.get_metrics(), service.get_metrics())
+        third = await service.get_metrics()
+        return first, second, third
+
+    first, second, third = asyncio.run(run_test())
+
+    assert first["fill_rate"] == 1.0
+    assert second["expected_sharpe"] == first["expected_sharpe"]
+    assert third["fill_rate"] == 1.0
+    assert client.execution_quality_calls == 1
+    assert client.equity_history_calls == 1
+
+
+def test_get_portfolio_service_is_shared_singleton() -> None:
+    first = get_portfolio_service()
+    second = get_portfolio_service()
+
+    assert first is second
 
 
 def test_dashboard_overview_coalesces_concurrent_live_builds() -> None:
