@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from datetime import datetime, timedelta, timezone
+
 from fastapi import APIRouter
 from ai_hedge_bot.app.container import CONTAINER
 from ai_hedge_bot.signal.signal_service import SignalService
@@ -15,6 +17,8 @@ _portfolio_service = PhaseGPortfolioService()
 _decision_logger = JsonlLogger(CONTAINER.runtime_dir / 'logs' / 'portfolio_weights.jsonl')
 _diag_logger = JsonlLogger(CONTAINER.runtime_dir / 'logs' / 'portfolio_diagnostics.jsonl')
 _repo = Sprint5Repository()
+PORTFOLIO_EQUITY_HISTORY_CACHE_TTL_SECONDS = 5.0
+_equity_history_cache: dict[tuple[int], dict[str, object]] = {}
 
 
 def _load_latest_signals() -> list[dict]:
@@ -161,6 +165,14 @@ def portfolio_positions_latest() -> dict:
 
 @router.get('/equity-history')
 def equity_history(limit: int = 200) -> dict:
+    cache_key = (int(limit),)
+    now = datetime.now(timezone.utc)
+    cached_entry = _equity_history_cache.get(cache_key)
+    if cached_entry:
+        expires_at = cached_entry.get('expires_at')
+        payload = cached_entry.get('payload')
+        if isinstance(expires_at, datetime) and payload and expires_at > now:
+            return payload  # type: ignore[return-value]
     rows = CONTAINER.runtime_store.fetchall_dict(
         """
         SELECT snapshot_time, total_equity, unrealized_pnl + realized_pnl AS pnl, drawdown
@@ -180,4 +192,9 @@ def equity_history(limit: int = 200) -> dict:
         }
         for row in reversed(rows)
     ]
-    return {'status': 'ok', 'items': items, 'as_of': items[-1]['as_of'] if items else None}
+    payload = {'status': 'ok', 'items': items, 'as_of': items[-1]['as_of'] if items else None}
+    _equity_history_cache[cache_key] = {
+        'expires_at': now + timedelta(seconds=PORTFOLIO_EQUITY_HISTORY_CACHE_TTL_SECONDS),
+        'payload': payload,
+    }
+    return payload

@@ -26,6 +26,11 @@ _execution_view_cache: dict[str, Any] = {
     'key': None,
     'payload': None,
 }
+EXECUTION_QUALITY_SUMMARY_CACHE_TTL_SECONDS = 3.0
+_execution_quality_summary_cache: dict[str, Any] = {
+    'expires_at': None,
+    'payload': None,
+}
 
 
 def _parse_ts(value) -> datetime | None:
@@ -222,6 +227,18 @@ def _get_execution_view_snapshot() -> dict[str, Any]:
     return payload
 
 
+def _get_execution_quality_latest_summary() -> dict[str, Any]:
+    now = datetime.now(timezone.utc)
+    expires_at = _execution_quality_summary_cache.get('expires_at')
+    cached_payload = _execution_quality_summary_cache.get('payload')
+    if isinstance(expires_at, datetime) and cached_payload and expires_at > now:
+        return cached_payload
+    payload = _repo.latest_execution_quality_summary()
+    _execution_quality_summary_cache['payload'] = payload
+    _execution_quality_summary_cache['expires_at'] = now + timedelta(seconds=EXECUTION_QUALITY_SUMMARY_CACHE_TTL_SECONDS)
+    return payload
+
+
 def _enrich_plan_activity(items: list[dict], orders: list[dict], fills: list[dict], trading_state: str = 'running') -> tuple[list[dict], int, int]:
     now = datetime.now(timezone.utc)
     orders_by_plan: dict[str, list[dict[str, Any]]] = {}
@@ -286,7 +303,7 @@ def execution_quality_latest() -> dict:
 
 @router.get('/quality/latest_summary')
 def execution_quality_latest_summary() -> dict:
-    return _repo.latest_execution_quality_summary()
+    return _get_execution_quality_latest_summary()
 
 
 @router.get('/fills')

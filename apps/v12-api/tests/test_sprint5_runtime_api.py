@@ -2,6 +2,7 @@ from fastapi.testclient import TestClient
 
 from ai_hedge_bot.app.container import CONTAINER
 from ai_hedge_bot.app.main import app
+from ai_hedge_bot.api.routes import portfolio as portfolio_routes
 from ai_hedge_bot.api.routes import runtime as runtime_routes
 
 client = TestClient(app)
@@ -90,4 +91,34 @@ def test_runtime_runs_route_reuses_short_ttl_cache(monkeypatch) -> None:
     assert third.status_code == 200
     assert first.json()['items'] == second.json()['items']
     assert first.json()['items'] != third.json()['items']
+    assert call_count['count'] == 2
+
+
+def test_portfolio_equity_history_reuses_short_ttl_cache_by_limit(monkeypatch) -> None:
+    portfolio_routes._equity_history_cache.clear()
+    call_count = {'count': 0}
+
+    def fake_fetchall_dict(query: str, params=None):
+        call_count['count'] += 1
+        limit = int((params or [0])[0] or 0)
+        return [
+            {
+                'snapshot_time': f'2026-03-24T00:00:{limit:02d}+00:00',
+                'total_equity': float(limit),
+                'pnl': float(limit) / 10.0,
+                'drawdown': 0.0,
+            }
+        ]
+
+    monkeypatch.setattr(CONTAINER.runtime_store, 'fetchall_dict', fake_fetchall_dict)
+
+    first = client.get('/portfolio/equity-history?limit=20')
+    second = client.get('/portfolio/equity-history?limit=20')
+    third = client.get('/portfolio/equity-history?limit=10')
+
+    assert first.status_code == 200
+    assert second.status_code == 200
+    assert third.status_code == 200
+    assert first.json() == second.json()
+    assert first.json() != third.json()
     assert call_count['count'] == 2
