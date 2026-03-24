@@ -3,6 +3,15 @@ import { ENABLE_PROXY_MOCK } from '@/lib/api/config';
 import { getMockResponse, applyMockMutation } from '@/lib/api/mock-server-state';
 
 const BASE = (process.env.QUANTOPS_API_BASE_URL || 'http://127.0.0.1:8010').trim().replace(/\/+$/, '');
+const PROXY_RETRY_DELAY_MS = 250;
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function isRetriableStatus(status: number) {
+  return status === 502 || status === 503 || status === 504;
+}
 
 function makeRequestId(request: NextRequest) {
   return request.headers.get('x-client-request-id') || `proxy-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -14,19 +23,47 @@ async function forward(request: NextRequest, segments: string[]) {
   const bodyText = method === 'GET' || method === 'HEAD' ? undefined : await request.text();
   const requestId = makeRequestId(request);
   const started = Date.now();
+  const maxAttempts = method === 'GET' || method === 'HEAD' ? 2 : 1;
 
   try {
-    const upstreamStarted = Date.now();
-    const response = await fetch(upstream, {
-      method,
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Request-Id': requestId,
-      },
-      body: bodyText,
-      cache: 'no-store',
-    });
-    const upstreamHeadersDurationMs = Date.now() - upstreamStarted;
+    let response: Response | null = null;
+    let upstreamHeadersDurationMs = 0;
+    let lastError: unknown;
+    let attempts = 0;
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+      attempts = attempt;
+      const upstreamStarted = Date.now();
+      try {
+        const candidate = await fetch(upstream, {
+          method,
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Request-Id': requestId,
+          },
+          body: bodyText,
+          cache: 'no-store',
+        });
+        upstreamHeadersDurationMs += Date.now() - upstreamStarted;
+        if (attempt < maxAttempts && isRetriableStatus(candidate.status)) {
+          await sleep(PROXY_RETRY_DELAY_MS);
+          continue;
+        }
+        response = candidate;
+        break;
+      } catch (error) {
+        upstreamHeadersDurationMs += Date.now() - upstreamStarted;
+        lastError = error;
+        if (attempt < maxAttempts) {
+          await sleep(PROXY_RETRY_DELAY_MS);
+          continue;
+        }
+      }
+    }
+
+    if (!response) {
+      throw lastError instanceof Error ? lastError : new Error('Upstream request failed');
+    }
     const text = await response.text();
     const totalDurationMs = Date.now() - started;
     const upstreamBodyDurationMs = Math.max(totalDurationMs - upstreamHeadersDurationMs, 0);
@@ -38,6 +75,7 @@ async function forward(request: NextRequest, segments: string[]) {
         'X-Proxy-Upstream-Headers-Duration-Ms': String(upstreamHeadersDurationMs),
         'X-Proxy-Upstream-Body-Duration-Ms': String(upstreamBodyDurationMs),
         'X-Proxy-Total-Duration-Ms': String(totalDurationMs),
+        'X-Proxy-Attempts': String(attempts),
         'X-QuantOps-Handler-Duration-Ms': response.headers.get('X-QuantOps-Handler-Duration-Ms') || '',
         'X-QuantOps-Serialization-Duration-Ms': response.headers.get('X-QuantOps-Serialization-Duration-Ms') || '',
         'X-QuantOps-Total-Duration-Ms': response.headers.get('X-QuantOps-Total-Duration-Ms') || '',
