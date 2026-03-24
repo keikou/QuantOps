@@ -14,5 +14,6 @@ __pycache__/
 *.lock
 
 apps/v12-api/runtime/
+runtime/
 source_of_truth/quantops_sprint3/services/v12-api/runtime/
 test_bundle/artifacts/
