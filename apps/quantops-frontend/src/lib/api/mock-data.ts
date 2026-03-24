@@ -36,6 +36,7 @@ export const mockPortfolioOverview: ApiEnvelope<PortfolioOverview> = {
     netExposure: 0.34,
     realizedPnl: 12034,
     unrealizedPnl: 4201,
+    fillRate: 0.97,
     expectedVolatility: 0.18,
     expectedSharpe: 1.92,
     lastUpdated: new Date().toISOString(),

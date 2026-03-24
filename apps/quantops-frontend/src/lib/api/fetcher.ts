@@ -48,9 +48,13 @@ function buildUrl(path: string) {
 
 function timeoutForPath(path: string) {
   if (path === '/api/v1/dashboard/overview') return Math.max(API_TIMEOUT_MS, 35000);
+  if (path === '/api/v1/command-center/runtime/latest') return Math.max(API_TIMEOUT_MS, 15000);
   if (path === '/api/v1/analytics/equity-history') return Math.max(API_TIMEOUT_MS, 30000);
+  if (path === '/api/v1/risk/snapshot') return Math.max(API_TIMEOUT_MS, 15000);
   if (path === '/api/v1/monitoring/system') return Math.max(API_TIMEOUT_MS, 25000);
   if (path === '/api/v1/scheduler/jobs') return Math.max(API_TIMEOUT_MS, 15000);
+  if (path === '/api/v1/alerts') return Math.max(API_TIMEOUT_MS, 12000);
+  if (path === '/api/v1/auth/me') return Math.max(API_TIMEOUT_MS, 12000);
   if (path === '/api/v1/portfolio/positions') return Math.max(API_TIMEOUT_MS, 12000);
   if (path === '/api/v1/portfolio/overview') return Math.max(API_TIMEOUT_MS, 12000);
   return API_TIMEOUT_MS;

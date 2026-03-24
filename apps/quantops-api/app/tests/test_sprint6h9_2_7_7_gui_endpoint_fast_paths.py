@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import time
 
+from app.core.deps import get_dashboard_service
 from app.services.dashboard_service import DashboardService
 from app.services.portfolio_service import PortfolioService
 
@@ -55,6 +56,20 @@ class _DashboardClient:
         return {"enabled_count": 2}
 
 
+class _SlowDashboardClient(_DashboardClient):
+    async def get_portfolio_positions(self) -> dict:
+        await asyncio.sleep(0.3)
+        return await super().get_portfolio_positions()
+
+    async def get_runtime_status(self) -> dict:
+        await asyncio.sleep(0.3)
+        return await super().get_runtime_status()
+
+    async def get_strategy_registry(self) -> dict:
+        await asyncio.sleep(0.3)
+        return await super().get_strategy_registry()
+
+
 class _PortfolioClient:
     def __init__(self) -> None:
         self.execution_quality_calls = 0
@@ -74,6 +89,10 @@ class _PortfolioClient:
                 "gross_exposure": 0.6,
                 "net_exposure": 0.2,
             },
+            "positions": [
+                {"symbol": "BTCUSDT", "weight": 0.4, "pnl": 10.0},
+                {"symbol": "ETHUSDT", "weight": 0.2, "side": "short", "pnl": -2.0},
+            ],
             "as_of": "2026-03-22T00:00:00+00:00",
         }
 
@@ -97,6 +116,23 @@ class _PortfolioClient:
         return {"items": [{"value": 100.0}, {"value": 101.0}, {"value": 102.0}]}
 
 
+class _CountingDashboardService(DashboardService):
+    def __init__(self) -> None:
+        super().__init__(_DashboardClient(), _SchedulerRepository(), _AlertService())  # type: ignore[arg-type]
+        self.build_calls = 0
+
+    async def _build_overview_live(self) -> dict:
+        self.build_calls += 1
+        await asyncio.sleep(0.05)
+        return {
+            "total_equity": 100.0,
+            "active_strategies": 2,
+            "open_alerts": 0,
+            "latest_run_id": "run-1",
+            "as_of": "2026-03-22T00:00:00+00:00",
+        }
+
+
 def test_dashboard_overview_parallelizes_upstream_reads() -> None:
     service = DashboardService(_DashboardClient(), _SchedulerRepository(), _AlertService())  # type: ignore[arg-type]
 
@@ -107,6 +143,21 @@ def test_dashboard_overview_parallelizes_upstream_reads() -> None:
     assert payload["total_equity"] == 100.0
     assert payload["active_strategies"] == 2
     assert elapsed < 0.15
+
+
+def test_dashboard_overview_bounded_fast_path_returns_primary_truth_when_aux_calls_are_slow() -> None:
+    service = DashboardService(_SlowDashboardClient(), _SchedulerRepository(), _AlertService())  # type: ignore[arg-type]
+    service.OVERVIEW_PRIMARY_TIMEOUT_SECONDS = 0.12
+    service.OVERVIEW_AUX_TIMEOUT_SECONDS = 0.08
+
+    started = time.perf_counter()
+    payload = asyncio.run(service.get_overview())
+    elapsed = time.perf_counter() - started
+
+    assert payload["total_equity"] == 100.0
+    assert payload["active_strategies"] == 0
+    assert payload["latest_run_id"] is None
+    assert elapsed < 0.2
 
 
 def test_portfolio_positions_skips_unused_execution_quality_call() -> None:
@@ -130,3 +181,23 @@ def test_portfolio_overview_parallelizes_upstream_reads() -> None:
     assert payload["total_equity"] == 100.0
     assert payload["fill_rate"] == 1.0
     assert elapsed < 0.15
+
+
+def test_dashboard_overview_coalesces_concurrent_live_builds() -> None:
+    service = _CountingDashboardService()
+
+    async def run_test() -> tuple[dict, dict]:
+        return await asyncio.gather(service.get_overview(), service.get_overview())
+
+    first, second = asyncio.run(run_test())
+
+    assert first["total_equity"] == 100.0
+    assert second["latest_run_id"] == "run-1"
+    assert service.build_calls == 1
+
+
+def test_get_dashboard_service_is_shared_singleton() -> None:
+    first = get_dashboard_service()
+    second = get_dashboard_service()
+
+    assert first is second

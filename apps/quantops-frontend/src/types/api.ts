@@ -44,6 +44,7 @@ export type PortfolioOverview = {
   netExposure: number;
   realizedPnl: number;
   unrealizedPnl: number;
+  fillRate: number;
   expectedVolatility: number;
   expectedSharpe: number;
   lastUpdated: string;
@@ -161,7 +162,7 @@ export type AuditLogRow = {
 };
 
 export type CommandCenterRealtimeEvent = {
-  event_type: 'hello' | 'heartbeat' | 'pnl_update' | 'execution_event' | 'risk_alert' | 'strategy_status' | 'system_status';
+  event_type: 'hello' | 'heartbeat' | 'pnl_update' | 'execution_event' | 'risk_alert' | 'strategy_status' | 'system_status' | 'runtime_run' | 'runtime_issue';
   as_of: string;
   payload: Record<string, unknown>;
 };

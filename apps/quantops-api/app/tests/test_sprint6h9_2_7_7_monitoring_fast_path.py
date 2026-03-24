@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import time
 
+from app.core.deps import get_monitoring_service
 from app.services.monitoring_service import MonitoringService
 
 
@@ -105,3 +106,10 @@ def test_refresh_parallelizes_upstream_reads() -> None:
     assert payload["data_source"] == "live"
     assert payload["is_stale"] is False
     assert elapsed < 0.2
+
+
+def test_get_monitoring_service_is_shared_singleton() -> None:
+    first = get_monitoring_service()
+    second = get_monitoring_service()
+
+    assert first is second

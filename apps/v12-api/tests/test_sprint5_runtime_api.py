@@ -2,6 +2,7 @@ from fastapi.testclient import TestClient
 
 from ai_hedge_bot.app.container import CONTAINER
 from ai_hedge_bot.app.main import app
+from ai_hedge_bot.api.routes import runtime as runtime_routes
 
 client = TestClient(app)
 
@@ -61,3 +62,25 @@ def test_scheduler_routes_show_seeded_jobs_and_runs() -> None:
     runs = client.get('/scheduler/runs')
     assert runs.status_code == 200
     assert len(runs.json()['items']) >= 1
+
+
+def test_runtime_runs_route_reuses_short_ttl_cache(monkeypatch) -> None:
+    runtime_routes._runtime_runs_cache.clear()
+    call_count = {'count': 0}
+
+    def fake_list_runs(*, limit: int = 20) -> list[dict]:
+        call_count['count'] += 1
+        return [{'run_id': f'run-{call_count["count"]}', 'created_at': '2026-03-23T00:00:00Z'}]
+
+    monkeypatch.setattr(runtime_routes._service, 'list_runs', fake_list_runs)
+
+    first = client.get('/runtime/runs?limit=5')
+    second = client.get('/runtime/runs?limit=5')
+    third = client.get('/runtime/runs?limit=10')
+
+    assert first.status_code == 200
+    assert second.status_code == 200
+    assert third.status_code == 200
+    assert first.json()['items'] == second.json()['items']
+    assert first.json()['items'] != third.json()['items']
+    assert call_count['count'] == 2

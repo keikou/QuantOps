@@ -50,6 +50,7 @@ async def runtime_latest(service: CommandCenterService = Depends(get_command_cen
 async def runtime_runs(
     request: Request,
     limit: int = 20,
+    window_minutes: int = 5,
     operator_state: str | None = None,
     bridge_state: str | None = None,
     issue_code: str | None = None,
@@ -63,6 +64,7 @@ async def runtime_runs(
     started = time.perf_counter()
     payload = await service.get_runtime_runs(
         limit=limit,
+        window_minutes=window_minutes,
         operator_state=operator_state,
         bridge_state=bridge_state,
         issue_code=issue_code,
@@ -80,10 +82,11 @@ async def runtime_runs(
 async def runtime_issues(
     request: Request,
     limit: int = 25,
+    window_minutes: int = 5,
     service: CommandCenterService = Depends(get_command_center_service),
 ) -> dict:
     started = time.perf_counter()
-    payload = await service.get_runtime_issues(limit=limit)
+    payload = await service.get_runtime_issues(limit=limit, window_minutes=window_minutes)
     request.state.handler_duration_ms = round((time.perf_counter() - started) * 1000.0, 2)
     return payload
 

@@ -71,15 +71,15 @@ export function useOverview() {
   return useQuery({
     queryKey: ['overview'],
     queryFn: async () => envelope<OverviewData>(normalizeOverview(await apiFetch<any>(endpoints.overview))),
-    refetchInterval: 15000,
     refetchOnMount: false,
     placeholderData: (previousData) => previousData,
   });
 }
-export function usePortfolioOverview() {
+export function usePortfolioOverview(enabled = true) {
   return useQuery({
     queryKey: ['portfolio-overview'],
     queryFn: async () => envelope<PortfolioOverview>(normalizePortfolioOverview(await apiFetch<any>(endpoints.portfolioOverview))),
+    enabled,
     refetchInterval: 20000,
     refetchOnMount: false,
     placeholderData: (previousData) => previousData ?? envelope<PortfolioOverview>({
@@ -92,6 +92,7 @@ export function usePortfolioOverview() {
       netExposure: 0,
       realizedPnl: 0,
       unrealizedPnl: 0,
+      fillRate: 0,
       expectedVolatility: 0,
       expectedSharpe: 0,
       lastUpdated: '',
@@ -107,44 +108,55 @@ export function usePortfolioPositions() {
     placeholderData: (previousData) => previousData ?? envelope<PositionRow[]>([]),
   });
 }
-export function useRiskSnapshot() {
+export function useRiskSnapshot(enabled = true) {
   return useQuery({
     queryKey: ['risk-snapshot'],
     queryFn: async () => envelope<RiskSnapshot>(normalizeRisk(await apiFetch<any>(endpoints.riskSnapshot))),
-    refetchInterval: 15000,
+    enabled,
+    staleTime: 30000,
+    refetchInterval: 30000,
+    refetchOnMount: false,
     placeholderData: (previousData) => previousData,
   });
 }
-export function useMonitoringSystem() {
+export function useMonitoringSystem(enabled = true) {
   return useQuery<ApiEnvelope<MonitoringSystem>>({
     queryKey: ['monitoring-system'],
     queryFn: async () => envelope<MonitoringSystem>(normalizeMonitoring(await apiFetch<any>(endpoints.monitoringSystem))),
-    refetchInterval: 10000,
+    enabled,
+    staleTime: 30000,
+    refetchInterval: 20000,
+    refetchOnMount: false,
     placeholderData: (previousData) => previousData,
   });
 }
-export function useAlerts() {
+export function useAlerts(enabled = true) {
   return useQuery({
     queryKey: ['alerts'],
     queryFn: async () => envelope<any[]>(normalizeAlerts(await apiFetch<any>(endpoints.alerts))),
-    refetchInterval: 10000,
+    enabled,
+    staleTime: 30000,
+    refetchInterval: 20000,
+    refetchOnMount: false,
     placeholderData: (previousData) => previousData ?? envelope<any[]>([]),
   });
 }
-export function useSchedulerJobs() {
+export function useSchedulerJobs(enabled = true) {
   return useQuery({
     queryKey: ['scheduler-jobs'],
     queryFn: async () => envelope<any[]>(normalizeJobs(await apiFetch<any>(endpoints.schedulerJobs))),
-    refetchInterval: 10000,
+    enabled,
+    refetchInterval: 20000,
     placeholderData: (previousData) => previousData ?? envelope<any[]>([]),
   });
 }
 
-export function useEquityHistory() {
+export function useEquityHistory(enabled = true) {
   return useQuery({
     queryKey: ['equity-history'],
     queryFn: async () => envelope<EquityPoint[]>(normalizeEquityHistory(await apiFetch<any>(endpoints.equityHistory))),
-    refetchInterval: 15000,
+    enabled,
+    refetchInterval: 30000,
     placeholderData: (previousData) => previousData ?? envelope<EquityPoint[]>([]),
   });
 }
@@ -157,48 +169,54 @@ export function useExecutionSummary() {
     placeholderData: (previousData) => previousData,
   });
 }
-export function useExecutionLatest() {
+export function useExecutionLatest(enabled = true, limit = 100) {
   return useQuery({
-    queryKey: ['execution-latest'],
-    queryFn: async () => envelope<ExecutionFillRow[]>(normalizeExecutionFills(await apiFetch<any>(`${endpoints.executionLatest}?limit=100`))),
+    queryKey: ['execution-latest', limit],
+    queryFn: async () => envelope<ExecutionFillRow[]>(normalizeExecutionFills(await apiFetch<any>(`${endpoints.executionLatest}?limit=${limit}`))),
+    enabled,
     refetchInterval: 15000,
     placeholderData: (previousData) => previousData ?? envelope<ExecutionFillRow[]>([]),
   });
 }
-export function useExecutionPlannerLatest() {
+export function useExecutionPlannerLatest(enabled = true) {
   return useQuery({
     queryKey: ['execution-planner-latest'],
     queryFn: async () => envelope<ExecutionPlannerLatest>(normalizeExecutionPlannerLatest(await apiFetch<any>(endpoints.executionPlannerLatest))),
+    enabled,
     refetchInterval: 15000,
     placeholderData: (previousData) => previousData,
   });
 }
-export function useExecutionOrders() {
+export function useExecutionOrders(enabled = true, limit = 100) {
   return useQuery({
-    queryKey: ['execution-orders'],
-    queryFn: async () => envelope<ExecutionOrderRow[]>(normalizeExecutionOrders(await apiFetch<any>(`${endpoints.executionOrders}?limit=100`))),
+    queryKey: ['execution-orders', limit],
+    queryFn: async () => envelope<ExecutionOrderRow[]>(normalizeExecutionOrders(await apiFetch<any>(`${endpoints.executionOrders}?limit=${limit}`))),
+    enabled,
     refetchInterval: 15000,
     placeholderData: (previousData) => previousData ?? envelope<ExecutionOrderRow[]>([]),
   });
 }
-export function useExecutionStateLatest() {
+export function useExecutionStateLatest(enabled = true) {
   return useQuery({
     queryKey: ['execution-state-latest'],
     queryFn: async () => envelope<ExecutionState>(normalizeExecutionState(await apiFetch<any>(endpoints.executionStateLatest))),
+    enabled,
     refetchInterval: 15000,
     placeholderData: (previousData) => previousData,
   });
 }
-export function useCommandCenterRuntimeLatest() {
+export function useCommandCenterRuntimeLatest(enabled = true) {
   return useQuery({
     queryKey: ['command-center-runtime-latest'],
     queryFn: async () => envelope<CommandCenterRuntimeLatest>(normalizeCommandCenterRuntimeLatest(await apiFetch<any>(endpoints.commandCenterRuntimeLatest))),
-    refetchInterval: 15000,
+    enabled,
+    refetchInterval: 30000,
     placeholderData: (previousData) => previousData,
   });
 }
 export function useCommandCenterRuntimeRuns(filters?: {
   limit?: number;
+  windowMinutes?: number;
   operatorState?: string;
   bridgeState?: string;
   issueCode?: string;
@@ -207,9 +225,10 @@ export function useCommandCenterRuntimeRuns(filters?: {
   degraded?: boolean;
   eventChainComplete?: boolean;
   artifactAvailable?: boolean;
-}) {
+}, enabled = true) {
   const params = new URLSearchParams();
   params.set('limit', String(filters?.limit ?? 25));
+  params.set('window_minutes', String(filters?.windowMinutes ?? 5));
   if (filters?.operatorState) params.set('operator_state', filters.operatorState);
   if (filters?.bridgeState) params.set('bridge_state', filters.bridgeState);
   if (filters?.issueCode) params.set('issue_code', filters.issueCode);
@@ -221,17 +240,19 @@ export function useCommandCenterRuntimeRuns(filters?: {
   const url = `${endpoints.commandCenterRuntimeRuns}?${params.toString()}`;
 
   return useQuery({
-    queryKey: ['command-center-runtime-runs', filters?.limit ?? 25, filters?.operatorState ?? '', filters?.bridgeState ?? '', filters?.issueCode ?? '', filters?.reasonCode ?? '', filters?.blockingComponent ?? '', filters?.degraded ?? 'any', filters?.eventChainComplete ?? 'any', filters?.artifactAvailable ?? 'any'],
+    queryKey: ['command-center-runtime-runs', filters?.limit ?? 25, filters?.windowMinutes ?? 5, filters?.operatorState ?? '', filters?.bridgeState ?? '', filters?.issueCode ?? '', filters?.reasonCode ?? '', filters?.blockingComponent ?? '', filters?.degraded ?? 'any', filters?.eventChainComplete ?? 'any', filters?.artifactAvailable ?? 'any'],
     queryFn: async () => envelope<CommandCenterRuntimeRunSummary[]>(normalizeCommandCenterRuntimeRuns(await apiFetch<any>(url))),
-    refetchInterval: 15000,
+    enabled,
+    refetchOnMount: false,
     placeholderData: (previousData) => previousData ?? envelope<CommandCenterRuntimeRunSummary[]>([]),
   });
 }
-export function useCommandCenterRuntimeIssues(limit = 25) {
+export function useCommandCenterRuntimeIssues(limit = 25, enabled = true, windowMinutes = 5) {
   return useQuery({
-    queryKey: ['command-center-runtime-issues', limit],
-    queryFn: async () => envelope<RuntimeIssueBucket[]>(normalizeRuntimeIssueBuckets(await apiFetch<any>(`${endpoints.commandCenterRuntimeIssues}?limit=${limit}`))),
-    refetchInterval: 15000,
+    queryKey: ['command-center-runtime-issues', limit, windowMinutes],
+    queryFn: async () => envelope<RuntimeIssueBucket[]>(normalizeRuntimeIssueBuckets(await apiFetch<any>(`${endpoints.commandCenterRuntimeIssues}?limit=${limit}&window_minutes=${windowMinutes}`))),
+    enabled,
+    refetchOnMount: false,
     placeholderData: (previousData) => previousData ?? envelope<RuntimeIssueBucket[]>([]),
   });
 }

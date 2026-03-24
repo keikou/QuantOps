@@ -10,7 +10,6 @@ router = APIRouter()
 
 @router.get('')
 async def list_alerts(service: AlertService = Depends(get_alert_service)) -> dict:
-    service.evaluate_rules()
     return service.list_alerts()
 
 

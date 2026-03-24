@@ -17,6 +17,7 @@ const EMPTY_PORTFOLIO: PortfolioOverview = {
   netExposure: 0,
   realizedPnl: 0,
   unrealizedPnl: 0,
+  fillRate: 0,
   expectedVolatility: 0,
   expectedSharpe: 0,
   lastUpdated: '',

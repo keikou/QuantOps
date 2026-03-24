@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import asyncio
+
 from fastapi import APIRouter, Depends, Query
 
 from app.core.deps import get_scheduler_service, get_v12_client, get_risk_repository
@@ -15,7 +17,10 @@ async def scheduler_jobs(service: SchedulerService = Depends(get_scheduler_servi
     local_jobs = service.list_jobs()
     if local_jobs:
         return {'items': local_jobs}
-    return await client.get_sprint5c_scheduler_jobs()
+    try:
+        return await asyncio.wait_for(client.get_sprint5c_scheduler_jobs(), timeout=3.0)
+    except Exception:
+        return {'items': [], 'status': 'stale', 'reason': 'scheduler_jobs_unavailable'}
 
 @router.get('/runs')
 async def scheduler_runs(client: V12Client = Depends(get_v12_client)) -> dict:

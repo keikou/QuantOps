@@ -59,6 +59,7 @@ def get_analytics_repository() -> AnalyticsRepository:
     return AnalyticsRepository(get_db_factory())
 
 
+@lru_cache(maxsize=1)
 def get_dashboard_service() -> DashboardService:
     return DashboardService(get_v12_client(), get_scheduler_repository(), get_alert_service())
 
@@ -79,6 +80,7 @@ def get_control_service() -> ControlService:
     return ControlService(get_v12_client(), get_audit_repository(), get_analytics_repository(), get_risk_repository())
 
 
+@lru_cache(maxsize=1)
 def get_risk_service() -> RiskService:
     return RiskService(get_v12_client(), get_risk_repository())
 
@@ -98,6 +100,7 @@ def get_approval_repository() -> ApprovalRepository:
 def get_incident_repository() -> IncidentRepository:
     return IncidentRepository(get_db_factory())
 
+@lru_cache(maxsize=1)
 def get_monitoring_service() -> MonitoringService:
     return MonitoringService(get_v12_client(), get_monitoring_repository())
 

@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import time
 
+from app.core.deps import get_risk_service
 from app.services.risk_service import RiskService
 
 
@@ -98,3 +99,10 @@ def test_build_snapshot_parallelizes_upstream_calls() -> None:
     assert "data_source" not in payload
     assert "is_stale" not in payload
     assert elapsed < 0.15
+
+
+def test_get_risk_service_is_shared_singleton() -> None:
+    first = get_risk_service()
+    second = get_risk_service()
+
+    assert first is second

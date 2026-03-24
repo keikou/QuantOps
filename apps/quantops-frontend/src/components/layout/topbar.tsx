@@ -1,18 +1,20 @@
 'use client';
 
 import { useAlerts, useCurrentUser, useMonitoringSystem, useRiskSnapshot } from '@/lib/api/hooks';
+import { usePathname } from 'next/navigation';
 import { useUiStore } from '@/store/ui-store';
-import { CommandCenterLive } from '@/components/realtime/command-center-live';
 
 export function Topbar() {
+  const pathname = usePathname();
+  const isOverviewPage = pathname === '/';
   const environment = useUiStore((s) => s.environment);
   const setEnvironment = useUiStore((s) => s.setEnvironment);
   const roleOverride = useUiStore((s) => s.roleOverride);
   const setRoleOverride = useUiStore((s) => s.setRoleOverride);
   const { data } = useCurrentUser();
-  const monitoring = useMonitoringSystem();
-  const alerts = useAlerts();
-  const risk = useRiskSnapshot();
+  const monitoring = useMonitoringSystem(!isOverviewPage);
+  const alerts = useAlerts(!isOverviewPage);
+  const risk = useRiskSnapshot(!isOverviewPage);
   const user = data?.data;
   const effectiveRole = roleOverride ?? user?.role ?? 'viewer';
   const monitoringData = monitoring.data?.data;
@@ -21,7 +23,9 @@ export function Topbar() {
   const riskData = risk.data?.data;
   const riskHalted = ['halted', 'paused'].includes((riskData?.tradingState || monitoringData?.riskTradingState || '').toLowerCase());
   const killSwitchTriggered = (riskData?.killSwitch || monitoringData?.killSwitch || '').toLowerCase() === 'triggered';
-  const systemPill = criticalOpenAlerts.length > 0
+  const systemPill = isOverviewPage
+    ? { label: 'Overview Focus', className: 'rounded-full border border-white/10 bg-white/5 px-3 py-2 text-slate-300' }
+    : criticalOpenAlerts.length > 0
     ? { label: `Critical Alerts ${criticalOpenAlerts.length}`, className: 'rounded-full bg-rose-500/10 px-3 py-2 text-rose-300' }
     : riskHalted || killSwitchTriggered
       ? { label: killSwitchTriggered ? 'Risk Halted · Kill Switch' : 'Risk Halted', className: 'rounded-full bg-rose-500/10 px-3 py-2 text-rose-300' }
@@ -61,7 +65,6 @@ export function Topbar() {
         <div className="rounded-full border border-white/10 bg-white/5 px-3 py-2 text-slate-200">
           {user?.name ?? 'Operator'} · {effectiveRole}
         </div>
-        <CommandCenterLive />
         <div className={systemPill.className}>{systemPill.label}</div>
       </div>
     </header>

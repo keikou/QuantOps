@@ -1,14 +1,18 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { KpiCard } from '@/components/cards/kpi-card';
+import { CommandCenterLive } from '@/components/realtime/command-center-live';
 import { DataStatusBanner, DataStatusPill, resolveDataStatus } from '@/components/shared/data-status';
 import { LoadingState } from '@/components/shared/loading-state';
 import { RuntimeBlockCard, RuntimeStatusBadgeStrip, RuntimeSummaryCards, RuntimeTimelinePanel } from '@/components/shared/runtime-observability';
 import { SimpleTable } from '@/components/tables/simple-table';
+import { normalizeCommandCenterRuntimeRuns, normalizeRuntimeIssueBuckets } from '@/lib/api/normalize';
 import { useCommandCenterRuntimeIssues, useCommandCenterRuntimeLatest, useCommandCenterRuntimeRuns, useExecutionLatest, useExecutionOrders, useExecutionPlannerLatest, useExecutionStateLatest, useExecutionSummary } from '@/lib/api/hooks';
+import type { ApiEnvelope, CommandCenterRealtimeEvent, CommandCenterRuntimeRunSummary, RuntimeIssueBucket } from '@/types/api';
 
 type RuntimeFilterKey =
   | 'all'
@@ -51,18 +55,122 @@ const diagnosisViews: Array<{ label: string; issueCode?: string; retryability?: 
   { label: 'Retryable Issues', retryability: 'retryable' },
 ];
 
+const RUNTIME_WINDOW_MINUTES = 5;
+const RUNTIME_ISSUE_LIMIT = 5;
+const EXECUTION_ROW_LIMIT = 10;
+
+function runtimeRunsQueryKey(filters?: {
+  limit?: number;
+  windowMinutes?: number;
+  operatorState?: string;
+  bridgeState?: string;
+  issueCode?: string;
+  reasonCode?: string;
+  blockingComponent?: string;
+  degraded?: boolean;
+  eventChainComplete?: boolean;
+  artifactAvailable?: boolean;
+}) {
+  return ['command-center-runtime-runs', filters?.limit ?? 25, filters?.windowMinutes ?? 5, filters?.operatorState ?? '', filters?.bridgeState ?? '', filters?.issueCode ?? '', filters?.reasonCode ?? '', filters?.blockingComponent ?? '', filters?.degraded ?? 'any', filters?.eventChainComplete ?? 'any', filters?.artifactAvailable ?? 'any'] as const;
+}
+
+function runtimeIssuesQueryKey(limit = 25, windowMinutes = RUNTIME_WINDOW_MINUTES) {
+  return ['command-center-runtime-issues', limit, windowMinutes] as const;
+}
+
+function matchesRuntimeFilters(
+  row: CommandCenterRuntimeRunSummary,
+  filters: {
+    operatorState?: string;
+    bridgeState?: string;
+    issueCode?: string;
+    reasonCode?: string;
+    blockingComponent?: string;
+    degraded?: boolean;
+    eventChainComplete?: boolean;
+    artifactAvailable?: boolean;
+  },
+) {
+  if (filters.operatorState && row.operatorState !== filters.operatorState) return false;
+  if (filters.bridgeState && row.bridgeState !== filters.bridgeState) return false;
+  if (filters.issueCode && (row.diagnosisCode || row.diagnosis?.primaryCode) !== filters.issueCode) return false;
+  if (filters.reasonCode && row.latestReasonCode !== filters.reasonCode) return false;
+  if (filters.blockingComponent && row.blockingComponent !== filters.blockingComponent) return false;
+  if (filters.degraded != null && row.degraded !== filters.degraded) return false;
+  if (filters.eventChainComplete != null && row.eventChainComplete !== filters.eventChainComplete) return false;
+  if (filters.artifactAvailable != null && row.artifactAvailable !== filters.artifactAvailable) return false;
+  return true;
+}
+
+function upsertRuntimeRun(rows: CommandCenterRuntimeRunSummary[], incoming: CommandCenterRuntimeRunSummary, limit: number) {
+  return [incoming, ...rows.filter((row) => row.runId !== incoming.runId)].slice(0, limit);
+}
+
+function ExecutionLiveUpdates({
+  runFilters,
+  issueLimit,
+}: {
+  runFilters: {
+    limit?: number;
+    windowMinutes?: number;
+    operatorState?: string;
+    bridgeState?: string;
+    issueCode?: string;
+    reasonCode?: string;
+    blockingComponent?: string;
+    degraded?: boolean;
+    eventChainComplete?: boolean;
+    artifactAvailable?: boolean;
+  };
+  issueLimit: number;
+}) {
+  const queryClient = useQueryClient();
+  const onEvent = useCallback((event: CommandCenterRealtimeEvent) => {
+    if (event.event_type === 'runtime_run') {
+      const incoming = normalizeCommandCenterRuntimeRuns({ items: [event.payload] })[0];
+      if (!incoming?.runId) return;
+      queryClient.setQueryData<ApiEnvelope<CommandCenterRuntimeRunSummary[]>>(runtimeRunsQueryKey(runFilters), (previous) => {
+        const current = previous?.data ?? [];
+        const filtered = matchesRuntimeFilters(incoming, runFilters)
+          ? upsertRuntimeRun(current, incoming, runFilters.limit ?? 25)
+          : current.filter((row) => row.runId !== incoming.runId);
+        return { data: filtered, source: 'live' };
+      });
+      return;
+    }
+
+    if (event.event_type === 'runtime_issue') {
+      const payloadItems = Array.isArray((event.payload as { items?: unknown[] }).items) ? ((event.payload as { items?: unknown[] }).items ?? []) : [];
+      const issueItems = normalizeRuntimeIssueBuckets({ items: payloadItems }).slice(0, issueLimit);
+      queryClient.setQueryData<ApiEnvelope<RuntimeIssueBucket[]>>(runtimeIssuesQueryKey(issueLimit, RUNTIME_WINDOW_MINUTES), {
+        data: issueItems,
+        source: 'live',
+      });
+    }
+  }, [issueLimit, queryClient, runFilters]);
+
+  return <CommandCenterLive eventTypes={['runtime_run', 'runtime_issue']} onEvent={onEvent} showBadge={false} />;
+}
+
 export default function Page() {
   const [runtimeFilter, setRuntimeFilter] = useState<RuntimeFilterKey>('all');
   const [issueCodeFilter, setIssueCodeFilter] = useState('');
   const [reasonFilter, setReasonFilter] = useState('');
   const [componentFilter, setComponentFilter] = useState('');
   const summary = useExecutionSummary();
-  const latest = useExecutionLatest();
-  const orders = useExecutionOrders();
-  const planner = useExecutionPlannerLatest();
-  const state = useExecutionStateLatest();
-  const runtime = useCommandCenterRuntimeLatest();
-  const runtimeIssues = useCommandCenterRuntimeIssues(25);
+  const summaryReady = Boolean(summary.data?.data) || Boolean(summary.error);
+  const runtime = useCommandCenterRuntimeLatest(summaryReady);
+  const runtimeReady = summaryReady && Boolean(runtime.data?.data || runtime.error);
+  const planner = useExecutionPlannerLatest(runtimeReady);
+  const plannerReady = runtimeReady && Boolean(planner.data?.data || planner.error);
+  const state = useExecutionStateLatest(plannerReady);
+  const stateReady = plannerReady && Boolean(state.data?.data || state.error);
+  const detailReady = stateReady && Boolean(
+    runtime.data?.data || planner.data?.data || state.data?.data || runtime.error || planner.error || state.error
+  );
+  const latest = useExecutionLatest(detailReady, EXECUTION_ROW_LIMIT);
+  const orders = useExecutionOrders(detailReady, EXECUTION_ROW_LIMIT);
+  const runtimeIssues = useCommandCenterRuntimeIssues(RUNTIME_ISSUE_LIMIT, detailReady, RUNTIME_WINDOW_MINUTES);
   const runtimeViewFilters: {
     operatorState?: string;
     reasonCode?: string;
@@ -88,11 +196,13 @@ export default function Page() {
   const runtimeRuns = useCommandCenterRuntimeRuns(
     {
       limit: 25,
+      windowMinutes: RUNTIME_WINDOW_MINUTES,
       ...runtimeViewFilters,
       issueCode: issueCodeFilter || runtimeViewFilters.issueCode,
       reasonCode: reasonFilter || runtimeViewFilters.reasonCode,
       blockingComponent: componentFilter || runtimeViewFilters.blockingComponent,
-    }
+    },
+    detailReady
   );
 
   if (summary.isLoading && !summary.data) return <LoadingState />;
@@ -141,6 +251,17 @@ export default function Page() {
 
   return (
     <div className="space-y-6">
+      <ExecutionLiveUpdates
+        runFilters={{
+          limit: 25,
+          windowMinutes: RUNTIME_WINDOW_MINUTES,
+          ...runtimeViewFilters,
+          issueCode: issueCodeFilter || runtimeViewFilters.issueCode,
+          reasonCode: reasonFilter || runtimeViewFilters.reasonCode,
+          blockingComponent: componentFilter || runtimeViewFilters.blockingComponent,
+        }}
+        issueLimit={RUNTIME_ISSUE_LIMIT}
+      />
       <div className="flex items-center justify-between gap-3">
         <h1 className="section-title">Execution</h1>
         <div className="flex flex-wrap items-center gap-2">

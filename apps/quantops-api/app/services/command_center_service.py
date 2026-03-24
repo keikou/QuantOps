@@ -21,6 +21,9 @@ from app.services.notification_service import NotificationService
 
 class CommandCenterService:
     ARTIFACT_ROOT = Path(__file__).resolve().parents[4] / "test_bundle" / "artifacts" / "runtime_diagnostics"
+    RUNTIME_LATEST_TTL_SECONDS = 5.0
+    RUNTIME_LATEST_PRIMARY_TIMEOUT_SECONDS = 3.0
+    RUNTIME_LATEST_AUX_TIMEOUT_SECONDS = 1.5
 
     def __init__(
         self,
@@ -51,6 +54,9 @@ class CommandCenterService:
         self.audit_repository = audit_repository
         self.risk_repository = risk_repository
         self.notification_service = notification_service
+        self._runtime_latest_cache: dict | None = None
+        self._runtime_latest_refresh_task: asyncio.Task | None = None
+        self._runtime_latest_inflight_task: asyncio.Task | None = None
 
     @staticmethod
     def _snapshot_age_sec(value: object) -> float | None:
@@ -65,6 +71,18 @@ class CommandCenterService:
             return round(max(0.0, (datetime.now(timezone.utc) - ts).total_seconds()), 3)
         except Exception:
             return None
+
+    @classmethod
+    def _is_fresh_as_of(cls, value: object, ttl_seconds: float) -> bool:
+        age = cls._snapshot_age_sec(value)
+        return age is not None and age <= ttl_seconds
+
+    async def _call_with_timeout(self, operation, timeout_seconds: float) -> dict:
+        try:
+            result = await asyncio.wait_for(operation, timeout=timeout_seconds)
+        except Exception:
+            return {}
+        return result if isinstance(result, dict) else {}
 
     @staticmethod
     def _parse_timestamp(value: object) -> datetime | None:
@@ -566,6 +584,126 @@ class CommandCenterService:
             return False
         return True
 
+    @classmethod
+    def _runtime_window_anchor(cls, rows: list[dict]) -> datetime | None:
+        latest: datetime | None = None
+        for row in rows:
+            candidate = cls._parse_timestamp(
+                row.get("finished_at")
+                or row.get("completed_at")
+                or row.get("started_at")
+                or row.get("created_at")
+            )
+            if candidate is None:
+                continue
+            if latest is None or candidate > latest:
+                latest = candidate
+        return latest
+
+    @classmethod
+    def _filter_runtime_rows_by_window(cls, rows: list[dict], *, window_minutes: int) -> list[dict]:
+        anchor = cls._runtime_window_anchor(rows)
+        if anchor is None:
+            return list(rows)
+        cutoff = anchor.timestamp() - max(1, int(window_minutes)) * 60
+        filtered: list[dict] = []
+        for row in rows:
+            candidate = cls._parse_timestamp(
+                row.get("finished_at")
+                or row.get("completed_at")
+                or row.get("started_at")
+                or row.get("created_at")
+            )
+            if candidate is None or candidate.timestamp() >= cutoff:
+                filtered.append(row)
+        return filtered
+
+    def _classify_runtime_diagnosis_lightweight(self, *, summary: dict, artifact_available: bool) -> dict:
+        latest_reason_code = str(summary.get("latest_reason_code") or "").upper()
+        latest_reason_summary = str(summary.get("latest_reason_summary") or "")
+        primary_code = "unknown_runtime_gap"
+        secondary_codes: list[str] = []
+
+        if latest_reason_code == "MISSING_PRICE":
+            primary_code = "missing_price"
+        elif latest_reason_code == "RISK_GUARD_BLOCK":
+            primary_code = "risk_guard_block"
+        elif (
+            str(summary.get("bridge_state") or "") in {"planned_blocked", "planned_not_submitted", "no_decision"}
+            and int(summary.get("planned_count", 0) or 0) > 0
+        ):
+            primary_code = "execution_bridge_missing"
+        elif str(summary.get("bridge_state") or "") == "submitted_no_fill":
+            primary_code = "fill_not_captured"
+        elif bool(summary.get("event_chain_complete")) is False:
+            primary_code = "cycle_stalled"
+        elif str(summary.get("operator_state") or "") == "filled":
+            primary_code = "successful_chain"
+
+        if not artifact_available and str(summary.get("operator_state") or "") != "filled":
+            secondary_codes.append("artifact_chain_incomplete")
+
+        catalog = self._diagnosis_catalog(primary_code)
+        confidence = 0.95 if primary_code in {"missing_price", "risk_guard_block"} else 0.88 if primary_code != "unknown_runtime_gap" else 0.65
+        return {
+            "primary_code": primary_code,
+            "secondary_codes": secondary_codes,
+            "severity": catalog["severity"],
+            "retryability": catalog["retryability"],
+            "operator_action": catalog["operator_action"],
+            "likely_component": str(summary.get("blocking_component") or catalog["likely_component"]),
+            "confidence": confidence,
+            "summary": latest_reason_summary or str(summary.get("operator_message") or ""),
+        }
+
+    def _runtime_summary_from_run_row(self, run: dict) -> dict:
+        run_id = str(run.get("run_id") or "")
+        bridge_state = str(run.get("bridge_state") or "no_decision")
+        degraded_flags = list(run.get("degraded_flags") or [])
+        filled_count = int(run.get("filled_count", 0) or 0)
+        operator_state = str(run.get("operator_state") or "") or self._runtime_operator_state(
+            bridge_state,
+            filled_count=filled_count,
+            degraded_flags=degraded_flags,
+        )
+        summary = {
+            "run_id": run_id,
+            "cycle_id": run.get("cycle_id"),
+            "status": str(run.get("status") or "unknown"),
+            "started_at": run.get("started_at") or run.get("created_at"),
+            "completed_at": run.get("finished_at") or run.get("completed_at"),
+            "duration_ms": int(run.get("duration_ms", 0) or 0),
+            "triggered_by": str(run.get("triggered_by") or "") or None,
+            "bridge_state": bridge_state,
+            "operator_state": operator_state,
+            "planner_status": str(
+                run.get("planner_status")
+                or ("blocked" if bridge_state in {"planned_blocked", "planned_not_submitted", "no_decision"} else "generated")
+            ),
+            "planned_count": int(run.get("planned_count", 0) or 0),
+            "submitted_count": int(run.get("submitted_count", 0) or 0),
+            "blocked_count": int(run.get("blocked_count", 0) or 0),
+            "filled_count": filled_count,
+            "event_chain_complete": bool(run.get("event_chain_complete", True)),
+            "latest_reason_code": str(run.get("latest_reason_code") or "") or None,
+            "latest_reason_summary": str(run.get("latest_reason_summary") or "") or None,
+            "blocking_component": str(run.get("blocking_component") or "") or None,
+            "degraded": bool(run.get("degraded", bool(degraded_flags))),
+            "degraded_flags": degraded_flags,
+            "operator_message": str(run.get("operator_message") or "") or None,
+            "generated_at": run.get("generated_at"),
+            "last_transition_at": run.get("last_transition_at") or run.get("finished_at") or run.get("started_at") or utc_now_iso(),
+            "last_successful_fill_at": run.get("last_successful_fill_at"),
+            "last_successful_portfolio_update_at": run.get("last_successful_portfolio_update_at"),
+            "last_cycle_completed_at": run.get("last_cycle_completed_at"),
+            "detail_path": f"/execution/runs/{run_id}" if run_id else None,
+        }
+        artifact_available = self._artifact_bundle_for_run(run_id) is not None
+        summary["artifact_available"] = artifact_available
+        summary["diagnosis"] = self._classify_runtime_diagnosis_lightweight(summary=summary, artifact_available=artifact_available)
+        summary["diagnosis_code"] = summary["diagnosis"]["primary_code"]
+        return summary
+
     async def get_overview(self) -> dict:
         dashboard = await self.dashboard_service.get_overview()
         execution = await self.analytics_service.execution_summary_live()
@@ -642,27 +780,104 @@ class CommandCenterService:
             "as_of": latest.get("as_of") or utc_now_iso(),
         }
 
-    async def get_runtime_latest(self) -> dict:
-        bridge, planner, events_payload, reasons_payload = await asyncio.gather(
-            self.v12_client.get_execution_bridge_latest(),
-            self.v12_client.get_execution_plans_latest(),
-            self.v12_client.get_runtime_events_latest(limit=20),
-            self.v12_client.get_runtime_reasons_latest(limit=10),
+    def _runtime_latest_has_truth(self, payload: dict) -> bool:
+        return any(
+            (
+                bool(payload.get("run_id")),
+                int(payload.get("planned_count", 0) or 0) > 0,
+                int(payload.get("submitted_count", 0) or 0) > 0,
+                int(payload.get("filled_count", 0) or 0) > 0,
+                bool(payload.get("latest_reason_code")),
+                bool(payload.get("operator_message")),
+            )
         )
-        events = events_payload.get("items", []) if isinstance(events_payload.get("items"), list) else []
-        reasons = reasons_payload.get("items", []) if isinstance(reasons_payload.get("items"), list) else []
+
+    def _store_runtime_latest_cache(self, payload: dict) -> dict:
+        self._runtime_latest_cache = dict(payload)
+        return payload
+
+    @staticmethod
+    def _preserve_runtime_cached_detail(live_payload: dict, cached_payload: dict | None) -> dict:
+        if not isinstance(cached_payload, dict):
+            return live_payload
+        merged = dict(live_payload)
+        if merged.get("run_id") and merged.get("run_id") == cached_payload.get("run_id"):
+            for key in (
+                "last_successful_fill_at",
+                "last_successful_portfolio_update_at",
+                "last_cycle_completed_at",
+                "timeline",
+            ):
+                if merged.get(key) in (None, [], ""):
+                    merged[key] = cached_payload.get(key)
+        return merged
+
+    async def _build_runtime_latest_live(self) -> dict:
+        bridge, planner = await asyncio.gather(
+            self._call_with_timeout(
+                self.v12_client.get_execution_bridge_latest(),
+                self.RUNTIME_LATEST_PRIMARY_TIMEOUT_SECONDS,
+            ),
+            self._call_with_timeout(
+                self.v12_client.get_execution_plans_latest(),
+                self.RUNTIME_LATEST_AUX_TIMEOUT_SECONDS,
+            ),
+        )
         summary = self._runtime_summary_from_inputs(
             run_id=bridge.get("run_id") or planner.get("run_id"),
             bridge=bridge,
             planner=planner,
-            events=events,
-            reasons=reasons,
+            events=[],
+            reasons=[],
         )
-        return {
+        payload = {
             "status": str(bridge.get("status") or "ok"),
             **summary,
             "debug_path": f"/api/v1/command-center/debug/runtime?run_id={bridge.get('run_id')}" if bridge.get("run_id") else "/api/v1/command-center/debug/runtime",
         }
+        return self._preserve_runtime_cached_detail(payload, self._runtime_latest_cache)
+
+    async def _refresh_runtime_latest_cache(self) -> dict:
+        payload = await self._build_runtime_latest_live()
+        if self._runtime_latest_has_truth(payload):
+            self._store_runtime_latest_cache(payload)
+        return payload
+
+    async def _await_runtime_latest_live(self) -> dict:
+        task = self._runtime_latest_inflight_task
+        if task is None or task.done():
+            task = asyncio.create_task(self._build_runtime_latest_live())
+            self._runtime_latest_inflight_task = task
+        try:
+            return await task
+        finally:
+            if self._runtime_latest_inflight_task is task and task.done():
+                self._runtime_latest_inflight_task = None
+
+    def _schedule_runtime_latest_refresh(self) -> None:
+        task = self._runtime_latest_refresh_task
+        if task is not None and not task.done():
+            return
+        self._runtime_latest_refresh_task = asyncio.create_task(self._refresh_runtime_latest_cache())
+        self._runtime_latest_refresh_task.add_done_callback(lambda finished: finished.exception())
+
+    async def get_runtime_latest(self) -> dict:
+        cached = self._runtime_latest_cache
+        if cached is not None and self._is_fresh_as_of(
+            cached.get("last_transition_at") or cached.get("generated_at") or cached.get("as_of"),
+            self.RUNTIME_LATEST_TTL_SECONDS,
+        ):
+            return dict(cached)
+
+        live = await self._await_runtime_latest_live()
+        if self._runtime_latest_has_truth(live):
+            return self._store_runtime_latest_cache(live)
+
+        if cached is not None:
+            self._schedule_runtime_latest_refresh()
+            return dict(cached)
+
+        return live
 
     async def get_runtime_debug(self, run_id: str | None = None) -> dict:
         bridge_task = self.v12_client.get_execution_bridge_by_run(run_id) if run_id else self.v12_client.get_execution_bridge_latest()
@@ -794,6 +1009,7 @@ class CommandCenterService:
         self,
         *,
         limit: int = 20,
+        window_minutes: int = 5,
         operator_state: str | None = None,
         bridge_state: str | None = None,
         issue_code: str | None = None,
@@ -803,53 +1019,12 @@ class CommandCenterService:
         event_chain_complete: bool | None = None,
         artifact_available: bool | None = None,
     ) -> dict:
-        fetch_limit = min(max(limit * 3, 20), 100)
+        fetch_limit = min(max(int(limit), 1), 100)
         runs_payload = await self.v12_client.get_runtime_runs(limit=fetch_limit)
-        run_rows = runs_payload.get("items") if isinstance(runs_payload.get("items"), list) else []
+        all_rows = runs_payload.get("items") if isinstance(runs_payload.get("items"), list) else []
+        run_rows = self._filter_runtime_rows_by_window(all_rows, window_minutes=window_minutes)
         summaries: list[dict] = []
-
-        async def build_summary(run: dict) -> dict:
-            run_id = str(run.get("run_id") or "")
-            bridge, planner, events_payload, reasons_payload = await asyncio.gather(
-                self.v12_client.get_execution_bridge_by_run(run_id),
-                self.v12_client.get_execution_plans_by_run(run_id),
-                self.v12_client.get_runtime_events_by_run(run_id, limit=25),
-                self.v12_client.get_runtime_reasons_by_run(run_id, limit=10),
-            )
-            events = events_payload.get("items", []) if isinstance(events_payload.get("items"), list) else []
-            reasons = reasons_payload.get("items", []) if isinstance(reasons_payload.get("items"), list) else []
-            summary = self._runtime_summary_from_inputs(
-                run_id=run_id,
-                bridge=bridge,
-                planner=planner,
-                events=events,
-                reasons=reasons,
-                started_at=run.get("started_at") or run.get("created_at"),
-                completed_at=run.get("finished_at"),
-            )
-            summary["status"] = str(run.get("status") or bridge.get("status") or "unknown")
-            summary["duration_ms"] = int(run.get("duration_ms", 0) or 0)
-            summary["error_message"] = str(run.get("error_message") or "") or None
-            summary["triggered_by"] = str(run.get("triggered_by") or "") or None
-            summary["artifact_available"] = self._artifact_bundle_for_run(run_id) is not None
-            stages = self._runtime_stage_items(
-                run=run,
-                planner=planner,
-                bridge=bridge,
-                events=events,
-                reasons=reasons,
-                artifact_bundle=self._artifact_bundle_for_run(run_id),
-            )
-            artifacts = {
-                "bundle": self._artifact_bundle_for_run(run_id),
-                "available": ["runtime_bundle"] if self._artifact_bundle_for_run(run_id) is not None else [],
-                "missing": [] if self._artifact_bundle_for_run(run_id) is not None else ["runtime_bundle"],
-            }
-            summary["diagnosis"] = self._classify_runtime_diagnosis(summary=summary, stages=stages, artifacts=artifacts)
-            summary["diagnosis_code"] = summary["diagnosis"]["primary_code"]
-            return summary
-
-        for result in await asyncio.gather(*(build_summary(run) for run in run_rows)):
+        for result in (self._runtime_summary_from_run_row(run) for run in run_rows):
             if self._matches_runtime_run_filters(
                 result,
                 operator_state=operator_state,
@@ -869,6 +1044,7 @@ class CommandCenterService:
             "items": summaries[:limit],
             "filters": {
                 "limit": limit,
+                "window_minutes": window_minutes,
                 "operator_state": operator_state,
                 "bridge_state": bridge_state,
                 "issue_code": issue_code,
@@ -881,9 +1057,11 @@ class CommandCenterService:
             "as_of": utc_now_iso(),
         }
 
-    async def get_runtime_issues(self, *, limit: int = 25) -> dict:
-        runs_payload = await self.get_runtime_runs(limit=limit)
-        rows = runs_payload.get("items") if isinstance(runs_payload.get("items"), list) else []
+    async def get_runtime_issues(self, *, limit: int = 25, window_minutes: int = 5) -> dict:
+        fetch_limit = min(max(int(limit), 1), 100)
+        runs_payload = await self.v12_client.get_runtime_runs(limit=fetch_limit)
+        all_rows = runs_payload.get("items") if isinstance(runs_payload.get("items"), list) else []
+        rows = [self._runtime_summary_from_run_row(row) for row in self._filter_runtime_rows_by_window(all_rows, window_minutes=window_minutes)]
         window_run_count = len(rows)
         ordered_rows = list(rows)
         split_index = max(1, len(ordered_rows) // 2) if ordered_rows else 1
@@ -943,6 +1121,7 @@ class CommandCenterService:
             "status": "ok",
             "count": len(items),
             "items": items,
+            "window_minutes": window_minutes,
             "as_of": runs_payload.get("as_of") or utc_now_iso(),
         }
 

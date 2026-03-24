@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from fastapi import APIRouter
@@ -16,6 +16,16 @@ _repo = Sprint5Repository()
 _runtime = RuntimeService()
 _truth = TruthEngine()
 _bridge = ExecutionBridgeDiagnosticsService()
+
+EXECUTION_VIEW_PLAN_LIMIT = 50
+EXECUTION_VIEW_ORDER_LIMIT = 250
+EXECUTION_VIEW_FILL_LIMIT = 250
+EXECUTION_VIEW_CACHE_TTL_SECONDS = 3.0
+_execution_view_cache: dict[str, Any] = {
+    'expires_at': None,
+    'key': None,
+    'payload': None,
+}
 
 
 def _parse_ts(value) -> datetime | None:
@@ -61,6 +71,155 @@ def _latest_ts_from_rows(rows: list[dict[str, Any]], *keys: str) -> datetime | N
             if candidate and (latest is None or candidate > latest):
                 latest = candidate
     return latest
+
+
+def _execution_view_cache_key() -> tuple[str, str | None, str | None, str | None]:
+    state_row = _runtime.get_trading_state()
+    plan_row = _repo.store.fetchone_dict("SELECT CAST(MAX(created_at) AS VARCHAR) AS latest_created_at FROM execution_plans")
+    order_row = _repo.store.fetchone_dict("SELECT CAST(MAX(COALESCE(updated_at, submit_time, created_at)) AS VARCHAR) AS latest_seen_at FROM execution_orders")
+    fill_row = _repo.store.fetchone_dict("SELECT CAST(MAX(created_at) AS VARCHAR) AS latest_created_at FROM execution_fills")
+    return (
+        str((state_row or {}).get('trading_state', 'running') or 'running'),
+        (plan_row or {}).get('latest_created_at'),
+        (order_row or {}).get('latest_seen_at'),
+        (fill_row or {}).get('latest_created_at'),
+    )
+
+
+def _build_execution_view_snapshot() -> dict[str, Any]:
+    trading_state = _runtime.get_trading_state().get('trading_state', 'running')
+    plans = execution_plans(limit=EXECUTION_VIEW_PLAN_LIMIT)
+    orders_payload = execution_orders(limit=EXECUTION_VIEW_ORDER_LIMIT)
+    fills_payload = execution_fills(limit=EXECUTION_VIEW_FILL_LIMIT)
+    orders = orders_payload.get('items', [])
+    fills = fills_payload.get('items', [])
+    enriched_items, active_plan_count, visible_plan_count = _enrich_plan_activity(
+        plans.get('items', []),
+        orders,
+        fills,
+        trading_state=str(trading_state),
+    )
+    visible_items = [item for item in enriched_items if not str(item.get('effective_status', '')).startswith('expired')]
+
+    algo_mix: dict[str, int] = {}
+    route_mix: dict[str, int] = {}
+    for item in visible_items:
+        algo_key = item.get('algo') or 'unknown'
+        route_key = item.get('route') or 'unknown'
+        algo_mix[algo_key] = algo_mix.get(algo_key, 0) + 1
+        route_mix[route_key] = route_mix.get(route_key, 0) + 1
+
+    expired_plan_count = int(plans.get('expired_count', 0) or 0)
+    open_order_count = sum(1 for row in orders if str(row.get('status') or '').lower() in {'submitted', 'partially_filled', 'open'})
+    submitted_order_count = sum(1 for row in orders if str(row.get('status') or '').lower() not in {'cancelled', 'rejected'})
+    state_name = str(trading_state or 'running').lower()
+    latest_plan_at = _parse_ts(plans.get('as_of'))
+    latest_order_at = _parse_ts(orders_payload.get('as_of'))
+    latest_fill_at = _parse_ts(fills_payload.get('as_of'))
+    newest_activity = _latest_ts_from_rows(enriched_items, 'last_execution_at', 'created_at')
+    now = datetime.now(timezone.utc)
+    planner_age_sec = max(0.0, (now - latest_plan_at).total_seconds()) if latest_plan_at else None
+    execution_age_sec = max(0.0, (now - latest_order_at).total_seconds()) if latest_order_at else None
+    last_fill_age_sec = max(0.0, (now - latest_fill_at).total_seconds()) if latest_fill_at else None
+
+    manual_reasons: list[dict] = []
+    recent_execution_activity = last_fill_age_sec is not None and last_fill_age_sec <= 180.0
+    stale_open_orders = (open_order_count > 0 or submitted_order_count > 0) and (last_fill_age_sec is None or last_fill_age_sec > 300.0)
+    if state_name == 'halted':
+        manual_reasons.append({'code': 'risk_halted', 'severity': 'critical', 'message': 'Trading is halted by runtime control state.'})
+        manual_reasons.append({'code': 'kill_switch_triggered', 'severity': 'critical', 'message': 'Kill switch or risk halt is active.'})
+        if open_order_count > 0 or submitted_order_count > 0:
+            manual_reasons.append({'code': 'residual_orders_after_halt', 'severity': 'critical', 'message': 'Orders remain after halt and must drain/cancel.'})
+            if stale_open_orders:
+                manual_reasons.append({'code': 'open_orders_not_draining', 'severity': 'critical', 'message': 'Open orders remain after halt without recent fills.'})
+    elif state_name == 'paused':
+        manual_reasons.append({'code': 'paused', 'severity': 'high', 'message': 'Trading is paused by runtime control state.'})
+        if open_order_count > 0 or submitted_order_count > 0:
+            manual_reasons.append({'code': 'blocked_by_risk', 'severity': 'high', 'message': 'Orders remain while trading is paused.'})
+    if active_plan_count > 0 and submitted_order_count == 0 and len(fills) == 0 and state_name == 'running':
+        manual_reasons.append({'code': 'planner_no_execution', 'severity': 'high', 'message': 'Planner is active but no orders or fills exist.'})
+    if submitted_order_count > 0 and len(fills) == 0 and state_name == 'running':
+        manual_reasons.append({'code': 'no_fill_after_submit', 'severity': 'high', 'message': 'Orders exist but no fills were recorded.'})
+    if recent_execution_activity and state_name == 'running':
+        manual_reasons.append({'code': 'recent_execution_activity', 'severity': 'info', 'message': 'Recent fills or execution activity detected.'})
+    if (open_order_count > 0 or submitted_order_count > 0) and state_name == 'running':
+        manual_reasons.append({'code': 'working_orders', 'severity': 'medium', 'message': 'Orders are still working in the market.'})
+    if stale_open_orders:
+        manual_reasons.append({'code': 'stale_open_orders', 'severity': 'high', 'message': 'Open orders remain without recent fills.'})
+
+    inp = ExecutionStateInput(
+        trading_state=str(trading_state),
+        active_plan_count=active_plan_count,
+        expired_plan_count=expired_plan_count,
+        open_order_count=open_order_count,
+        submitted_order_count=submitted_order_count,
+        fill_count=len(fills),
+        planner_age_sec=planner_age_sec,
+        execution_age_sec=execution_age_sec,
+        last_fill_age_sec=last_fill_age_sec,
+        reasons=tuple(str(item.get('code') or '') for item in manual_reasons),
+    )
+    reasons = merge_reason_codes(manual_reasons, default_reason_codes(inp))
+    priority = ['risk_halted', 'kill_switch_triggered', 'blocked_by_risk', 'paused', 'residual_orders_after_halt', 'open_orders_not_draining', 'stale_open_orders', 'working_orders', 'recent_execution_activity', 'planner_no_execution', 'no_fill_after_submit', 'expired_plan']
+    reason = None
+    for code in priority:
+        if any(str(item.get('code')) == code for item in reasons):
+            reason = code
+            break
+    if reason is None and reasons:
+        reason = reasons[0]['code']
+    execution_state = classify_execution_state(inp)
+    as_of = fills_payload.get('as_of') or orders_payload.get('as_of') or plans.get('as_of')
+
+    return {
+        'as_of': as_of,
+        'planner': {
+            'status': 'ok',
+            'trading_state': trading_state,
+            'plan_count': active_plan_count,
+            'visible_plan_count': visible_plan_count,
+            'expired_count': expired_plan_count,
+            'algo_mix': algo_mix,
+            'route_mix': route_mix,
+            'items': visible_items[:5],
+            'as_of': plans.get('as_of'),
+            'latest_activity_at': newest_activity.isoformat() if newest_activity else None,
+        },
+        'state': {
+            'status': 'ok',
+            'trading_state': trading_state,
+            'execution_state': execution_state,
+            'reason': reason,
+            'planner_age_sec': planner_age_sec,
+            'execution_age_sec': execution_age_sec,
+            'last_fill_age_sec': last_fill_age_sec,
+            'open_order_count': open_order_count,
+            'submitted_order_count': submitted_order_count,
+            'active_plan_count': active_plan_count,
+            'expired_plan_count': expired_plan_count,
+            'visible_plan_count': visible_plan_count,
+            'latest_plan_id': None if state_name in {'halted', 'paused'} else ((plans.get('items') or [{}])[0].get('plan_id') if plans.get('items') else None),
+            'latest_order_id': None if state_name in {'halted', 'paused'} else (orders[0].get('order_id') if orders else None),
+            'latest_fill_id': fills[0].get('fill_id') if fills else None,
+            'block_reasons': reasons,
+            'as_of': as_of,
+        },
+    }
+
+
+def _get_execution_view_snapshot() -> dict[str, Any]:
+    now = datetime.now(timezone.utc)
+    expires_at = _execution_view_cache.get('expires_at')
+    cache_key = _execution_view_cache.get('key')
+    cached_payload = _execution_view_cache.get('payload')
+    current_key = _execution_view_cache_key()
+    if isinstance(expires_at, datetime) and cached_payload and expires_at > now and cache_key == current_key:
+        return cached_payload
+    payload = _build_execution_view_snapshot()
+    _execution_view_cache['key'] = current_key
+    _execution_view_cache['payload'] = payload
+    _execution_view_cache['expires_at'] = now + timedelta(seconds=EXECUTION_VIEW_CACHE_TTL_SECONDS)
+    return payload
 
 
 def _enrich_plan_activity(items: list[dict], orders: list[dict], fills: list[dict], trading_state: str = 'running') -> tuple[list[dict], int, int]:
@@ -192,30 +351,7 @@ def execution_plans_by_run(run_id: str) -> dict:
 
 @router.get('/planner/latest')
 def execution_planner_latest() -> dict:
-    plans = execution_plans(limit=20)
-    orders_payload = execution_orders(limit=500)
-    fills_payload = execution_fills(limit=500)
-    items = plans.get('items', [])
-    enriched_items, active_count, visible_count = _enrich_plan_activity(items, orders_payload.get('items', []), fills_payload.get('items', []), trading_state=plans.get('trading_state', 'running'))
-    visible_items = [item for item in enriched_items if not str(item.get('effective_status', '')).startswith('expired')]
-    algo_mix = {}
-    route_mix = {}
-    for item in visible_items:
-        algo_mix[item.get('algo') or 'unknown'] = algo_mix.get(item.get('algo') or 'unknown', 0) + 1
-        route_mix[item.get('route') or 'unknown'] = route_mix.get(item.get('route') or 'unknown', 0) + 1
-    newest_activity = _latest_ts_from_rows(enriched_items, 'last_execution_at', 'created_at')
-    return {
-        'status': 'ok',
-        'trading_state': plans.get('trading_state', 'running'),
-        'plan_count': active_count,
-        'visible_plan_count': visible_count,
-        'expired_count': int(plans.get('expired_count', 0) or 0),
-        'algo_mix': algo_mix,
-        'route_mix': route_mix,
-        'items': visible_items[:5],
-        'as_of': plans.get('as_of'),
-        'latest_activity_at': newest_activity.isoformat() if newest_activity else None,
-    }
+    return _get_execution_view_snapshot()['planner']
 
 
 @router.get('/bridge/latest')
@@ -256,89 +392,7 @@ def execution_orders_latest(limit: int = 25) -> dict:
 
 
 def _latest_execution_state_payload() -> dict:
-    trading_state = _runtime.get_trading_state().get('trading_state', 'running')
-    plans = execution_plans(limit=200)
-    orders_payload = execution_orders(limit=500)
-    fills_payload = execution_fills(limit=500)
-    expired_plan_count = int(plans.get('expired_count', 0) or 0)
-    orders = orders_payload.get('items', [])
-    fills = fills_payload.get('items', [])
-    _, active_plan_count, visible_plan_count = _enrich_plan_activity(plans.get('items', []), orders, fills, trading_state=str(trading_state))
-    open_order_count = sum(1 for row in orders if str(row.get('status') or '').lower() in {'submitted', 'partially_filled', 'open'})
-    submitted_order_count = sum(1 for row in orders if str(row.get('status') or '').lower() not in {'cancelled', 'rejected'})
-    state_name = str(trading_state or 'running').lower()
-    latest_plan_at = _parse_ts(plans.get('as_of'))
-    latest_order_at = _parse_ts(orders_payload.get('as_of'))
-    latest_fill_at = _parse_ts(fills_payload.get('as_of'))
-    now = datetime.now(timezone.utc)
-    planner_age_sec = max(0.0, (now - latest_plan_at).total_seconds()) if latest_plan_at else None
-    execution_age_sec = max(0.0, (now - latest_order_at).total_seconds()) if latest_order_at else None
-    last_fill_age_sec = max(0.0, (now - latest_fill_at).total_seconds()) if latest_fill_at else None
-    manual_reasons: list[dict] = []
-    recent_execution_activity = last_fill_age_sec is not None and last_fill_age_sec <= 180.0
-    stale_open_orders = (open_order_count > 0 or submitted_order_count > 0) and (last_fill_age_sec is None or last_fill_age_sec > 300.0)
-    if state_name == 'halted':
-        manual_reasons.append({'code': 'risk_halted', 'severity': 'critical', 'message': 'Trading is halted by runtime control state.'})
-        manual_reasons.append({'code': 'kill_switch_triggered', 'severity': 'critical', 'message': 'Kill switch or risk halt is active.'})
-        if open_order_count > 0 or submitted_order_count > 0:
-            manual_reasons.append({'code': 'residual_orders_after_halt', 'severity': 'critical', 'message': 'Orders remain after halt and must drain/cancel.'})
-            if stale_open_orders:
-                manual_reasons.append({'code': 'open_orders_not_draining', 'severity': 'critical', 'message': 'Open orders remain after halt without recent fills.'})
-    elif state_name == 'paused':
-        manual_reasons.append({'code': 'paused', 'severity': 'high', 'message': 'Trading is paused by runtime control state.'})
-        if open_order_count > 0 or submitted_order_count > 0:
-            manual_reasons.append({'code': 'blocked_by_risk', 'severity': 'high', 'message': 'Orders remain while trading is paused.'})
-    if active_plan_count > 0 and submitted_order_count == 0 and len(fills) == 0 and state_name == 'running':
-        manual_reasons.append({'code': 'planner_no_execution', 'severity': 'high', 'message': 'Planner is active but no orders or fills exist.'})
-    if submitted_order_count > 0 and len(fills) == 0 and state_name == 'running':
-        manual_reasons.append({'code': 'no_fill_after_submit', 'severity': 'high', 'message': 'Orders exist but no fills were recorded.'})
-    if recent_execution_activity and state_name == 'running':
-        manual_reasons.append({'code': 'recent_execution_activity', 'severity': 'info', 'message': 'Recent fills or execution activity detected.'})
-    if (open_order_count > 0 or submitted_order_count > 0) and state_name == 'running':
-        manual_reasons.append({'code': 'working_orders', 'severity': 'medium', 'message': 'Orders are still working in the market.'})
-    if stale_open_orders:
-        manual_reasons.append({'code': 'stale_open_orders', 'severity': 'high', 'message': 'Open orders remain without recent fills.'})
-    inp = ExecutionStateInput(
-        trading_state=str(trading_state),
-        active_plan_count=active_plan_count,
-        expired_plan_count=expired_plan_count,
-        open_order_count=open_order_count,
-        submitted_order_count=submitted_order_count,
-        fill_count=len(fills),
-        planner_age_sec=planner_age_sec,
-        execution_age_sec=execution_age_sec,
-        last_fill_age_sec=last_fill_age_sec,
-        reasons=tuple(str(item.get('code') or '') for item in manual_reasons),
-    )
-    reasons = merge_reason_codes(manual_reasons, default_reason_codes(inp))
-    priority = ['risk_halted', 'kill_switch_triggered', 'blocked_by_risk', 'paused', 'residual_orders_after_halt', 'open_orders_not_draining', 'stale_open_orders', 'working_orders', 'recent_execution_activity', 'planner_no_execution', 'no_fill_after_submit', 'expired_plan']
-    reason = None
-    for code in priority:
-        if any(str(item.get('code')) == code for item in reasons):
-            reason = code
-            break
-    if reason is None and reasons:
-        reason = reasons[0]['code']
-    execution_state = classify_execution_state(inp)
-    return {
-        'status': 'ok',
-        'trading_state': trading_state,
-        'execution_state': execution_state,
-        'reason': reason,
-        'planner_age_sec': planner_age_sec,
-        'execution_age_sec': execution_age_sec,
-        'last_fill_age_sec': last_fill_age_sec,
-        'open_order_count': open_order_count,
-        'submitted_order_count': submitted_order_count,
-        'active_plan_count': active_plan_count,
-        'expired_plan_count': expired_plan_count,
-        'visible_plan_count': visible_plan_count,
-        'latest_plan_id': None if state_name in {'halted', 'paused'} else ((plans.get('items') or [{}])[0].get('plan_id') if plans.get('items') else None),
-        'latest_order_id': None if state_name in {'halted', 'paused'} else (orders[0].get('order_id') if orders else None),
-        'latest_fill_id': fills[0].get('fill_id') if fills else None,
-        'block_reasons': reasons,
-        'as_of': fills_payload.get('as_of') or orders_payload.get('as_of') or plans.get('as_of'),
-    }
+    return _get_execution_view_snapshot()['state']
 
 
 @router.get('/state/latest')

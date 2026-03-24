@@ -67,19 +67,17 @@ class PortfolioService:
         return round(max(-10.0, min(10.0, sharpe)), 6)
 
     async def get_overview(self) -> dict:
-        overview_payload, positions_payload, execution_quality, equity_history = await asyncio.gather(
+        overview_payload, execution_quality, equity_history = await asyncio.gather(
             self.v12_client.get_portfolio_dashboard(),
-            self.v12_client.get_portfolio_positions(),
             self.v12_client.get_execution_quality(),
             self.v12_client.get_equity_history(),
         )
-        positions = self._normalize_positions(
-            positions_payload if isinstance(positions_payload, dict) else {},
-        )
         overview = overview_payload if isinstance(overview_payload, dict) else {}
+        positions_source = overview
+        positions = self._normalize_positions(positions_source)
         summary = overview.get('summary') if isinstance(overview.get('summary'), dict) else overview
         try:
-            breakdown = compute_equity_breakdown(overview, positions_payload)
+            breakdown = compute_equity_breakdown(overview, positions_source)
         except Exception:  # pragma: no cover - defensive fallback for malformed upstream payloads
             logger.exception('equity_breakdown_failed_portfolio')
             summary_balance = float(summary.get('cash_balance', 0.0) or summary.get('balance', 0.0) or summary.get('cash', 0.0) or summary.get('free_cash', 0.0) or 0.0)
@@ -139,10 +137,10 @@ class PortfolioService:
             'expected_sharpe': expected_sharpe,
             'weights': {item['symbol']: item['weight'] for item in positions},
             'positions': positions,
-            'quotes_as_of': overview.get('quotes_as_of') or positions_payload.get('quotes_as_of'),
+            'quotes_as_of': overview.get('quotes_as_of') or positions_source.get('quotes_as_of'),
             'stale_positions': sum(1 for item in positions if bool(item.get('stale'))),
             'fill_rate': float(execution_quality.get('fill_rate', 0.0) or 0.0),
-            'as_of': overview.get('as_of') or positions_payload.get('as_of') or utc_now_iso(),
+            'as_of': overview.get('as_of') or positions_source.get('as_of') or utc_now_iso(),
         }
 
     async def get_positions(self) -> list[dict]:
@@ -237,14 +235,13 @@ class PortfolioService:
         }
 
     async def get_overview_debug(self) -> dict:
-        overview_payload, positions_payload, execution_quality, equity_history = await asyncio.gather(
+        overview_payload, execution_quality, equity_history = await asyncio.gather(
             self.v12_client.get_portfolio_dashboard(),
-            self.v12_client.get_portfolio_positions(),
             self.v12_client.get_execution_quality(),
             self.v12_client.get_equity_history(),
         )
         overview = overview_payload if isinstance(overview_payload, dict) else {}
-        positions_source = positions_payload if isinstance(positions_payload, dict) else {}
+        positions_source = overview
         execution_quality = execution_quality if isinstance(execution_quality, dict) else {}
         equity_history = equity_history if isinstance(equity_history, dict) else {}
         positions = self._normalize_positions(positions_source)
@@ -321,7 +318,6 @@ class PortfolioService:
             name
             for name, payload in {
                 "portfolio_dashboard": overview,
-                "portfolio_positions": positions_source,
                 "execution_quality": execution_quality,
                 "equity_history": equity_history,
             }.items()
@@ -380,7 +376,6 @@ class PortfolioService:
                 "background_refresh_scheduled": False,
                 "upstream_dependencies": [
                     "v12:/portfolio/overview",
-                    "v12:/portfolio/positions/latest",
                     "v12:/execution/quality/latest",
                     "v12:/portfolio/equity-history",
                 ],
@@ -406,7 +401,6 @@ class PortfolioService:
             },
             "raw": {
                 "portfolio_dashboard": overview,
-                "portfolio_positions": positions_source,
                 "execution_quality": execution_quality,
                 "equity_history": equity_history,
                 "normalized_positions": positions,

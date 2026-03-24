@@ -1,30 +1,139 @@
 'use client';
 
+import { useCallback, useEffect, useRef } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { PnlLineChart } from '@/components/charts/pnl-line-chart';
 import { KpiCard } from '@/components/cards/kpi-card';
+import { CommandCenterLive, type CommandCenterLiveEventType } from '@/components/realtime/command-center-live';
 import { ErrorState } from '@/components/shared/error-state';
 import { LoadingState } from '@/components/shared/loading-state';
 import { DataStatusBanner, DataStatusPill, resolveDataStatus } from '@/components/shared/data-status';
 import { RuntimeBlockCard, RuntimeStatusBadgeStrip, RuntimeSummaryCards, RuntimeTimelinePanel } from '@/components/shared/runtime-observability';
 import { SimpleTable } from '@/components/tables/simple-table';
-import { useAlerts, useCommandCenterRuntimeLatest, useEquityHistory, useMonitoringSystem, useOverview, useRiskSnapshot, useSchedulerJobs } from '@/lib/api/hooks';
+import { useAlerts, useCommandCenterRuntimeLatest, useEquityHistory, useMonitoringSystem, useOverview, usePortfolioOverview, useRiskSnapshot, useSchedulerJobs } from '@/lib/api/hooks';
+import type { ApiEnvelope, CommandCenterRealtimeEvent, OverviewData } from '@/types/api';
 
 function fmtMetric(value?: number) {
   if (value == null || Number.isNaN(value)) return '-';
   return value;
 }
 
+const OVERVIEW_POLL_MS = 15000;
+const OVERVIEW_REFRESH_THROTTLE_MS = 5000;
+const OVERVIEW_LIVE_EVENT_TYPES: CommandCenterLiveEventType[] = ['pnl_update'];
+
+function OverviewLiveUpdates() {
+  const queryClient = useQueryClient();
+  const lastRefreshAtRef = useRef(0);
+  const refreshInFlightRef = useRef(false);
+  const pendingRefreshRef = useRef(false);
+  const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const requestRefreshRef = useRef<(() => Promise<void>) | null>(null);
+
+  const clearRefreshTimer = useCallback(() => {
+    if (!refreshTimerRef.current) return;
+    clearTimeout(refreshTimerRef.current);
+    refreshTimerRef.current = null;
+  }, []);
+
+  const scheduleRefresh = useCallback((delayMs: number) => {
+    if (refreshTimerRef.current) return;
+    refreshTimerRef.current = setTimeout(() => {
+      refreshTimerRef.current = null;
+      void requestRefreshRef.current?.();
+    }, delayMs);
+  }, []);
+
+  const requestRefresh = useCallback(async () => {
+    const now = Date.now();
+    const elapsedMs = now - lastRefreshAtRef.current;
+
+    if (refreshInFlightRef.current) {
+      pendingRefreshRef.current = true;
+      return;
+    }
+
+    if (elapsedMs < OVERVIEW_REFRESH_THROTTLE_MS) {
+      pendingRefreshRef.current = true;
+      scheduleRefresh(OVERVIEW_REFRESH_THROTTLE_MS - elapsedMs);
+      return;
+    }
+
+    pendingRefreshRef.current = false;
+    clearRefreshTimer();
+    refreshInFlightRef.current = true;
+    lastRefreshAtRef.current = now;
+
+    try {
+      await queryClient.refetchQueries({ queryKey: ['overview'], exact: true, type: 'active' });
+    } finally {
+      refreshInFlightRef.current = false;
+      if (pendingRefreshRef.current) {
+        const nextDelayMs = Math.max(OVERVIEW_REFRESH_THROTTLE_MS - (Date.now() - lastRefreshAtRef.current), 0);
+        scheduleRefresh(nextDelayMs);
+      }
+    }
+  }, [clearRefreshTimer, queryClient, scheduleRefresh]);
+
+  requestRefreshRef.current = requestRefresh;
+
+  const applyPnlUpdate = useCallback((event: CommandCenterRealtimeEvent) => {
+    if (event.event_type !== 'pnl_update') return;
+
+    queryClient.setQueryData<ApiEnvelope<OverviewData> | undefined>(['overview'], (current) => {
+      if (!current?.data) return current;
+
+      const payload = event.payload as Record<string, unknown>;
+      return {
+        ...current,
+        data: {
+          ...current.data,
+          asOf: event.as_of || current.data.asOf,
+          totalEquity: typeof payload.portfolio_value === 'number' ? payload.portfolio_value : current.data.totalEquity,
+          dailyPnl: typeof payload.pnl === 'number' ? payload.pnl : current.data.dailyPnl,
+          grossExposure: typeof payload.gross_exposure === 'number' ? payload.gross_exposure : current.data.grossExposure,
+          netExposure: typeof payload.net_exposure === 'number' ? payload.net_exposure : current.data.netExposure,
+          activeStrategies: typeof payload.active_strategies === 'number' ? payload.active_strategies : current.data.activeStrategies,
+        },
+      };
+    });
+
+    void requestRefresh();
+  }, [queryClient, requestRefresh]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      void requestRefresh();
+    }, OVERVIEW_POLL_MS);
+
+    return () => {
+      clearInterval(interval);
+      clearRefreshTimer();
+    };
+  }, [clearRefreshTimer, requestRefresh]);
+
+  return <CommandCenterLive eventTypes={OVERVIEW_LIVE_EVENT_TYPES} onEvent={applyPnlUpdate} showBadge={false} />;
+}
+
 export function OverviewPage() {
   const overview = useOverview();
-  const alerts = useAlerts();
-  const jobs = useSchedulerJobs();
-  const monitoring = useMonitoringSystem();
-  const risk = useRiskSnapshot();
-  const equityHistory = useEquityHistory();
-  const runtime = useCommandCenterRuntimeLatest();
+  const hasOverviewData = Boolean(overview.data && 'data' in overview.data && overview.data.data);
+  const primaryReady = hasOverviewData || Boolean(overview.error);
+  const runtime = useCommandCenterRuntimeLatest(primaryReady);
+  const runtimeReady = primaryReady && Boolean(runtime.data?.data || runtime.error);
+  const monitoring = useMonitoringSystem(runtimeReady);
+  const monitoringReady = runtimeReady && Boolean(monitoring.data?.data || monitoring.error);
+  const risk = useRiskSnapshot(monitoringReady);
+  const riskReady = monitoringReady && Boolean(risk.data?.data || risk.error);
+  const secondaryReady = riskReady && Boolean(
+    runtime.data?.data || monitoring.data?.data || risk.data?.data || runtime.error || monitoring.error || risk.error
+  );
+  const portfolioOverview = usePortfolioOverview(primaryReady);
+  const alerts = useAlerts(secondaryReady);
+  const jobs = useSchedulerJobs(secondaryReady);
+  const equityHistory = useEquityHistory(secondaryReady);
 
   const overviewEnvelope = overview.data;
-  const hasOverviewData = Boolean(overviewEnvelope && 'data' in overviewEnvelope && overviewEnvelope.data);
   if (overview.isLoading && !hasOverviewData) return <LoadingState />;
   if (overview.error && !hasOverviewData) return <ErrorState message="Overview load failed" />;
 
@@ -33,6 +142,7 @@ export function OverviewPage() {
   const openAlertRows = alertRows.filter((a) => a.status === 'open');
   const jobRows = jobs.data?.data ?? [];
   const monitoringData = monitoring.data?.data;
+  const portfolioMetrics = portfolioOverview.data?.data;
   const chartData = equityHistory.data?.data?.length ? equityHistory.data.data : (data?.pnlSeries ?? []);
   const displayedOpenAlerts = data?.openAlerts != null ? Math.max(data.openAlerts, openAlertRows.length) : (openAlertRows.length || '-');
   const executionReason = monitoringData?.executionReason || '-';
@@ -44,6 +154,7 @@ export function OverviewPage() {
 
   return (
     <div className="space-y-6">
+      <OverviewLiveUpdates />
       <div className="flex items-center justify-between gap-3">
         <h1 className="section-title">Overview</h1>
         <div className="flex flex-wrap items-center gap-2">
@@ -64,6 +175,8 @@ export function OverviewPage() {
         <KpiCard title="Daily PnL" value={fmtMetric(data?.dailyPnl)} />
         <KpiCard title="Gross Exposure" value={fmtMetric(data?.grossExposure)} />
         <KpiCard title="Net Exposure" value={fmtMetric(data?.netExposure)} />
+        <KpiCard title="Fill Rate" value={portfolioOverview.isLoading && !portfolioMetrics ? '-' : fmtMetric(portfolioMetrics?.fillRate)} />
+        <KpiCard title="Expected Sharpe" value={portfolioOverview.isLoading && !portfolioMetrics ? '-' : fmtMetric(portfolioMetrics?.expectedSharpe)} />
       </div>
       <div className="text-xs text-slate-400">Equity formula: Total Equity = Used Margin + Free Margin = Balance + Unrealized {data?.asOf ? `| as of ${data.asOf}` : ''}</div>
       <div className="space-y-3">

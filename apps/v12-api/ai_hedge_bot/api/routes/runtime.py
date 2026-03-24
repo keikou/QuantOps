@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import time
+
 from fastapi import APIRouter, HTTPException, Query
 
 from ai_hedge_bot.app.container import CONTAINER
@@ -7,6 +9,8 @@ from ai_hedge_bot.services.runtime.runtime_service import RuntimeService
 
 router = APIRouter(prefix='/runtime', tags=['runtime'])
 _service = RuntimeService()
+_RUNTIME_RUNS_CACHE_TTL_SECONDS = 3.0
+_runtime_runs_cache: dict[int, tuple[float, list[dict]]] = {}
 
 
 @router.post('/run-once')
@@ -16,7 +20,16 @@ def run_once(mode: str | None = None) -> dict:
 
 @router.get('/runs')
 def list_runs(limit: int = Query(default=20, ge=1, le=100)) -> dict:
-    return {'status': 'ok', 'items': _service.list_runs(limit=limit)}
+    now = time.monotonic()
+    cached = _runtime_runs_cache.get(limit)
+    if cached is not None:
+        expires_at, items = cached
+        if now < expires_at:
+            return {'status': 'ok', 'items': items}
+
+    items = _service.list_runs(limit=limit)
+    _runtime_runs_cache[limit] = (now + _RUNTIME_RUNS_CACHE_TTL_SECONDS, items)
+    return {'status': 'ok', 'items': items}
 
 
 @router.get('/runs/{run_id}')
