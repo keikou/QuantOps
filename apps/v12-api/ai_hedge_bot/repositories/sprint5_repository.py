@@ -346,7 +346,7 @@ class Sprint5Repository:
 
     def latest_execution_quality_summary(self) -> dict[str, Any]:
         latest = dict(getattr(CONTAINER, 'latest_execution_quality', {}) or {})
-        if latest:
+        if latest and (latest.get('run_id') or latest.get('created_at')):
             latest.setdefault('status', 'ok')
             latest.setdefault('as_of', latest.get('created_at'))
             return {

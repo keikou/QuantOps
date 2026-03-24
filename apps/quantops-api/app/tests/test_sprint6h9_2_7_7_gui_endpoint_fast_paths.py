@@ -75,6 +75,7 @@ class _PortfolioClient:
     def __init__(self) -> None:
         self.execution_quality_calls = 0
         self.equity_history_calls = 0
+        self.portfolio_metrics_calls = 0
 
     async def _sleep(self) -> None:
         await asyncio.sleep(0.05)
@@ -112,6 +113,19 @@ class _PortfolioClient:
         self.execution_quality_calls += 1
         await self._sleep()
         return {"fill_rate": 1.0}
+
+    async def get_portfolio_metrics(self) -> dict:
+        self.portfolio_metrics_calls += 1
+        await self._sleep()
+        return {
+            "status": "ok",
+            "fill_rate": 1.0,
+            "expected_sharpe": 0.5,
+            "expected_volatility": 0.01,
+            "as_of": "2026-03-22T00:00:00+00:00",
+            "source_snapshot_time": "2026-03-22T00:00:00+00:00",
+            "build_status": "live",
+        }
 
     async def get_equity_history(self, *, limit: int | None = None, live: bool = False) -> dict:
         self.equity_history_calls += 1
@@ -198,6 +212,10 @@ def test_portfolio_metrics_parallelizes_upstream_reads() -> None:
     elapsed = time.perf_counter() - started
 
     assert payload["fill_rate"] == 1.0
+    assert payload["expected_sharpe"] == 0.5
+    assert client.portfolio_metrics_calls == 1
+    assert client.execution_quality_calls == 0
+    assert client.equity_history_calls == 0
     assert elapsed < 0.15
 
 
@@ -215,8 +233,9 @@ def test_portfolio_metrics_uses_short_ttl_cache_and_coalesces() -> None:
     assert first["fill_rate"] == 1.0
     assert second["expected_sharpe"] == first["expected_sharpe"]
     assert third["fill_rate"] == 1.0
-    assert client.execution_quality_calls == 1
-    assert client.equity_history_calls == 1
+    assert client.portfolio_metrics_calls == 1
+    assert client.execution_quality_calls == 0
+    assert client.equity_history_calls == 0
 
 
 def test_portfolio_metrics_returns_stale_cache_and_refreshes_in_background() -> None:
@@ -235,8 +254,9 @@ def test_portfolio_metrics_returns_stale_cache_and_refreshes_in_background() -> 
     payload = asyncio.run(run_test())
 
     assert payload == stale_payload
-    assert client.execution_quality_calls == 1
-    assert client.equity_history_calls == 1
+    assert client.portfolio_metrics_calls == 1
+    assert client.execution_quality_calls == 0
+    assert client.equity_history_calls == 0
     assert service._metrics_cache is not None
     assert service._metrics_cache["fill_rate"] == 1.0
 

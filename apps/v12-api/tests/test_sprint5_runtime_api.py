@@ -22,6 +22,10 @@ def _reset_runtime_tables() -> None:
 
 
 def test_runtime_run_once_persists_full_pipeline() -> None:
+    from ai_hedge_bot.api.routes import execution as execution_routes
+
+    execution_routes._execution_quality_summary_cache['expires_at'] = None
+    execution_routes._execution_quality_summary_cache['payload'] = None
     _reset_runtime_tables()
     response = client.post('/runtime/run-once')
     assert response.status_code == 200
@@ -148,3 +152,33 @@ def test_portfolio_equity_history_live_bypasses_cache(monkeypatch) -> None:
     assert live.status_code == 200
     assert cached.json() != live.json()
     assert call_count['count'] == 2
+
+
+def test_portfolio_metrics_latest_reuses_short_ttl_cache(monkeypatch) -> None:
+    portfolio_routes._portfolio_metrics_cache['expires_at'] = None
+    portfolio_routes._portfolio_metrics_cache['payload'] = None
+    call_count = {'count': 0}
+
+    def fake_builder(limit: int = 60) -> dict:
+        call_count['count'] += 1
+        return {
+            'status': 'ok',
+            'fill_rate': 0.5,
+            'expected_sharpe': 1.25,
+            'expected_volatility': 0.12,
+            'as_of': f'2026-03-24T00:00:0{call_count["count"]}+00:00',
+            'source_snapshot_time': f'2026-03-24T00:00:0{call_count["count"]}+00:00',
+            'build_status': 'live',
+            'equity_history_limit': limit,
+        }
+
+    monkeypatch.setattr(portfolio_routes, '_build_portfolio_metrics_payload', fake_builder)
+
+    first = client.get('/portfolio/metrics/latest?limit=60')
+    second = client.get('/portfolio/metrics/latest?limit=60')
+
+    assert first.status_code == 200
+    assert second.status_code == 200
+    assert first.json()['expected_sharpe'] == second.json()['expected_sharpe']
+    assert second.json()['build_status'] == 'fresh_cache'
+    assert call_count['count'] == 1

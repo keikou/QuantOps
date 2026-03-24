@@ -89,6 +89,28 @@ class PortfolioService:
         return dict(self._metrics_cache)
 
     async def _build_metrics_live(self) -> dict:
+        metrics_payload = await self.v12_client.get_portfolio_metrics()
+        metrics_payload = metrics_payload if isinstance(metrics_payload, dict) else {}
+        if metrics_payload.get("status") not in {"degraded", "missing", "unsupported"} and (
+            "fill_rate" in metrics_payload or "expected_sharpe" in metrics_payload
+        ):
+            payload = {
+                "fill_rate": self._safe_float(metrics_payload.get("fill_rate"), 0.0),
+                "expected_sharpe": (
+                    None if metrics_payload.get("expected_sharpe") is None
+                    else self._safe_float(metrics_payload.get("expected_sharpe"), 0.0)
+                ),
+                "expected_volatility": self._safe_float(metrics_payload.get("expected_volatility"), 0.0),
+                "as_of": metrics_payload.get("as_of") or metrics_payload.get("source_snapshot_time") or utc_now_iso(),
+                "source_snapshot_time": metrics_payload.get("source_snapshot_time"),
+                "build_status": metrics_payload.get("build_status"),
+            }
+            self._metrics_cache = dict(payload)
+            now = datetime.now(timezone.utc)
+            self._metrics_cache_updated_at = now
+            self._metrics_cache_expires_at = now + timedelta(seconds=self.METRICS_CACHE_TTL_SECONDS)
+            return payload
+
         execution_quality, equity_history = await asyncio.gather(
             self.v12_client.get_execution_quality(),
             self.v12_client.get_equity_history(limit=self.METRICS_EQUITY_HISTORY_LIMIT),
@@ -118,6 +140,8 @@ class PortfolioService:
             "expected_sharpe": self._safe_expected_sharpe_from_equity_history(equity_items),
             "expected_volatility": expected_volatility,
             "as_of": execution_quality.get("as_of") or equity_history.get("as_of") or utc_now_iso(),
+            "source_snapshot_time": execution_quality.get("as_of") or equity_history.get("as_of"),
+            "build_status": "live_fallback",
         }
         self._metrics_cache = dict(payload)
         now = datetime.now(timezone.utc)

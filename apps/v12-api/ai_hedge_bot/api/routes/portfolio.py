@@ -10,6 +10,7 @@ from ai_hedge_bot.data.storage.jsonl_logger import JsonlLogger
 from ai_hedge_bot.core.clock import utc_now_iso
 from ai_hedge_bot.core.ids import new_cycle_id, new_signal_id
 from ai_hedge_bot.repositories.sprint5_repository import Sprint5Repository
+from ai_hedge_bot.api.routes.execution import _get_execution_quality_latest_summary
 
 router = APIRouter(prefix='/portfolio', tags=['portfolio'])
 _signal_service = SignalService()
@@ -19,6 +20,8 @@ _diag_logger = JsonlLogger(CONTAINER.runtime_dir / 'logs' / 'portfolio_diagnosti
 _repo = Sprint5Repository()
 PORTFOLIO_EQUITY_HISTORY_CACHE_TTL_SECONDS = 5.0
 _equity_history_cache: dict[tuple[int], dict[str, object]] = {}
+PORTFOLIO_METRICS_CACHE_TTL_SECONDS = 5.0
+_portfolio_metrics_cache: dict[str, object] = {'expires_at': None, 'payload': None}
 
 
 def _build_equity_history_payload(limit: int) -> dict:
@@ -42,6 +45,56 @@ def _build_equity_history_payload(limit: int) -> dict:
         for row in reversed(rows)
     ]
     return {'status': 'ok', 'items': items, 'as_of': items[-1]['as_of'] if items else None}
+
+
+def _safe_expected_sharpe_from_equity_history(items: list[dict]) -> float | None:
+    if len(items) < 3:
+        return 0.0 if items else None
+    returns: list[float] = []
+    prev = None
+    for item in items:
+        value = float(item.get('value', 0.0) or 0.0)
+        if prev and abs(prev) > 1e-9:
+            returns.append((value - prev) / abs(prev))
+        prev = value
+    if len(returns) < 2:
+        return 0.0
+    mean_ret = sum(returns) / len(returns)
+    variance = sum((r - mean_ret) ** 2 for r in returns) / max(len(returns) - 1, 1)
+    std = variance ** 0.5
+    if std < 1e-6:
+        return 0.0
+    return round(max(-10.0, min(10.0, mean_ret / std)), 6)
+
+
+def _build_portfolio_metrics_payload(limit: int = 60) -> dict:
+    quality = _get_execution_quality_latest_summary()
+    equity_history = _build_equity_history_payload(limit)
+    equity_items = equity_history.get('items') or []
+    if not isinstance(equity_items, list):
+        equity_items = []
+    returns: list[float] = []
+    prev = None
+    for item in equity_items:
+        value = float(item.get('value', 0.0) or 0.0)
+        if prev and abs(prev) > 1e-9:
+            returns.append((value - prev) / abs(prev))
+        prev = value
+    expected_volatility = 0.0
+    if returns:
+        mean_ret = sum(returns) / len(returns)
+        variance = sum((r - mean_ret) ** 2 for r in returns) / max(len(returns) - 1, 1)
+        expected_volatility = round(variance ** 0.5, 6)
+    return {
+        'status': 'ok',
+        'fill_rate': float(quality.get('fill_rate', 0.0) or 0.0),
+        'expected_sharpe': _safe_expected_sharpe_from_equity_history(equity_items),
+        'expected_volatility': expected_volatility,
+        'source_snapshot_time': quality.get('as_of') or equity_history.get('as_of'),
+        'as_of': quality.get('as_of') or equity_history.get('as_of'),
+        'build_status': 'live',
+        'equity_history_limit': int(limit),
+    }
 
 
 def _load_latest_signals() -> list[dict]:
@@ -156,6 +209,21 @@ def portfolio_overview_summary_latest() -> dict:
         'positions': [],
         'as_of': summary.get('as_of') or snapshot.get('created_at'),
     }
+
+
+@router.get('/metrics/latest')
+def portfolio_metrics_latest(limit: int = 60) -> dict:
+    now = datetime.now(timezone.utc)
+    expires_at = _portfolio_metrics_cache.get('expires_at')
+    payload = _portfolio_metrics_cache.get('payload')
+    if isinstance(expires_at, datetime) and isinstance(payload, dict) and expires_at > now:
+        cached_payload = dict(payload)
+        cached_payload['build_status'] = 'fresh_cache'
+        return cached_payload
+    built = _build_portfolio_metrics_payload(int(limit))
+    _portfolio_metrics_cache['expires_at'] = now + timedelta(seconds=PORTFOLIO_METRICS_CACHE_TTL_SECONDS)
+    _portfolio_metrics_cache['payload'] = dict(built)
+    return built
 
 
 @router.get('/positions/latest')
