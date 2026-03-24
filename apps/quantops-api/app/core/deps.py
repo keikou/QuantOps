@@ -29,6 +29,7 @@ from app.services.scheduler_service import SchedulerService
 from app.services.command_center_service import CommandCenterService
 from app.services.event_stream_service import EventStreamService
 from app.services.notification_service import NotificationService
+from app.services.execution_service import ExecutionService
 
 
 @lru_cache(maxsize=1)
@@ -125,6 +126,11 @@ def get_admin_service() -> AdminService:
 def get_notification_service() -> NotificationService:
     return NotificationService(get_audit_repository())
 
+@lru_cache(maxsize=1)
+def get_execution_service() -> ExecutionService:
+    return ExecutionService(get_v12_client())
+
+@lru_cache(maxsize=1)
 def get_command_center_service() -> CommandCenterService:
     return CommandCenterService(
         get_v12_client(),

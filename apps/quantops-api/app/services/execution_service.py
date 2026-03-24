@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from datetime import datetime, timezone
 
 from app.clients.v12_client import V12Client, utc_now_iso
@@ -9,8 +10,14 @@ DEFAULT_EXECUTION_ROW_LIMIT = 100
 
 
 class ExecutionService:
+    FEED_CACHE_TTL_SECONDS = 5.0
+
     def __init__(self, v12_client: V12Client) -> None:
         self.v12_client = v12_client
+        self._orders_cache: dict[int, dict] = {}
+        self._orders_inflight: dict[int, asyncio.Task] = {}
+        self._fills_cache: dict[int, dict] = {}
+        self._fills_inflight: dict[int, asyncio.Task] = {}
 
     async def get_planner_latest(self) -> dict:
         payload = await self.v12_client.get_execution_planner_latest()
@@ -67,15 +74,53 @@ class ExecutionService:
             'data_freshness_sec': self._snapshot_age_sec(as_of),
         }
 
+    def _is_fresh_payload(self, payload: dict | None) -> bool:
+        if not isinstance(payload, dict):
+            return False
+        age = self._snapshot_age_sec(payload.get('source_snapshot_time') or payload.get('as_of'))
+        return age is not None and age <= self.FEED_CACHE_TTL_SECONDS
+
+    async def _coalesced_feed(self, *, cache: dict[int, dict], inflight: dict[int, asyncio.Task], limit: int, builder) -> dict:
+        cached = cache.get(limit)
+        if self._is_fresh_payload(cached):
+            result = dict(cached)
+            result['build_status'] = 'fresh_cache'
+            result['data_freshness_sec'] = self._snapshot_age_sec(result.get('source_snapshot_time') or result.get('as_of'))
+            return result
+
+        existing = inflight.get(limit)
+        if existing is not None and not existing.done():
+            payload = await existing
+            result = dict(payload)
+            result['build_status'] = 'fresh_cache'
+            result['data_freshness_sec'] = self._snapshot_age_sec(result.get('source_snapshot_time') or result.get('as_of'))
+            return result
+
+        task = asyncio.create_task(builder())
+        inflight[limit] = task
+        try:
+            payload = await task
+            cache[limit] = payload
+            return payload
+        finally:
+            if inflight.get(limit) is task:
+                inflight.pop(limit, None)
+
     async def get_orders(self, limit: int = DEFAULT_EXECUTION_ROW_LIMIT) -> dict:
-        payload = await self.v12_client.get_execution_orders(limit=limit)
-        items = payload.get('items', [])
-        return self._decorate_feed(payload, items=self._latest_orders(items, limit), limit=limit)
+        async def builder() -> dict:
+            payload = await self.v12_client.get_execution_orders(limit=limit)
+            items = payload.get('items', [])
+            return self._decorate_feed(payload, items=self._latest_orders(items, limit), limit=limit)
+
+        return await self._coalesced_feed(cache=self._orders_cache, inflight=self._orders_inflight, limit=limit, builder=builder)
 
     async def get_fills(self, limit: int = DEFAULT_EXECUTION_ROW_LIMIT) -> dict:
-        payload = await self.v12_client.get_execution_fills(limit=limit)
-        items = payload.get('items', [])
-        return self._decorate_feed(payload, items=self._latest_fills(items, limit), limit=limit)
+        async def builder() -> dict:
+            payload = await self.v12_client.get_execution_fills(limit=limit)
+            items = payload.get('items', [])
+            return self._decorate_feed(payload, items=self._latest_fills(items, limit), limit=limit)
+
+        return await self._coalesced_feed(cache=self._fills_cache, inflight=self._fills_inflight, limit=limit, builder=builder)
 
     async def get_state_latest(self) -> dict:
         payload = await self.v12_client.get_execution_state_latest()

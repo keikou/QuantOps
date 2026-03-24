@@ -24,6 +24,7 @@ class CommandCenterService:
     RUNTIME_LATEST_TTL_SECONDS = 5.0
     RUNTIME_LATEST_PRIMARY_TIMEOUT_SECONDS = 3.0
     RUNTIME_LATEST_AUX_TIMEOUT_SECONDS = 1.5
+    RUNTIME_FEED_TTL_SECONDS = 5.0
 
     def __init__(
         self,
@@ -57,6 +58,10 @@ class CommandCenterService:
         self._runtime_latest_cache: dict | None = None
         self._runtime_latest_refresh_task: asyncio.Task | None = None
         self._runtime_latest_inflight_task: asyncio.Task | None = None
+        self._runtime_runs_cache: dict[tuple, dict] = {}
+        self._runtime_runs_inflight: dict[tuple, asyncio.Task] = {}
+        self._runtime_issues_cache: dict[tuple, dict] = {}
+        self._runtime_issues_inflight: dict[tuple, asyncio.Task] = {}
 
     @staticmethod
     def _runtime_freshness_anchor(payload: dict | None) -> object:
@@ -103,6 +108,39 @@ class CommandCenterService:
         }
         result.update(extra)
         return result
+
+    async def _coalesced_runtime_feed(
+        self,
+        *,
+        key: tuple,
+        cache: dict[tuple, dict],
+        inflight: dict[tuple, asyncio.Task],
+        builder,
+    ) -> dict:
+        cached = cache.get(key)
+        if self._is_fresh_as_of((cached or {}).get("source_snapshot_time") or (cached or {}).get("as_of"), self.RUNTIME_FEED_TTL_SECONDS):
+            result = dict(cached)
+            result["build_status"] = "fresh_cache"
+            result["data_freshness_sec"] = self._snapshot_age_sec(result.get("source_snapshot_time") or result.get("as_of"))
+            return result
+
+        existing = inflight.get(key)
+        if existing is not None and not existing.done():
+            payload = await existing
+            result = dict(payload)
+            result["build_status"] = "fresh_cache"
+            result["data_freshness_sec"] = self._snapshot_age_sec(result.get("source_snapshot_time") or result.get("as_of"))
+            return result
+
+        task = asyncio.create_task(builder())
+        inflight[key] = task
+        try:
+            payload = await task
+            cache[key] = payload
+            return payload
+        finally:
+            if inflight.get(key) is task:
+                inflight.pop(key, None)
 
     async def _call_with_timeout(self, operation, timeout_seconds: float) -> dict:
         try:
@@ -1049,109 +1087,119 @@ class CommandCenterService:
         event_chain_complete: bool | None = None,
         artifact_available: bool | None = None,
     ) -> dict:
-        fetch_limit = min(max(int(limit), 1), 100)
-        runs_payload = await self.v12_client.get_runtime_runs(limit=fetch_limit)
-        all_rows = runs_payload.get("items") if isinstance(runs_payload.get("items"), list) else []
-        run_rows = self._filter_runtime_rows_by_window(all_rows, window_minutes=window_minutes)
-        summaries: list[dict] = []
-        for result in (self._runtime_summary_from_run_row(run) for run in run_rows):
-            if self._matches_runtime_run_filters(
-                result,
-                operator_state=operator_state,
-                bridge_state=bridge_state,
-                issue_code=issue_code,
-                reason_code=reason_code,
-                blocking_component=blocking_component,
-                degraded=degraded,
-                event_chain_complete=event_chain_complete,
-                artifact_available=artifact_available,
-            ):
-                summaries.append(result)
+        key = ("runs", limit, window_minutes, operator_state or "", bridge_state or "", issue_code or "", reason_code or "", blocking_component or "", degraded, event_chain_complete, artifact_available)
 
-        return self._decorate_runtime_feed_response(
-            runs_payload,
-            items=summaries[:limit],
-            count=len(summaries[:limit]),
-            filters={
-                "limit": limit,
-                "window_minutes": window_minutes,
-                "operator_state": operator_state,
-                "bridge_state": bridge_state,
-                "issue_code": issue_code,
-                "reason_code": reason_code,
-                "blocking_component": blocking_component,
-                "degraded": degraded,
-                "event_chain_complete": event_chain_complete,
-                "artifact_available": artifact_available,
-            },
-        )
+        async def builder() -> dict:
+            fetch_limit = min(max(int(limit), 1), 100)
+            runs_payload = await self.v12_client.get_runtime_runs(limit=fetch_limit)
+            all_rows = runs_payload.get("items") if isinstance(runs_payload.get("items"), list) else []
+            run_rows = self._filter_runtime_rows_by_window(all_rows, window_minutes=window_minutes)
+            summaries: list[dict] = []
+            for result in (self._runtime_summary_from_run_row(run) for run in run_rows):
+                if self._matches_runtime_run_filters(
+                    result,
+                    operator_state=operator_state,
+                    bridge_state=bridge_state,
+                    issue_code=issue_code,
+                    reason_code=reason_code,
+                    blocking_component=blocking_component,
+                    degraded=degraded,
+                    event_chain_complete=event_chain_complete,
+                    artifact_available=artifact_available,
+                ):
+                    summaries.append(result)
 
-    async def get_runtime_issues(self, *, limit: int = 25, window_minutes: int = 5) -> dict:
-        fetch_limit = min(max(int(limit), 1), 100)
-        runs_payload = await self.v12_client.get_runtime_runs(limit=fetch_limit)
-        all_rows = runs_payload.get("items") if isinstance(runs_payload.get("items"), list) else []
-        rows = [self._runtime_summary_from_run_row(row) for row in self._filter_runtime_rows_by_window(all_rows, window_minutes=window_minutes)]
-        window_run_count = len(rows)
-        ordered_rows = list(rows)
-        split_index = max(1, len(ordered_rows) // 2) if ordered_rows else 1
-        recent_rows = ordered_rows[:split_index]
-        older_rows = ordered_rows[split_index:]
-        buckets: dict[str, dict] = {}
-        for row in rows:
-            diagnosis = row.get("diagnosis") if isinstance(row.get("diagnosis"), dict) else {}
-            code = str(diagnosis.get("primary_code") or "unknown_runtime_gap")
-            bucket = buckets.setdefault(
-                code,
-                {
-                    "code": code,
-                    "count": 0,
-                    "severity": diagnosis.get("severity"),
-                    "retryability": diagnosis.get("retryability"),
-                    "operator_action": diagnosis.get("operator_action"),
-                    "likely_component": diagnosis.get("likely_component"),
-                    "first_seen_at": row.get("completed_at") or row.get("started_at"),
-                    "last_seen_at": row.get("completed_at") or row.get("started_at"),
-                    "example_run_id": row.get("run_id"),
-                    "trend": "flat",
-                    "distinct_run_count": 0,
-                    "run_ids": set(),
+            return self._decorate_runtime_feed_response(
+                runs_payload,
+                items=summaries[:limit],
+                count=len(summaries[:limit]),
+                filters={
+                    "limit": limit,
+                    "window_minutes": window_minutes,
+                    "operator_state": operator_state,
+                    "bridge_state": bridge_state,
+                    "issue_code": issue_code,
+                    "reason_code": reason_code,
+                    "blocking_component": blocking_component,
+                    "degraded": degraded,
+                    "event_chain_complete": event_chain_complete,
+                    "artifact_available": artifact_available,
                 },
             )
-            bucket["count"] += 1
-            candidate_ts = row.get("completed_at") or row.get("started_at")
-            if candidate_ts and str(candidate_ts) > str(bucket.get("last_seen_at") or ""):
-                bucket["last_seen_at"] = candidate_ts
-                bucket["example_run_id"] = row.get("run_id")
-            if candidate_ts and str(candidate_ts) < str(bucket.get("first_seen_at") or candidate_ts):
-                bucket["first_seen_at"] = candidate_ts
-            if row.get("run_id"):
-                bucket["run_ids"].add(str(row.get("run_id")))
 
-        for code, bucket in buckets.items():
-            recent_count = sum(
-                1
-                for row in recent_rows
-                if str((((row.get("diagnosis") or {}) if isinstance(row.get("diagnosis"), dict) else {}).get("primary_code") or row.get("diagnosis_code") or "")) == code
-            )
-            older_count = sum(
-                1
-                for row in older_rows
-                if str((((row.get("diagnosis") or {}) if isinstance(row.get("diagnosis"), dict) else {}).get("primary_code") or row.get("diagnosis_code") or "")) == code
-            )
-            bucket["distinct_run_count"] = len(bucket.pop("run_ids"))
-            bucket["recurrence_status"] = self._issue_recurrence_status(int(bucket.get("count", 0) or 0), recent_count)
-            bucket["trend"] = self._issue_trend(recent_count, older_count)
-            bucket["window_run_count"] = window_run_count
-            bucket["window_start"] = ordered_rows[-1].get("started_at") if ordered_rows else None
-            bucket["window_end"] = ordered_rows[0].get("completed_at") or ordered_rows[0].get("started_at") if ordered_rows else None
+        return await self._coalesced_runtime_feed(key=key, cache=self._runtime_runs_cache, inflight=self._runtime_runs_inflight, builder=builder)
 
-        items = sorted(buckets.values(), key=lambda item: (-int(item.get("count", 0) or 0), str(item.get("code") or "")))
-        return self._decorate_runtime_feed_response(
-            runs_payload,
-            items=items,
-            count=len(items),
-            window_minutes=window_minutes,
-        )
+    async def get_runtime_issues(self, *, limit: int = 25, window_minutes: int = 5) -> dict:
+        key = ("issues", limit, window_minutes)
+
+        async def builder() -> dict:
+            fetch_limit = min(max(int(limit), 1), 100)
+            runs_payload = await self.v12_client.get_runtime_runs(limit=fetch_limit)
+            all_rows = runs_payload.get("items") if isinstance(runs_payload.get("items"), list) else []
+            rows = [self._runtime_summary_from_run_row(row) for row in self._filter_runtime_rows_by_window(all_rows, window_minutes=window_minutes)]
+            window_run_count = len(rows)
+            ordered_rows = list(rows)
+            split_index = max(1, len(ordered_rows) // 2) if ordered_rows else 1
+            recent_rows = ordered_rows[:split_index]
+            older_rows = ordered_rows[split_index:]
+            buckets: dict[str, dict] = {}
+            for row in rows:
+                diagnosis = row.get("diagnosis") if isinstance(row.get("diagnosis"), dict) else {}
+                code = str(diagnosis.get("primary_code") or "unknown_runtime_gap")
+                bucket = buckets.setdefault(
+                    code,
+                    {
+                        "code": code,
+                        "count": 0,
+                        "severity": diagnosis.get("severity"),
+                        "retryability": diagnosis.get("retryability"),
+                        "operator_action": diagnosis.get("operator_action"),
+                        "likely_component": diagnosis.get("likely_component"),
+                        "first_seen_at": row.get("completed_at") or row.get("started_at"),
+                        "last_seen_at": row.get("completed_at") or row.get("started_at"),
+                        "example_run_id": row.get("run_id"),
+                        "trend": "flat",
+                        "distinct_run_count": 0,
+                        "run_ids": set(),
+                    },
+                )
+                bucket["count"] += 1
+                candidate_ts = row.get("completed_at") or row.get("started_at")
+                if candidate_ts and str(candidate_ts) > str(bucket.get("last_seen_at") or ""):
+                    bucket["last_seen_at"] = candidate_ts
+                    bucket["example_run_id"] = row.get("run_id")
+                if candidate_ts and str(candidate_ts) < str(bucket.get("first_seen_at") or candidate_ts):
+                    bucket["first_seen_at"] = candidate_ts
+                if row.get("run_id"):
+                    bucket["run_ids"].add(str(row.get("run_id")))
+
+            for code, bucket in buckets.items():
+                recent_count = sum(
+                    1
+                    for row in recent_rows
+                    if str((((row.get("diagnosis") or {}) if isinstance(row.get("diagnosis"), dict) else {}).get("primary_code") or row.get("diagnosis_code") or "")) == code
+                )
+                older_count = sum(
+                    1
+                    for row in older_rows
+                    if str((((row.get("diagnosis") or {}) if isinstance(row.get("diagnosis"), dict) else {}).get("primary_code") or row.get("diagnosis_code") or "")) == code
+                )
+                bucket["distinct_run_count"] = len(bucket.pop("run_ids"))
+                bucket["recurrence_status"] = self._issue_recurrence_status(int(bucket.get("count", 0) or 0), recent_count)
+                bucket["trend"] = self._issue_trend(recent_count, older_count)
+                bucket["window_run_count"] = window_run_count
+                bucket["window_start"] = ordered_rows[-1].get("started_at") if ordered_rows else None
+                bucket["window_end"] = ordered_rows[0].get("completed_at") or ordered_rows[0].get("started_at") if ordered_rows else None
+
+            items = sorted(buckets.values(), key=lambda item: (-int(item.get("count", 0) or 0), str(item.get("code") or "")))
+            return self._decorate_runtime_feed_response(
+                runs_payload,
+                items=items,
+                count=len(items),
+                window_minutes=window_minutes,
+            )
+
+        return await self._coalesced_runtime_feed(key=key, cache=self._runtime_issues_cache, inflight=self._runtime_issues_inflight, builder=builder)
 
     async def get_execution_debug(self) -> dict:
         stored = self.analytics_service.execution_summary()
