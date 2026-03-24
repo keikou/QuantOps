@@ -5,6 +5,7 @@ import contextlib
 import logging
 from contextlib import asynccontextmanager
 
+import httpx
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -13,6 +14,10 @@ from app.core.deps import get_monitoring_service, get_risk_service
 from app.middleware.request_logging import RequestLoggingMiddleware
 from app.core.config import get_settings
 from app.db.init_db import init_db
+
+GUI_FAST_PATH_WARMUP_DELAY_SECONDS = 3.0
+GUI_FAST_PATH_WARMUP_MAX_WAIT_SECONDS = 15.0
+GUI_FAST_PATH_WARMUP_POLL_SECONDS = 0.5
 
 
 def configure_runtime_logging() -> None:
@@ -28,6 +33,20 @@ def configure_runtime_logging() -> None:
 
 async def _warm_gui_fast_paths() -> None:
     try:
+        await asyncio.sleep(GUI_FAST_PATH_WARMUP_DELAY_SECONDS)
+        settings = get_settings()
+        deadline = asyncio.get_running_loop().time() + GUI_FAST_PATH_WARMUP_MAX_WAIT_SECONDS
+        async with httpx.AsyncClient(base_url=settings.v12_base_url.rstrip("/"), timeout=2.0) as client:
+            while True:
+                try:
+                    response = await client.get("/system/health")
+                    if response.status_code < 500:
+                        break
+                except Exception:
+                    pass
+                if asyncio.get_running_loop().time() >= deadline:
+                    break
+                await asyncio.sleep(GUI_FAST_PATH_WARMUP_POLL_SECONDS)
         await asyncio.gather(
             get_monitoring_service().refresh(),
             get_risk_service().refresh_snapshot(),
