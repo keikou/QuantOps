@@ -49,6 +49,8 @@ def test_sprint6h9_planner_latest_uses_execution_linked_active_definition() -> N
     })
     planner = client.get('/execution/planner/latest').json()
     assert planner['status'] == 'ok'
+    assert planner['build_status'] == 'live'
+    assert planner['source_snapshot_time'] == planner['as_of']
     assert planner['visible_plan_count'] >= 1
     assert planner['plan_count'] == 0
     item = planner['items'][0]
@@ -80,6 +82,7 @@ def test_sprint6h9_planner_latest_uses_execution_linked_active_definition() -> N
     })
     planner2 = client.get('/execution/planner/latest').json()
     assert planner2['plan_count'] >= 1
+    assert planner2['build_status'] in {'live', 'fresh_cache'}
     item2 = planner2['items'][0]
     assert item2['active'] is True
     assert item2['activity_state'] == 'executing'
@@ -94,6 +97,8 @@ def test_sprint6h9_execution_state_exposes_visible_and_submitted_counts() -> Non
 
     state = client.get('/execution/state/latest').json()
     assert state['status'] == 'ok'
+    assert state['build_status'] in {'live', 'fresh_cache'}
+    assert 'source_snapshot_time' in state
     assert 'visible_plan_count' in state
     assert 'submitted_order_count' in state
     assert state['visible_plan_count'] >= state['active_plan_count']

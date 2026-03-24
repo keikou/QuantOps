@@ -48,6 +48,22 @@ def _parse_ts(value) -> datetime | None:
         return None
 
 
+def _snapshot_age_sec(value: object) -> float | None:
+    parsed = _parse_ts(value)
+    if parsed is None:
+        return None
+    return round(max(0.0, (datetime.now(timezone.utc) - parsed).total_seconds()), 3)
+
+
+def _decorate_execution_payload(payload: dict[str, Any], *, build_status: str) -> dict[str, Any]:
+    result = dict(payload)
+    source_snapshot_time = result.get('source_snapshot_time') or result.get('as_of')
+    result['source_snapshot_time'] = source_snapshot_time
+    result['data_freshness_sec'] = _snapshot_age_sec(source_snapshot_time)
+    result['build_status'] = build_status
+    return result
+
+
 def _plan_status(item: dict) -> str:
     metadata = item.get('metadata') or {}
     created_at = _parse_ts(item.get('created_at'))
@@ -219,12 +235,18 @@ def _get_execution_view_snapshot() -> dict[str, Any]:
     cached_payload = _execution_view_cache.get('payload')
     current_key = _execution_view_cache_key()
     if isinstance(expires_at, datetime) and cached_payload and expires_at > now and cache_key == current_key:
-        return cached_payload
+        return {
+            'planner': _decorate_execution_payload(cached_payload['planner'], build_status='fresh_cache'),
+            'state': _decorate_execution_payload(cached_payload['state'], build_status='fresh_cache'),
+        }
     payload = _build_execution_view_snapshot()
     _execution_view_cache['key'] = current_key
     _execution_view_cache['payload'] = payload
     _execution_view_cache['expires_at'] = now + timedelta(seconds=EXECUTION_VIEW_CACHE_TTL_SECONDS)
-    return payload
+    return {
+        'planner': _decorate_execution_payload(payload['planner'], build_status='live'),
+        'state': _decorate_execution_payload(payload['state'], build_status='live'),
+    }
 
 
 def _get_execution_quality_latest_summary() -> dict[str, Any]:
