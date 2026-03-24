@@ -59,6 +59,12 @@ class CommandCenterService:
         self._runtime_latest_inflight_task: asyncio.Task | None = None
 
     @staticmethod
+    def _runtime_freshness_anchor(payload: dict | None) -> object:
+        if not isinstance(payload, dict):
+            return None
+        return payload.get("source_snapshot_time") or payload.get("last_transition_at") or payload.get("generated_at") or payload.get("as_of")
+
+    @staticmethod
     def _snapshot_age_sec(value: object) -> float | None:
         if not value:
             return None
@@ -76,6 +82,14 @@ class CommandCenterService:
     def _is_fresh_as_of(cls, value: object, ttl_seconds: float) -> bool:
         age = cls._snapshot_age_sec(value)
         return age is not None and age <= ttl_seconds
+
+    def _decorate_runtime_latest_response(self, payload: dict, *, build_status: str) -> dict:
+        result = dict(payload)
+        source_snapshot_time = self._runtime_freshness_anchor(result)
+        result["source_snapshot_time"] = source_snapshot_time
+        result["data_freshness_sec"] = self._snapshot_age_sec(source_snapshot_time)
+        result["build_status"] = build_status
+        return result
 
     async def _call_with_timeout(self, operation, timeout_seconds: float) -> dict:
         try:
@@ -833,6 +847,7 @@ class CommandCenterService:
         payload = {
             "status": str(bridge.get("status") or "ok"),
             **summary,
+            "source_snapshot_time": bridge.get("last_transition_at") or planner.get("generated_at") or utc_now_iso(),
             "debug_path": f"/api/v1/command-center/debug/runtime?run_id={bridge.get('run_id')}" if bridge.get("run_id") else "/api/v1/command-center/debug/runtime",
         }
         return self._preserve_runtime_cached_detail(payload, self._runtime_latest_cache)
@@ -863,21 +878,23 @@ class CommandCenterService:
 
     async def get_runtime_latest(self) -> dict:
         cached = self._runtime_latest_cache
+        freshness_anchor = self._runtime_freshness_anchor(cached)
         if cached is not None and self._is_fresh_as_of(
-            cached.get("last_transition_at") or cached.get("generated_at") or cached.get("as_of"),
+            freshness_anchor,
             self.RUNTIME_LATEST_TTL_SECONDS,
         ):
-            return dict(cached)
-
-        live = await self._await_runtime_latest_live()
-        if self._runtime_latest_has_truth(live):
-            return self._store_runtime_latest_cache(live)
+            return self._decorate_runtime_latest_response(cached, build_status="fresh_cache")
 
         if cached is not None:
             self._schedule_runtime_latest_refresh()
-            return dict(cached)
+            return self._decorate_runtime_latest_response(cached, build_status="stale_cache")
 
-        return live
+        live = await self._await_runtime_latest_live()
+        if self._runtime_latest_has_truth(live):
+            self._store_runtime_latest_cache(live)
+            return self._decorate_runtime_latest_response(live, build_status="live")
+
+        return self._decorate_runtime_latest_response(live, build_status="degraded_live")
 
     async def get_runtime_debug(self, run_id: str | None = None) -> dict:
         bridge_task = self.v12_client.get_execution_bridge_by_run(run_id) if run_id else self.v12_client.get_execution_bridge_latest()

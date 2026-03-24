@@ -148,6 +148,8 @@ def test_command_center_runtime_latest_exposes_operator_summary_fields() -> None
 
     assert payload["run_id"] == "run-123"
     assert payload["operator_state"] == "submitted_no_fill"
+    assert payload["build_status"] == "live"
+    assert payload["source_snapshot_time"] == "2026-03-23T00:00:09+00:00"
     assert payload["degraded"] is True
     assert payload["latest_reason_code"] == "ORDER_REJECTED"
     assert payload["last_successful_fill_at"] is None
@@ -180,6 +182,7 @@ def test_command_center_runtime_latest_bounds_auxiliary_reads() -> None:
 
     assert payload["run_id"] == "run-123"
     assert payload["operator_state"] == "submitted_no_fill"
+    assert payload["build_status"] == "live"
     assert payload["latest_reason_code"] == "ORDER_REJECTED"
     assert payload["last_successful_fill_at"] is None
     assert payload["last_successful_portfolio_update_at"] is None
@@ -197,7 +200,37 @@ def test_command_center_runtime_latest_coalesces_concurrent_live_builds() -> Non
 
     assert first["run_id"] == "run-123"
     assert second["latest_reason_code"] == "ORDER_REJECTED"
+    assert first["build_status"] == "live"
     assert service.build_calls == 1
+
+
+def test_command_center_runtime_latest_marks_stale_and_fresh_cache_responses() -> None:
+    service = _CountingRuntimeService()
+    service._runtime_latest_cache = {
+        "run_id": "run-stale",
+        "operator_state": "blocked",
+        "latest_reason_code": "STALE_REASON",
+        "last_transition_at": "2026-03-23T00:00:09+00:00",
+        "source_snapshot_time": "2026-03-23T00:00:09+00:00",
+        "as_of": "2026-03-23T00:00:10+00:00",
+    }
+
+    stale_payload = asyncio.run(service.get_runtime_latest())
+    assert stale_payload["build_status"] == "stale_cache"
+
+    fresh_iso = "2999-01-01T00:00:00+00:00"
+    service._runtime_latest_cache = {
+        "run_id": "run-fresh",
+        "operator_state": "blocked",
+        "latest_reason_code": "FRESH_REASON",
+        "last_transition_at": fresh_iso,
+        "source_snapshot_time": fresh_iso,
+        "as_of": fresh_iso,
+    }
+
+    fresh_payload = asyncio.run(service.get_runtime_latest())
+    assert fresh_payload["build_status"] == "fresh_cache"
+    assert fresh_payload["data_freshness_sec"] is not None
 
 
 class _RuntimeSummaryPathClient(_RuntimeV12Client):
