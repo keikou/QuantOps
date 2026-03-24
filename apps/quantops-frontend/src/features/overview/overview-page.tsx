@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { PnlLineChart } from '@/components/charts/pnl-line-chart';
 import { KpiCard } from '@/components/cards/kpi-card';
@@ -52,6 +52,24 @@ function fmtFreshness(buildStatus?: string, sourceSnapshotTime?: string, dataFre
 const OVERVIEW_POLL_MS = 15000;
 const OVERVIEW_REFRESH_THROTTLE_MS = 5000;
 const OVERVIEW_LIVE_EVENT_TYPES: CommandCenterLiveEventType[] = ['pnl_update'];
+const OVERVIEW_METRICS_DELAY_MS = 800;
+const OVERVIEW_RUNTIME_DELAY_MS = 1400;
+const OVERVIEW_SECONDARY_DELAY_MS = 2400;
+
+function useDelayedEnable(enabled: boolean, delayMs: number) {
+  const [active, setActive] = useState(false);
+
+  useEffect(() => {
+    if (!enabled) {
+      setActive(false);
+      return;
+    }
+    const timer = setTimeout(() => setActive(true), delayMs);
+    return () => clearTimeout(timer);
+  }, [delayMs, enabled]);
+
+  return active;
+}
 
 function OverviewLiveUpdates() {
   const queryClient = useQueryClient();
@@ -150,16 +168,19 @@ export function OverviewPage() {
   const overview = useOverview();
   const hasOverviewData = Boolean(overview.data && 'data' in overview.data && overview.data.data);
   const primaryReady = hasOverviewData || Boolean(overview.error);
-  const runtime = useCommandCenterRuntimeLatest(primaryReady);
-  const runtimeReady = primaryReady && Boolean(runtime.data?.data || runtime.error);
-  const monitoring = useMonitoringSystem(runtimeReady);
-  const monitoringReady = runtimeReady && Boolean(monitoring.data?.data || monitoring.error);
-  const risk = useRiskSnapshot(monitoringReady);
-  const riskReady = monitoringReady && Boolean(risk.data?.data || risk.error);
+  const metricsEnabled = useDelayedEnable(primaryReady, OVERVIEW_METRICS_DELAY_MS);
+  const runtimeEnabled = useDelayedEnable(primaryReady, OVERVIEW_RUNTIME_DELAY_MS);
+  const secondaryEnabled = useDelayedEnable(primaryReady, OVERVIEW_SECONDARY_DELAY_MS);
+  const runtime = useCommandCenterRuntimeLatest(runtimeEnabled);
+  const runtimeReady = runtimeEnabled && Boolean(runtime.data?.data || runtime.error);
+  const monitoring = useMonitoringSystem(secondaryEnabled && runtimeReady);
+  const monitoringReady = secondaryEnabled && runtimeReady && Boolean(monitoring.data?.data || monitoring.error);
+  const risk = useRiskSnapshot(secondaryEnabled && monitoringReady);
+  const riskReady = secondaryEnabled && monitoringReady && Boolean(risk.data?.data || risk.error);
   const secondaryReady = riskReady && Boolean(
     runtime.data?.data || monitoring.data?.data || risk.data?.data || runtime.error || monitoring.error || risk.error
   );
-  const portfolioMetricsQuery = usePortfolioMetrics(primaryReady);
+  const portfolioMetricsQuery = usePortfolioMetrics(metricsEnabled);
   const alerts = useAlerts(secondaryReady);
   const jobs = useSchedulerJobs(secondaryReady);
   const equityHistory = useEquityHistory(secondaryReady);
