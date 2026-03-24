@@ -76,6 +76,11 @@ function fmtFeedFreshness(status: DataStatus, hasRows: boolean) {
   return hasRows ? 'live' : 'empty';
 }
 
+function fmtDelta(value: number) {
+  if (value === 0) return '0';
+  return value > 0 ? `+${value}` : `${value}`;
+}
+
 const diagnosisViews: Array<{ label: string; issueCode?: string; retryability?: string; reasonCode?: string }> = [
   { label: 'Missing Price', issueCode: 'missing_price' },
   { label: 'Risk Guard', issueCode: 'risk_guard_block' },
@@ -319,6 +324,9 @@ export default function Page() {
     { key: 'incomplete_chain', label: 'Incomplete Chain' },
     { key: 'no_artifact', label: 'No Artifact' },
   ];
+  const stableFilledCount = runtimeData?.filledCount ?? 0;
+  const stableSubmittedCount = stateData?.submittedOrderCount ?? runtimeData?.submittedCount ?? 0;
+  const fillDelta = rows.length - stableFilledCount;
 
   return (
     <div className="space-y-6">
@@ -410,6 +418,18 @@ export default function Page() {
           <div>Issues snapshot: <span className="text-slate-100">{fmtFreshness(runtimeIssuesFeed?.buildStatus, runtimeIssuesFeed?.sourceSnapshotTime, runtimeIssuesFeed?.dataFreshnessSec)}</span></div>
           <div>Fills snapshot: <span className="text-slate-100">{fmtFreshness(fillsFeed?.buildStatus, fillsFeed?.sourceSnapshotTime, fillsFeed?.dataFreshnessSec)}</span></div>
           <div>Orders snapshot: <span className="text-slate-100">{fmtFreshness(ordersFeed?.buildStatus, ordersFeed?.sourceSnapshotTime, ordersFeed?.dataFreshnessSec)}</span></div>
+        </div>
+        <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <KpiCard title="Stable Filled" value={stableFilledCount} />
+          <KpiCard title="Recent Fills" value={rows.length} />
+          <KpiCard title="Recent Runs" value={runtimeRunsData.length} />
+          <KpiCard title="Recent Issues" value={runtimeIssueRows.length} />
+        </div>
+        <div className="mt-3 grid gap-2 text-sm text-slate-300 md:grid-cols-2 xl:grid-cols-4">
+          <div>Fills display: <span className="text-slate-100">stable {stableFilledCount} | recent {rows.length} | delta {fmtDelta(fillDelta)}</span></div>
+          <div>Orders window: <span className="text-slate-100">stable submitted {stableSubmittedCount} | recent top {orderRows.length}</span></div>
+          <div>Runs window: <span className="text-slate-100">recent {runtimeRunsData.length} within {RUNTIME_WINDOW_MINUTES}m</span></div>
+          <div>Issues window: <span className="text-slate-100">recent {runtimeIssueRows.length} across last {RUNTIME_ISSUE_LIMIT} buckets</span></div>
         </div>
       </div>
 
