@@ -19,6 +19,12 @@ export type OverviewData = {
   freeMargin: number;
   unrealized: number;
   asOf?: string;
+  buildStatus?: string;
+  sourceSnapshotTime?: string;
+  dataFreshnessSec?: number;
+  activeSnapshotVersion?: number;
+  positionRowCount?: number;
+  strategyRowCount?: number;
   dailyPnl: number;
   grossExposure: number;
   netExposure: number;
@@ -44,6 +50,9 @@ export type PortfolioOverview = {
   netExposure: number;
   realizedPnl: number;
   unrealizedPnl: number;
+  buildStatus?: string;
+  sourceSnapshotTime?: string;
+  dataFreshnessSec?: number;
   lastUpdated: string;
 };
 
@@ -51,6 +60,9 @@ export type PortfolioMetrics = {
   fillRate: number;
   expectedVolatility: number;
   expectedSharpe: number;
+  buildStatus?: string;
+  sourceSnapshotTime?: string;
+  dataFreshnessSec?: number;
   lastUpdated: string;
 };
 

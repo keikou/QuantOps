@@ -11,11 +11,42 @@ import { DataStatusBanner, DataStatusPill, resolveDataStatus } from '@/component
 import { RuntimeBlockCard, RuntimeStatusBadgeStrip, RuntimeSummaryCards, RuntimeTimelinePanel } from '@/components/shared/runtime-observability';
 import { SimpleTable } from '@/components/tables/simple-table';
 import { useAlerts, useCommandCenterRuntimeLatest, useEquityHistory, useMonitoringSystem, useOverview, usePortfolioMetrics, useRiskSnapshot, useSchedulerJobs } from '@/lib/api/hooks';
-import type { ApiEnvelope, CommandCenterRealtimeEvent, OverviewData } from '@/types/api';
+import type { ApiEnvelope, CommandCenterRealtimeEvent, DataStatus, OverviewData } from '@/types/api';
 
 function fmtMetric(value?: number) {
   if (value == null || Number.isNaN(value)) return '-';
   return value;
+}
+
+function labelize(value?: string) {
+  if (!value) return '-';
+  return value
+    .split('_')
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+}
+
+function mapBuildStatus(buildStatus?: string, hasData = false): DataStatus | undefined {
+  switch (buildStatus) {
+    case 'stale_cache':
+      return 'stale';
+    case 'degraded_live':
+      return hasData ? 'fallback' : 'no_data';
+    case 'live':
+    case 'fresh_cache':
+      return 'ok';
+    default:
+      return undefined;
+  }
+}
+
+function fmtFreshness(buildStatus?: string, sourceSnapshotTime?: string, dataFreshnessSec?: number) {
+  const parts: string[] = [];
+  if (buildStatus) parts.push(labelize(buildStatus));
+  if (dataFreshnessSec != null && Number.isFinite(dataFreshnessSec)) parts.push(`age ${Math.round(dataFreshnessSec)}s`);
+  if (sourceSnapshotTime) parts.push(`snapshot ${sourceSnapshotTime}`);
+  return parts.length ? parts.join(' | ') : '-';
 }
 
 const OVERVIEW_POLL_MS = 15000;
@@ -148,9 +179,25 @@ export function OverviewPage() {
   const executionReason = monitoringData?.executionReason || '-';
   const riskData = risk.data?.data;
   const runtimeData = runtime.data?.data;
-  const overviewStatus = resolveDataStatus({ isLoading: overview.isLoading, hasData: Boolean(data), error: overview.error });
+  const overviewStatus = resolveDataStatus({
+    status: mapBuildStatus(data?.buildStatus, Boolean(data)),
+    isLoading: overview.isLoading,
+    hasData: Boolean(data),
+    error: overview.error,
+  });
   const monitoringStatus = resolveDataStatus({ status: monitoringData?.dataStatus, isLoading: monitoring.isLoading, hasData: Boolean(monitoringData), error: monitoring.error });
   const riskStatus = resolveDataStatus({ status: riskData?.dataStatus, isLoading: risk.isLoading, hasData: Boolean(riskData), error: risk.error });
+  const metricsStatus = resolveDataStatus({
+    status: mapBuildStatus(portfolioMetrics?.buildStatus, Boolean(portfolioMetrics)),
+    isLoading: portfolioMetricsQuery.isLoading,
+    hasData: Boolean(portfolioMetrics),
+    error: portfolioMetricsQuery.error,
+  });
+  const equityHistoryStatus = resolveDataStatus({
+    isLoading: equityHistory.isLoading,
+    hasData: Boolean(chartData?.length),
+    error: equityHistory.error,
+  });
 
   return (
     <div className="space-y-6">
@@ -159,6 +206,8 @@ export function OverviewPage() {
         <h1 className="section-title">Overview</h1>
         <div className="flex flex-wrap items-center gap-2">
           <DataStatusPill label="Overview" status={overviewStatus} />
+          <DataStatusPill label="Metrics" status={metricsStatus} />
+          <DataStatusPill label="Equity History" status={equityHistoryStatus} />
           <DataStatusPill label="Monitoring" status={monitoringStatus} />
           <DataStatusPill label="Risk" status={riskStatus} />
         </div>
@@ -179,6 +228,15 @@ export function OverviewPage() {
         <KpiCard title="Expected Sharpe" value={portfolioMetricsQuery.isLoading && !portfolioMetrics ? '-' : fmtMetric(portfolioMetrics?.expectedSharpe)} />
       </div>
       <div className="text-xs text-slate-400">Equity formula: Total Equity = Used Margin + Free Margin = Balance + Unrealized {data?.asOf ? `| as of ${data.asOf}` : ''}</div>
+      <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 text-sm text-slate-300">
+        <div className="font-medium text-slate-100">Stable Summary</div>
+        <div className="mt-2 grid gap-2 md:grid-cols-2">
+          <div>Overview snapshot: <span className="text-slate-100">{fmtFreshness(data?.buildStatus, data?.sourceSnapshotTime, data?.dataFreshnessSec)}</span></div>
+          <div>Metrics snapshot: <span className="text-slate-100">{fmtFreshness(portfolioMetrics?.buildStatus, portfolioMetrics?.sourceSnapshotTime, portfolioMetrics?.dataFreshnessSec)}</span></div>
+          <div>Position rows: <span className="text-slate-100">{data?.positionRowCount ?? '-'}</span></div>
+          <div>Strategy rows: <span className="text-slate-100">{data?.strategyRowCount ?? '-'}</span></div>
+        </div>
+      </div>
       <div className="space-y-3">
         <div className="flex items-center justify-between gap-3">
           <div className="text-sm font-medium text-slate-200">Runtime Status</div>
@@ -189,7 +247,8 @@ export function OverviewPage() {
       <div className="grid gap-4 xl:grid-cols-3">
         <div className="xl:col-span-2"><PnlLineChart data={chartData ?? []} /></div>
         <div className="card p-4">
-          <div className="mb-4 text-sm text-slate-300">Live Snapshot</div>
+          <div className="mb-1 text-sm text-slate-300">Live Snapshot</div>
+          <div className="mb-4 text-xs text-slate-500">Monitoring, risk, alerts, jobs, and runtime are displayed as live or cached secondary feeds.</div>
           <div className="space-y-3 text-sm text-slate-300">
             <div>Active Strategies: {fmtMetric(data?.activeStrategies)}</div>
             <div>Open Alerts: {displayedOpenAlerts}</div>

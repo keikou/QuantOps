@@ -81,6 +81,12 @@ export function normalizeOverview(input: any) {
     freeMargin: toNumber(x.freeMargin ?? x.free_margin ?? x.freeCash ?? x.free_cash ?? x.available_margin),
     unrealized: toNumber(x.unrealized ?? x.unrealizedPnl ?? x.unrealized_pnl),
     asOf: toString(x.asOf ?? x.as_of),
+    buildStatus: toString(x.buildStatus ?? x.build_status, ''),
+    sourceSnapshotTime: toString(x.sourceSnapshotTime ?? x.source_snapshot_time, ''),
+    dataFreshnessSec: toNumber(x.dataFreshnessSec ?? x.data_freshness_sec),
+    activeSnapshotVersion: toNumber(x.activeSnapshotVersion ?? x.active_snapshot_version),
+    positionRowCount: toNumber(x.positionRowCount ?? x.position_row_count),
+    strategyRowCount: toNumber(x.strategyRowCount ?? x.strategy_row_count),
     dailyPnl: toNumber(x.dailyPnl ?? x.daily_pnl ?? x.pnl ?? x.daily_return),
     grossExposure: toNumber(x.grossExposure ?? x.gross_exposure),
     netExposure: toNumber(x.netExposure ?? x.net_exposure),
@@ -104,6 +110,9 @@ export function normalizePortfolioOverview(input: any) {
     netExposure: toNumber(x.netExposure ?? x.net_exposure),
     realizedPnl: toNumber(x.realizedPnl ?? x.realized_pnl ?? x.realized),
     unrealizedPnl: toNumber(x.unrealizedPnl ?? x.unrealized_pnl ?? x.unrealized),
+    buildStatus: toString(x.buildStatus ?? x.build_status, ''),
+    sourceSnapshotTime: toString(x.sourceSnapshotTime ?? x.source_snapshot_time, ''),
+    dataFreshnessSec: toNumber(x.dataFreshnessSec ?? x.data_freshness_sec),
     lastUpdated: toString(x.lastUpdated ?? x.last_updated ?? x.asOf ?? x.as_of),
   };
 }
@@ -114,6 +123,9 @@ export function normalizePortfolioMetrics(input: any) {
     fillRate: toNumber(x.fillRate ?? x.fill_rate),
     expectedVolatility: toNumber(x.expectedVolatility ?? x.expected_volatility ?? x.volatility),
     expectedSharpe: toNumber(x.expectedSharpe ?? x.expected_sharpe ?? x.sharpe),
+    buildStatus: toString(x.buildStatus ?? x.build_status, ''),
+    sourceSnapshotTime: toString(x.sourceSnapshotTime ?? x.source_snapshot_time, ''),
+    dataFreshnessSec: toNumber(x.dataFreshnessSec ?? x.data_freshness_sec),
     lastUpdated: toString(x.lastUpdated ?? x.last_updated ?? x.asOf ?? x.as_of),
   };
 }
