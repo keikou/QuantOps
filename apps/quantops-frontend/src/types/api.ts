@@ -190,6 +190,14 @@ export type EquityPoint = {
   asOf?: string;
 };
 
+export type FeedPayload<T> = {
+  items: T[];
+  asOf?: string;
+  buildStatus?: string;
+  sourceSnapshotTime?: string;
+  dataFreshnessSec?: number;
+};
+
 export type ExecutionSummary = {
   fillRate: number;
   avgSlippageBps: number;

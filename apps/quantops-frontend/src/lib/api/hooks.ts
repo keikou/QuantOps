@@ -36,6 +36,7 @@ import type {
   OverviewData,
   EquityPoint,
   ExecutionSummary,
+  FeedPayload,
   ExecutionFillRow,
   ExecutionOrderRow,
   ExecutionPlannerLatest,
@@ -186,10 +187,10 @@ export function useExecutionSummary() {
 export function useExecutionLatest(enabled = true, limit = 100) {
   return useQuery({
     queryKey: ['execution-latest', limit],
-    queryFn: async () => envelope<ExecutionFillRow[]>(normalizeExecutionFills(await apiFetch<any>(`${endpoints.executionLatest}?limit=${limit}`))),
+    queryFn: async () => envelope<FeedPayload<ExecutionFillRow>>(normalizeExecutionFills(await apiFetch<any>(`${endpoints.executionLatest}?limit=${limit}`))),
     enabled,
     refetchInterval: 15000,
-    placeholderData: (previousData) => previousData ?? envelope<ExecutionFillRow[]>([]),
+    placeholderData: (previousData) => previousData ?? envelope<FeedPayload<ExecutionFillRow>>({ items: [] }),
   });
 }
 export function useExecutionPlannerLatest(enabled = true) {
@@ -204,10 +205,10 @@ export function useExecutionPlannerLatest(enabled = true) {
 export function useExecutionOrders(enabled = true, limit = 100) {
   return useQuery({
     queryKey: ['execution-orders', limit],
-    queryFn: async () => envelope<ExecutionOrderRow[]>(normalizeExecutionOrders(await apiFetch<any>(`${endpoints.executionOrders}?limit=${limit}`))),
+    queryFn: async () => envelope<FeedPayload<ExecutionOrderRow>>(normalizeExecutionOrders(await apiFetch<any>(`${endpoints.executionOrders}?limit=${limit}`))),
     enabled,
     refetchInterval: 15000,
-    placeholderData: (previousData) => previousData ?? envelope<ExecutionOrderRow[]>([]),
+    placeholderData: (previousData) => previousData ?? envelope<FeedPayload<ExecutionOrderRow>>({ items: [] }),
   });
 }
 export function useExecutionStateLatest(enabled = true) {
@@ -255,19 +256,19 @@ export function useCommandCenterRuntimeRuns(filters?: {
 
   return useQuery({
     queryKey: ['command-center-runtime-runs', filters?.limit ?? 25, filters?.windowMinutes ?? 5, filters?.operatorState ?? '', filters?.bridgeState ?? '', filters?.issueCode ?? '', filters?.reasonCode ?? '', filters?.blockingComponent ?? '', filters?.degraded ?? 'any', filters?.eventChainComplete ?? 'any', filters?.artifactAvailable ?? 'any'],
-    queryFn: async () => envelope<CommandCenterRuntimeRunSummary[]>(normalizeCommandCenterRuntimeRuns(await apiFetch<any>(url))),
+    queryFn: async () => envelope<FeedPayload<CommandCenterRuntimeRunSummary>>(normalizeCommandCenterRuntimeRuns(await apiFetch<any>(url))),
     enabled,
     refetchOnMount: false,
-    placeholderData: (previousData) => previousData ?? envelope<CommandCenterRuntimeRunSummary[]>([]),
+    placeholderData: (previousData) => previousData ?? envelope<FeedPayload<CommandCenterRuntimeRunSummary>>({ items: [] }),
   });
 }
 export function useCommandCenterRuntimeIssues(limit = 25, enabled = true, windowMinutes = 5) {
   return useQuery({
     queryKey: ['command-center-runtime-issues', limit, windowMinutes],
-    queryFn: async () => envelope<RuntimeIssueBucket[]>(normalizeRuntimeIssueBuckets(await apiFetch<any>(`${endpoints.commandCenterRuntimeIssues}?limit=${limit}&window_minutes=${windowMinutes}`))),
+    queryFn: async () => envelope<FeedPayload<RuntimeIssueBucket>>(normalizeRuntimeIssueBuckets(await apiFetch<any>(`${endpoints.commandCenterRuntimeIssues}?limit=${limit}&window_minutes=${windowMinutes}`))),
     enabled,
     refetchOnMount: false,
-    placeholderData: (previousData) => previousData ?? envelope<RuntimeIssueBucket[]>([]),
+    placeholderData: (previousData) => previousData ?? envelope<FeedPayload<RuntimeIssueBucket>>({ items: [] }),
   });
 }
 export function useCommandCenterRuntimeDebug(runId: string) {

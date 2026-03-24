@@ -12,7 +12,7 @@ import { RuntimeBlockCard, RuntimeStatusBadgeStrip, RuntimeSummaryCards, Runtime
 import { SimpleTable } from '@/components/tables/simple-table';
 import { normalizeCommandCenterRuntimeRuns, normalizeRuntimeIssueBuckets } from '@/lib/api/normalize';
 import { useCommandCenterRuntimeIssues, useCommandCenterRuntimeLatest, useCommandCenterRuntimeRuns, useExecutionLatest, useExecutionOrders, useExecutionPlannerLatest, useExecutionStateLatest, useExecutionSummary } from '@/lib/api/hooks';
-import type { ApiEnvelope, CommandCenterRealtimeEvent, CommandCenterRuntimeRunSummary, DataStatus, RuntimeIssueBucket } from '@/types/api';
+import type { ApiEnvelope, CommandCenterRealtimeEvent, CommandCenterRuntimeRunSummary, DataStatus, FeedPayload, RuntimeIssueBucket } from '@/types/api';
 
 type RuntimeFilterKey =
   | 'all'
@@ -158,23 +158,39 @@ function ExecutionLiveUpdates({
   const queryClient = useQueryClient();
   const onEvent = useCallback((event: CommandCenterRealtimeEvent) => {
     if (event.event_type === 'runtime_run') {
-      const incoming = normalizeCommandCenterRuntimeRuns({ items: [event.payload] })[0];
+      const incoming = normalizeCommandCenterRuntimeRuns({ items: [event.payload] }).items[0];
       if (!incoming?.runId) return;
-      queryClient.setQueryData<ApiEnvelope<CommandCenterRuntimeRunSummary[]>>(runtimeRunsQueryKey(runFilters), (previous) => {
-        const current = previous?.data ?? [];
+      queryClient.setQueryData<ApiEnvelope<FeedPayload<CommandCenterRuntimeRunSummary>>>(runtimeRunsQueryKey(runFilters), (previous) => {
+        const current = previous?.data?.items ?? [];
         const filtered = matchesRuntimeFilters(incoming, runFilters)
           ? upsertRuntimeRun(current, incoming, runFilters.limit ?? 25)
           : current.filter((row) => row.runId !== incoming.runId);
-        return { data: filtered, source: 'live' };
+        return {
+          data: {
+            ...(previous?.data ?? { items: [] }),
+            items: filtered,
+            asOf: event.as_of,
+            sourceSnapshotTime: event.as_of,
+            dataFreshnessSec: 0,
+            buildStatus: 'live',
+          },
+          source: 'live',
+        };
       });
       return;
     }
 
     if (event.event_type === 'runtime_issue') {
       const payloadItems = Array.isArray((event.payload as { items?: unknown[] }).items) ? ((event.payload as { items?: unknown[] }).items ?? []) : [];
-      const issueItems = normalizeRuntimeIssueBuckets({ items: payloadItems }).slice(0, issueLimit);
-      queryClient.setQueryData<ApiEnvelope<RuntimeIssueBucket[]>>(runtimeIssuesQueryKey(issueLimit, RUNTIME_WINDOW_MINUTES), {
-        data: issueItems,
+      const issueItems = normalizeRuntimeIssueBuckets({ items: payloadItems }).items.slice(0, issueLimit);
+      queryClient.setQueryData<ApiEnvelope<FeedPayload<RuntimeIssueBucket>>>(runtimeIssuesQueryKey(issueLimit, RUNTIME_WINDOW_MINUTES), {
+        data: {
+          items: issueItems,
+          asOf: event.as_of,
+          sourceSnapshotTime: event.as_of,
+          dataFreshnessSec: 0,
+          buildStatus: 'live',
+        },
         source: 'live',
       });
     }
@@ -239,8 +255,10 @@ export default function Page() {
   if (summary.isLoading && !summary.data) return <LoadingState />;
 
   const data = summary.data?.data;
-  const rows = latest.data?.data ?? [];
-  const orderRows = orders.data?.data ?? [];
+  const fillsFeed = latest.data?.data;
+  const ordersFeed = orders.data?.data;
+  const rows = fillsFeed?.items ?? [];
+  const orderRows = ordersFeed?.items ?? [];
   const plannerData = planner.data?.data;
   const stateData = state.data?.data;
   const runtimeData = runtime.data?.data;
@@ -281,12 +299,14 @@ export default function Page() {
     hasData: Boolean(stateData),
     error: state.error,
   });
-  const runtimeRunsData = runtimeRuns.data?.data ?? [];
-  const runtimeIssueRows = runtimeIssues.data?.data ?? [];
-  const fillsStatus = resolveDataStatus({ isLoading: latest.isLoading, hasData: rows.length > 0, error: latest.error });
-  const ordersStatus = resolveDataStatus({ isLoading: orders.isLoading, hasData: orderRows.length > 0, error: orders.error });
-  const issuesStatus = resolveDataStatus({ isLoading: runtimeIssues.isLoading, hasData: runtimeIssueRows.length > 0, error: runtimeIssues.error });
-  const runsStatus = resolveDataStatus({ isLoading: runtimeRuns.isLoading, hasData: runtimeRunsData.length > 0, error: runtimeRuns.error });
+  const runtimeRunsFeed = runtimeRuns.data?.data;
+  const runtimeIssuesFeed = runtimeIssues.data?.data;
+  const runtimeRunsData = runtimeRunsFeed?.items ?? [];
+  const runtimeIssueRows = runtimeIssuesFeed?.items ?? [];
+  const fillsStatus = resolveDataStatus({ status: mapBuildStatus(fillsFeed?.buildStatus, rows.length > 0), isLoading: latest.isLoading, hasData: rows.length > 0, error: latest.error });
+  const ordersStatus = resolveDataStatus({ status: mapBuildStatus(ordersFeed?.buildStatus, orderRows.length > 0), isLoading: orders.isLoading, hasData: orderRows.length > 0, error: orders.error });
+  const issuesStatus = resolveDataStatus({ status: mapBuildStatus(runtimeIssuesFeed?.buildStatus, runtimeIssueRows.length > 0), isLoading: runtimeIssues.isLoading, hasData: runtimeIssueRows.length > 0, error: runtimeIssues.error });
+  const runsStatus = resolveDataStatus({ status: mapBuildStatus(runtimeRunsFeed?.buildStatus, runtimeRunsData.length > 0), isLoading: runtimeRuns.isLoading, hasData: runtimeRunsData.length > 0, error: runtimeRuns.error });
   const runtimeFilterOptions: Array<{ key: RuntimeFilterKey; label: string }> = [
     { key: 'all', label: 'All' },
     { key: 'blocked', label: 'Blocked' },
@@ -384,6 +404,12 @@ export default function Page() {
             <DataStatusPill label={`Fills ${fmtFeedFreshness(fillsStatus, rows.length > 0)}`} status={fillsStatus} />
             <DataStatusPill label={`Orders ${fmtFeedFreshness(ordersStatus, orderRows.length > 0)}`} status={ordersStatus} />
           </div>
+        </div>
+        <div className="mt-3 grid gap-2 text-sm text-slate-300 md:grid-cols-2">
+          <div>Runs snapshot: <span className="text-slate-100">{fmtFreshness(runtimeRunsFeed?.buildStatus, runtimeRunsFeed?.sourceSnapshotTime, runtimeRunsFeed?.dataFreshnessSec)}</span></div>
+          <div>Issues snapshot: <span className="text-slate-100">{fmtFreshness(runtimeIssuesFeed?.buildStatus, runtimeIssuesFeed?.sourceSnapshotTime, runtimeIssuesFeed?.dataFreshnessSec)}</span></div>
+          <div>Fills snapshot: <span className="text-slate-100">{fmtFreshness(fillsFeed?.buildStatus, fillsFeed?.sourceSnapshotTime, fillsFeed?.dataFreshnessSec)}</span></div>
+          <div>Orders snapshot: <span className="text-slate-100">{fmtFreshness(ordersFeed?.buildStatus, ordersFeed?.sourceSnapshotTime, ordersFeed?.dataFreshnessSec)}</span></div>
         </div>
       </div>
 

@@ -91,6 +91,19 @@ class CommandCenterService:
         result["build_status"] = build_status
         return result
 
+    def _decorate_runtime_feed_response(self, payload: dict, *, items: list[dict], build_status: str = "live", **extra: object) -> dict:
+        source_snapshot_time = payload.get("as_of") or utc_now_iso()
+        result = {
+            "status": payload.get("status", "ok"),
+            "items": items,
+            "as_of": source_snapshot_time,
+            "source_snapshot_time": source_snapshot_time,
+            "data_freshness_sec": self._snapshot_age_sec(source_snapshot_time),
+            "build_status": build_status,
+        }
+        result.update(extra)
+        return result
+
     async def _call_with_timeout(self, operation, timeout_seconds: float) -> dict:
         try:
             result = await asyncio.wait_for(operation, timeout=timeout_seconds)
@@ -1055,11 +1068,11 @@ class CommandCenterService:
             ):
                 summaries.append(result)
 
-        return {
-            "status": "ok",
-            "count": len(summaries[:limit]),
-            "items": summaries[:limit],
-            "filters": {
+        return self._decorate_runtime_feed_response(
+            runs_payload,
+            items=summaries[:limit],
+            count=len(summaries[:limit]),
+            filters={
                 "limit": limit,
                 "window_minutes": window_minutes,
                 "operator_state": operator_state,
@@ -1071,8 +1084,7 @@ class CommandCenterService:
                 "event_chain_complete": event_chain_complete,
                 "artifact_available": artifact_available,
             },
-            "as_of": utc_now_iso(),
-        }
+        )
 
     async def get_runtime_issues(self, *, limit: int = 25, window_minutes: int = 5) -> dict:
         fetch_limit = min(max(int(limit), 1), 100)
@@ -1134,13 +1146,12 @@ class CommandCenterService:
             bucket["window_end"] = ordered_rows[0].get("completed_at") or ordered_rows[0].get("started_at") if ordered_rows else None
 
         items = sorted(buckets.values(), key=lambda item: (-int(item.get("count", 0) or 0), str(item.get("code") or "")))
-        return {
-            "status": "ok",
-            "count": len(items),
-            "items": items,
-            "window_minutes": window_minutes,
-            "as_of": runs_payload.get("as_of") or utc_now_iso(),
-        }
+        return self._decorate_runtime_feed_response(
+            runs_payload,
+            items=items,
+            count=len(items),
+            window_minutes=window_minutes,
+        )
 
     async def get_execution_debug(self) -> dict:
         stored = self.analytics_service.execution_summary()

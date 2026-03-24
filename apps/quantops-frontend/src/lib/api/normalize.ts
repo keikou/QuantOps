@@ -1,4 +1,4 @@
-import type { CommandCenterRuntimeDebug, CommandCenterRuntimeLatest, CommandCenterRuntimeRunSummary, DataSourceStatus, DataStatus, MonitoringSystem, RiskSnapshot, UserRole } from '@/types/api';
+import type { CommandCenterRuntimeDebug, CommandCenterRuntimeLatest, CommandCenterRuntimeRunSummary, DataSourceStatus, DataStatus, FeedPayload, MonitoringSystem, RiskSnapshot, UserRole } from '@/types/api';
 
 export function getPayload<T>(input: any, fallback: T): T {
   if (input == null) return fallback;
@@ -363,7 +363,7 @@ export function normalizeExecutionPlannerLatest(input: any) {
 export function normalizeExecutionFills(input: any) {
   const payload = getPayload<any>(input, {});
   const rows = Array.isArray(payload.items) ? payload.items : getArray<any>(input);
-  return rows.map((r: any, idx: number) => ({
+  const items = rows.map((r: any, idx: number) => ({
     fillId: toString(r.fillId ?? r.fill_id, `fill-${idx}`),
     symbol: toString(r.symbol, `fill-${idx}`),
     side: toString(r.side, ''),
@@ -374,12 +374,19 @@ export function normalizeExecutionFills(input: any) {
     feeBps: toNumber(r.feeBps ?? r.fee_bps),
     status: toString(r.status, ''),
   }));
+  return {
+    items,
+    asOf: toString(payload.asOf ?? payload.as_of, ''),
+    buildStatus: toString(payload.buildStatus ?? payload.build_status, ''),
+    sourceSnapshotTime: toString(payload.sourceSnapshotTime ?? payload.source_snapshot_time, ''),
+    dataFreshnessSec: toNumber(payload.dataFreshnessSec ?? payload.data_freshness_sec),
+  } satisfies FeedPayload<any>;
 }
 
 export function normalizeExecutionOrders(input: any) {
   const payload = getPayload<any>(input, {});
   const rows = Array.isArray(payload.items) ? payload.items : getArray<any>(input);
-  return rows.map((r: any, idx: number) => ({
+  const items = rows.map((r: any, idx: number) => ({
     orderId: toString(r.orderId ?? r.order_id, `order-${idx}`),
     planId: toString(r.planId ?? r.plan_id, ''),
     symbol: toString(r.symbol, `order-${idx}`),
@@ -391,6 +398,13 @@ export function normalizeExecutionOrders(input: any) {
     status: toString(r.status, ''),
     submitTime: toString(r.submitTime ?? r.submit_time ?? r.createdAt ?? r.created_at, ''),
   }));
+  return {
+    items,
+    asOf: toString(payload.asOf ?? payload.as_of, ''),
+    buildStatus: toString(payload.buildStatus ?? payload.build_status, ''),
+    sourceSnapshotTime: toString(payload.sourceSnapshotTime ?? payload.source_snapshot_time, ''),
+    dataFreshnessSec: toNumber(payload.dataFreshnessSec ?? payload.data_freshness_sec),
+  } satisfies FeedPayload<any>;
 }
 
 export function normalizeExecutionState(input: any) {
@@ -459,10 +473,10 @@ export function normalizeCommandCenterRuntimeLatest(input: any): CommandCenterRu
   };
 }
 
-export function normalizeCommandCenterRuntimeRuns(input: any): CommandCenterRuntimeRunSummary[] {
+export function normalizeCommandCenterRuntimeRuns(input: any): FeedPayload<CommandCenterRuntimeRunSummary> {
   const payload = getPayload<any>(input, {});
   const rows = Array.isArray(payload.items) ? payload.items : getArray<any>(input);
-  return rows.map((row: any) => ({
+  const items = rows.map((row: any) => ({
     runId: toString(row.runId ?? row.run_id, ''),
     cycleId: toString(row.cycleId ?? row.cycle_id, ''),
     status: toString(row.status, 'unknown'),
@@ -500,12 +514,19 @@ export function normalizeCommandCenterRuntimeRuns(input: any): CommandCenterRunt
         }
       : undefined,
   }));
+  return {
+    items,
+    asOf: toString(payload.asOf ?? payload.as_of, ''),
+    buildStatus: toString(payload.buildStatus ?? payload.build_status, ''),
+    sourceSnapshotTime: toString(payload.sourceSnapshotTime ?? payload.source_snapshot_time, ''),
+    dataFreshnessSec: toNumber(payload.dataFreshnessSec ?? payload.data_freshness_sec),
+  };
 }
 
-export function normalizeRuntimeIssueBuckets(input: any) {
+export function normalizeRuntimeIssueBuckets(input: any): FeedPayload<any> {
   const payload = getPayload<any>(input, {});
   const rows = Array.isArray(payload.items) ? payload.items : getArray<any>(input);
-  return rows.map((row: any) => ({
+  const items = rows.map((row: any) => ({
     code: toString(row.code, ''),
     count: toNumber(row.count),
     distinctRunCount: toNumber(row.distinctRunCount ?? row.distinct_run_count),
@@ -522,6 +543,13 @@ export function normalizeRuntimeIssueBuckets(input: any) {
     windowStart: toString(row.windowStart ?? row.window_start, ''),
     windowEnd: toString(row.windowEnd ?? row.window_end, ''),
   }));
+  return {
+    items,
+    asOf: toString(payload.asOf ?? payload.as_of, ''),
+    buildStatus: toString(payload.buildStatus ?? payload.build_status, ''),
+    sourceSnapshotTime: toString(payload.sourceSnapshotTime ?? payload.source_snapshot_time, ''),
+    dataFreshnessSec: toNumber(payload.dataFreshnessSec ?? payload.data_freshness_sec),
+  };
 }
 
 export function normalizeCommandCenterRuntimeDebug(input: any): CommandCenterRuntimeDebug {
