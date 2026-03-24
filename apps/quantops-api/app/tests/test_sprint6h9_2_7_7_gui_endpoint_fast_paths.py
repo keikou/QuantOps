@@ -145,6 +145,8 @@ def test_dashboard_overview_parallelizes_upstream_reads() -> None:
 
     assert payload["total_equity"] == 100.0
     assert payload["active_strategies"] == 2
+    assert payload["build_status"] == "live"
+    assert payload["source_snapshot_time"] == "2026-03-22T00:00:00+00:00"
     assert elapsed < 0.15
 
 
@@ -160,6 +162,7 @@ def test_dashboard_overview_bounded_fast_path_returns_primary_truth_when_aux_cal
     assert payload["total_equity"] == 100.0
     assert payload["active_strategies"] == 0
     assert payload["latest_run_id"] is None
+    assert payload["build_status"] == "live"
     assert elapsed < 0.2
 
 
@@ -276,10 +279,40 @@ def test_dashboard_overview_returns_stale_cache_and_refreshes_in_background() ->
 
     payload = asyncio.run(run_test())
 
-    assert payload == stale_payload
+    assert payload["total_equity"] == stale_payload["total_equity"]
+    assert payload["latest_run_id"] == stale_payload["latest_run_id"]
+    assert payload["build_status"] == "stale_cache"
     assert service.build_calls == 1
     assert service._overview_cache is not None
     assert service._overview_cache["latest_run_id"] == "run-1"
+
+
+def test_dashboard_overview_marks_stale_and_fresh_cache_responses() -> None:
+    service = _CountingDashboardService()
+    service._overview_cache = {
+        "total_equity": 90.0,
+        "active_strategies": 1,
+        "open_alerts": 0,
+        "latest_run_id": "run-stale",
+        "as_of": "2026-03-22T00:00:00+00:00",
+        "source_snapshot_time": "2026-03-22T00:00:00+00:00",
+    }
+
+    stale_payload = asyncio.run(service.get_overview())
+    assert stale_payload["build_status"] == "stale_cache"
+
+    service._overview_cache = {
+        "total_equity": 91.0,
+        "active_strategies": 1,
+        "open_alerts": 0,
+        "latest_run_id": "run-fresh",
+        "as_of": datetime.now(timezone.utc).isoformat(),
+        "source_snapshot_time": datetime.now(timezone.utc).isoformat(),
+    }
+
+    fresh_payload = asyncio.run(service.get_overview())
+    assert fresh_payload["build_status"] == "fresh_cache"
+    assert fresh_payload["data_freshness_sec"] is not None
 
 
 def test_get_dashboard_service_is_shared_singleton() -> None:

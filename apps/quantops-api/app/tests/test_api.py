@@ -28,6 +28,7 @@ def test_dashboard_overview() -> None:
     body = response.json()
     assert "portfolio_value" in body
     assert "gross_exposure" in body
+    assert "build_status" in body
 
 
 def test_analytics_refresh_and_alpha() -> None:

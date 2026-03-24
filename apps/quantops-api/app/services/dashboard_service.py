@@ -49,6 +49,12 @@ class DashboardService:
         self._overview_registry_cache: dict | None = None
         self._overview_registry_cache_at: float = 0.0
 
+    @classmethod
+    def _freshness_anchor(cls, payload: dict | None) -> object:
+        if not isinstance(payload, dict):
+            return None
+        return payload.get("source_snapshot_time") or payload.get("as_of")
+
     @staticmethod
     def _as_dict(payload: object) -> dict:
         return payload if isinstance(payload, dict) else {}
@@ -80,6 +86,14 @@ class DashboardService:
     def _is_fresh_as_of(cls, value: object) -> bool:
         age = cls._snapshot_age_sec(value)
         return age is not None and age <= cls.OVERVIEW_TTL_SECONDS
+
+    def _decorate_overview_response(self, payload: dict, *, build_status: str) -> dict:
+        result = dict(payload)
+        source_snapshot_time = result.get("source_snapshot_time") or result.get("as_of")
+        result["source_snapshot_time"] = source_snapshot_time
+        result["data_freshness_sec"] = self._snapshot_age_sec(source_snapshot_time)
+        result["build_status"] = build_status
+        return result
 
     async def _call_with_timeout(self, operation, timeout_seconds: float) -> dict:
         try:
@@ -335,6 +349,17 @@ class DashboardService:
             "latest_run_id": runtime.get("latest_run_id"),
             "latest_execution_timestamp": None,
             "as_of": as_of,
+            "source_snapshot_time": (
+                summary.get("source_snapshot_time")
+                or summary.get("as_of")
+                or portfolio_dashboard.get("as_of")
+                or portfolio.get("as_of")
+                or as_of
+            ),
+            "active_snapshot_version": summary.get("active_snapshot_version")
+            or (portfolio_dashboard.get("snapshot") or {}).get("active_snapshot_version"),
+            "position_row_count": int(summary.get("position_row_count") or len(items)),
+            "strategy_row_count": int(summary.get("strategy_row_count") or 0),
         }
 
         duration_ms = round((time.perf_counter() - started) * 1000.0, 2)
@@ -352,18 +377,20 @@ class DashboardService:
 
     async def get_overview(self) -> dict:
         cached = self._overview_cache
-        if cached is not None and self._is_fresh_as_of(cached.get("as_of")):
-            return dict(cached)
+        freshness_anchor = self._freshness_anchor(cached)
+        if cached is not None and self._is_fresh_as_of(freshness_anchor):
+            return self._decorate_overview_response(cached, build_status="fresh_cache")
 
         if cached is not None:
             self._schedule_overview_refresh()
-            return dict(cached)
+            return self._decorate_overview_response(cached, build_status="stale_cache")
 
         live = await self._await_overview_live()
         if self._overview_has_truth(live):
-            return self._store_overview_cache(live)
+            self._store_overview_cache(live)
+            return self._decorate_overview_response(live, build_status="live")
 
-        return live
+        return self._decorate_overview_response(live, build_status="degraded_live")
 
     async def get_overview_debug(self) -> dict:
         started = time.perf_counter()
