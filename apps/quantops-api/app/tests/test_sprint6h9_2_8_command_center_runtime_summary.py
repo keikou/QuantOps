@@ -7,7 +7,12 @@ from app.services.command_center_service import CommandCenterService
 
 
 class _RuntimeV12Client:
+    def __init__(self) -> None:
+        self.bridge_calls = 0
+        self.plans_calls = 0
+
     async def get_execution_bridge_latest(self) -> dict:
+        self.bridge_calls += 1
         return {
             "status": "ok",
             "run_id": "run-123",
@@ -27,6 +32,7 @@ class _RuntimeV12Client:
         }
 
     async def get_execution_plans_latest(self) -> dict:
+        self.plans_calls += 1
         return {
             "run_id": "run-123",
             "cycle_id": "cycle-123",
@@ -238,6 +244,7 @@ def test_command_center_runtime_latest_marks_stale_and_fresh_cache_responses() -
 
 class _RuntimeSummaryPathClient(_RuntimeV12Client):
     def __init__(self) -> None:
+        super().__init__()
         self.events_calls = 0
         self.reasons_calls = 0
 
@@ -271,6 +278,9 @@ def test_command_center_runtime_latest_skips_detail_upstreams_on_summary_path() 
     payload = asyncio.run(service.get_runtime_latest())
 
     assert payload["run_id"] == "run-123"
+    assert payload["planner_status"] == "unknown"
+    assert client.bridge_calls == 1
+    assert client.plans_calls == 0
     assert client.events_calls == 0
     assert client.reasons_calls == 0
 
