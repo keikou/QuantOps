@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { createCommandCenterEventStream } from '@/lib/api/realtime';
 import type { CommandCenterRealtimeEvent } from '@/types/api';
@@ -33,7 +33,18 @@ export function CommandCenterLive({
   const queryClient = useQueryClient();
   const [status, setStatus] = useState<'connecting' | 'connected' | 'disconnected'>('connecting');
   const [lastEvent, setLastEvent] = useState<CommandCenterRealtimeEvent | null>(null);
-  const eventTypeSet = useMemo(() => new Set(eventTypes ?? []), [eventTypes]);
+  const eventTypesKey = useMemo(() => JSON.stringify(eventTypes ?? []), [eventTypes]);
+  const eventTypeSet = useMemo(() => new Set(eventTypes ?? []), [eventTypesKey]);
+  const onEventRef = useRef(onEvent);
+  const invalidateKeysRef = useRef(invalidateKeys);
+
+  useEffect(() => {
+    onEventRef.current = onEvent;
+  }, [onEvent]);
+
+  useEffect(() => {
+    invalidateKeysRef.current = invalidateKeys;
+  }, [invalidateKeys]);
 
   useEffect(() => {
     const socket = createCommandCenterEventStream(
@@ -48,11 +59,11 @@ export function CommandCenterLive({
           return;
         }
 
-        if (invalidateKeys) {
-          invalidateKeysForEvent(queryClient, typedEvent, invalidateKeys);
+        if (invalidateKeysRef.current) {
+          invalidateKeysForEvent(queryClient, typedEvent, invalidateKeysRef.current);
         }
 
-        onEvent?.(event);
+        onEventRef.current?.(event);
       },
       setStatus,
     );
@@ -60,7 +71,7 @@ export function CommandCenterLive({
     return () => {
       socket?.close();
     };
-  }, [eventTypeSet, invalidateKeys, onEvent, queryClient]);
+  }, [eventTypeSet, queryClient]);
 
   const label = useMemo(() => {
     if (status === 'connected') return 'Live WS connected';
