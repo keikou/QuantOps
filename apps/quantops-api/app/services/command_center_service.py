@@ -94,7 +94,13 @@ class CommandCenterService:
         result["source_snapshot_time"] = source_snapshot_time
         result["data_freshness_sec"] = self._snapshot_age_sec(source_snapshot_time)
         result["build_status"] = build_status
+        result.pop("_cached_at", None)
         return result
+
+    def _runtime_latest_cache_age_sec(self, payload: dict | None) -> float | None:
+        if not isinstance(payload, dict):
+            return None
+        return self._snapshot_age_sec(payload.get("_cached_at"))
 
     def _decorate_runtime_feed_response(self, payload: dict, *, items: list[dict], build_status: str = "live", **extra: object) -> dict:
         source_snapshot_time = payload.get("as_of") or utc_now_iso()
@@ -869,7 +875,9 @@ class CommandCenterService:
         )
 
     def _store_runtime_latest_cache(self, payload: dict) -> dict:
-        self._runtime_latest_cache = dict(payload)
+        cached = dict(payload)
+        cached["_cached_at"] = utc_now_iso()
+        self._runtime_latest_cache = cached
         return payload
 
     @staticmethod
@@ -935,16 +943,22 @@ class CommandCenterService:
         task = self._runtime_latest_refresh_task
         if task is not None and not task.done():
             return
-        self._runtime_latest_refresh_task = asyncio.create_task(self._refresh_runtime_latest_cache())
-        self._runtime_latest_refresh_task.add_done_callback(lambda finished: finished.exception())
+        loop = asyncio.get_running_loop()
+
+        def _start_refresh() -> None:
+            current = self._runtime_latest_refresh_task
+            if current is not None and not current.done():
+                return
+            task = asyncio.create_task(self._refresh_runtime_latest_cache())
+            self._runtime_latest_refresh_task = task
+            task.add_done_callback(lambda finished: finished.exception())
+
+        loop.call_soon(_start_refresh)
 
     async def get_runtime_latest(self) -> dict:
         cached = self._runtime_latest_cache
-        freshness_anchor = self._runtime_freshness_anchor(cached)
-        if cached is not None and self._is_fresh_as_of(
-            freshness_anchor,
-            self.RUNTIME_LATEST_TTL_SECONDS,
-        ):
+        cache_age = self._runtime_latest_cache_age_sec(cached)
+        if cache_age is not None and cache_age <= self.RUNTIME_LATEST_TTL_SECONDS:
             return self._decorate_runtime_latest_response(cached, build_status="fresh_cache")
 
         if cached is not None:

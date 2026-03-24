@@ -213,19 +213,22 @@ def test_command_center_runtime_latest_marks_stale_and_fresh_cache_responses() -
         "last_transition_at": "2026-03-23T00:00:09+00:00",
         "source_snapshot_time": "2026-03-23T00:00:09+00:00",
         "as_of": "2026-03-23T00:00:10+00:00",
+        "_cached_at": "2026-03-23T00:00:10+00:00",
     }
 
     stale_payload = asyncio.run(service.get_runtime_latest())
     assert stale_payload["build_status"] == "stale_cache"
 
-    fresh_iso = "2999-01-01T00:00:00+00:00"
+    fresh_source_iso = "2026-03-23T00:00:09+00:00"
+    fresh_cached_iso = "2999-01-01T00:00:00+00:00"
     service._runtime_latest_cache = {
         "run_id": "run-fresh",
         "operator_state": "blocked",
         "latest_reason_code": "FRESH_REASON",
-        "last_transition_at": fresh_iso,
-        "source_snapshot_time": fresh_iso,
-        "as_of": fresh_iso,
+        "last_transition_at": fresh_source_iso,
+        "source_snapshot_time": fresh_source_iso,
+        "as_of": fresh_source_iso,
+        "_cached_at": fresh_cached_iso,
     }
 
     fresh_payload = asyncio.run(service.get_runtime_latest())
