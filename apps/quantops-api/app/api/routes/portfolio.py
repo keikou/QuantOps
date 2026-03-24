@@ -5,7 +5,7 @@ import time
 from fastapi import APIRouter, Depends, Request
 
 from app.core.deps import get_portfolio_service
-from app.schemas.portfolio import PortfolioOverviewResponse
+from app.schemas.portfolio import PortfolioMetricsResponse, PortfolioOverviewResponse
 from app.services.portfolio_service import PortfolioService
 
 router = APIRouter()
@@ -23,6 +23,22 @@ async def portfolio_overview(request: Request, service: PortfolioService = Depen
 async def portfolio_overview_debug(request: Request, service: PortfolioService = Depends(get_portfolio_service)) -> dict:
     started = time.perf_counter()
     payload = await service.get_overview_debug()
+    request.state.handler_duration_ms = round((time.perf_counter() - started) * 1000.0, 2)
+    return payload
+
+
+@router.get("/metrics", response_model=PortfolioMetricsResponse)
+async def portfolio_metrics(request: Request, service: PortfolioService = Depends(get_portfolio_service)) -> PortfolioMetricsResponse:
+    started = time.perf_counter()
+    response = PortfolioMetricsResponse(**await service.get_metrics())
+    request.state.handler_duration_ms = round((time.perf_counter() - started) * 1000.0, 2)
+    return response
+
+
+@router.get("/debug/metrics")
+async def portfolio_metrics_debug(request: Request, service: PortfolioService = Depends(get_portfolio_service)) -> dict:
+    started = time.perf_counter()
+    payload = await service.get_metrics_debug()
     request.state.handler_duration_ms = round((time.perf_counter() - started) * 1000.0, 2)
     return payload
 

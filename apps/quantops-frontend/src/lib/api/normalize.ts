@@ -104,6 +104,13 @@ export function normalizePortfolioOverview(input: any) {
     netExposure: toNumber(x.netExposure ?? x.net_exposure),
     realizedPnl: toNumber(x.realizedPnl ?? x.realized_pnl ?? x.realized),
     unrealizedPnl: toNumber(x.unrealizedPnl ?? x.unrealized_pnl ?? x.unrealized),
+    lastUpdated: toString(x.lastUpdated ?? x.last_updated ?? x.asOf ?? x.as_of),
+  };
+}
+
+export function normalizePortfolioMetrics(input: any) {
+  const x = getPayload<any>(input, {});
+  return {
     fillRate: toNumber(x.fillRate ?? x.fill_rate),
     expectedVolatility: toNumber(x.expectedVolatility ?? x.expected_volatility ?? x.volatility),
     expectedSharpe: toNumber(x.expectedSharpe ?? x.expected_sharpe ?? x.sharpe),

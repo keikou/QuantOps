@@ -10,7 +10,7 @@ import { LoadingState } from '@/components/shared/loading-state';
 import { DataStatusBanner, DataStatusPill, resolveDataStatus } from '@/components/shared/data-status';
 import { RuntimeBlockCard, RuntimeStatusBadgeStrip, RuntimeSummaryCards, RuntimeTimelinePanel } from '@/components/shared/runtime-observability';
 import { SimpleTable } from '@/components/tables/simple-table';
-import { useAlerts, useCommandCenterRuntimeLatest, useEquityHistory, useMonitoringSystem, useOverview, usePortfolioOverview, useRiskSnapshot, useSchedulerJobs } from '@/lib/api/hooks';
+import { useAlerts, useCommandCenterRuntimeLatest, useEquityHistory, useMonitoringSystem, useOverview, usePortfolioMetrics, useRiskSnapshot, useSchedulerJobs } from '@/lib/api/hooks';
 import type { ApiEnvelope, CommandCenterRealtimeEvent, OverviewData } from '@/types/api';
 
 function fmtMetric(value?: number) {
@@ -128,7 +128,7 @@ export function OverviewPage() {
   const secondaryReady = riskReady && Boolean(
     runtime.data?.data || monitoring.data?.data || risk.data?.data || runtime.error || monitoring.error || risk.error
   );
-  const portfolioOverview = usePortfolioOverview(primaryReady);
+  const portfolioMetricsQuery = usePortfolioMetrics(primaryReady);
   const alerts = useAlerts(secondaryReady);
   const jobs = useSchedulerJobs(secondaryReady);
   const equityHistory = useEquityHistory(secondaryReady);
@@ -142,7 +142,7 @@ export function OverviewPage() {
   const openAlertRows = alertRows.filter((a) => a.status === 'open');
   const jobRows = jobs.data?.data ?? [];
   const monitoringData = monitoring.data?.data;
-  const portfolioMetrics = portfolioOverview.data?.data;
+  const portfolioMetrics = portfolioMetricsQuery.data?.data;
   const chartData = equityHistory.data?.data?.length ? equityHistory.data.data : (data?.pnlSeries ?? []);
   const displayedOpenAlerts = data?.openAlerts != null ? Math.max(data.openAlerts, openAlertRows.length) : (openAlertRows.length || '-');
   const executionReason = monitoringData?.executionReason || '-';
@@ -175,8 +175,8 @@ export function OverviewPage() {
         <KpiCard title="Daily PnL" value={fmtMetric(data?.dailyPnl)} />
         <KpiCard title="Gross Exposure" value={fmtMetric(data?.grossExposure)} />
         <KpiCard title="Net Exposure" value={fmtMetric(data?.netExposure)} />
-        <KpiCard title="Fill Rate" value={portfolioOverview.isLoading && !portfolioMetrics ? '-' : fmtMetric(portfolioMetrics?.fillRate)} />
-        <KpiCard title="Expected Sharpe" value={portfolioOverview.isLoading && !portfolioMetrics ? '-' : fmtMetric(portfolioMetrics?.expectedSharpe)} />
+        <KpiCard title="Fill Rate" value={portfolioMetricsQuery.isLoading && !portfolioMetrics ? '-' : fmtMetric(portfolioMetrics?.fillRate)} />
+        <KpiCard title="Expected Sharpe" value={portfolioMetricsQuery.isLoading && !portfolioMetrics ? '-' : fmtMetric(portfolioMetrics?.expectedSharpe)} />
       </div>
       <div className="text-xs text-slate-400">Equity formula: Total Equity = Used Margin + Free Margin = Balance + Unrealized {data?.asOf ? `| as of ${data.asOf}` : ''}</div>
       <div className="space-y-3">

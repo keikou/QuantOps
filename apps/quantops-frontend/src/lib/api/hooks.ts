@@ -20,6 +20,7 @@ import {
   normalizeJobs,
   normalizeMonitoring,
   normalizeOverview,
+  normalizePortfolioMetrics,
   normalizePortfolioOverview,
   normalizePositions,
   normalizeRisk,
@@ -40,6 +41,7 @@ import type {
   ExecutionPlannerLatest,
   ExecutionState,
   PortfolioOverview,
+  PortfolioMetrics,
   PositionRow,
   RiskSnapshot,
   StrategyRow,
@@ -92,6 +94,18 @@ export function usePortfolioOverview(enabled = true) {
       netExposure: 0,
       realizedPnl: 0,
       unrealizedPnl: 0,
+      lastUpdated: '',
+    }),
+  });
+}
+export function usePortfolioMetrics(enabled = true) {
+  return useQuery({
+    queryKey: ['portfolio-metrics'],
+    queryFn: async () => envelope<PortfolioMetrics>(normalizePortfolioMetrics(await apiFetch<any>(endpoints.portfolioMetrics))),
+    enabled,
+    refetchInterval: 20000,
+    refetchOnMount: false,
+    placeholderData: (previousData) => previousData ?? envelope<PortfolioMetrics>({
       fillRate: 0,
       expectedVolatility: 0,
       expectedSharpe: 0,

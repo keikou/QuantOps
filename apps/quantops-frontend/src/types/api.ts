@@ -44,6 +44,10 @@ export type PortfolioOverview = {
   netExposure: number;
   realizedPnl: number;
   unrealizedPnl: number;
+  lastUpdated: string;
+};
+
+export type PortfolioMetrics = {
   fillRate: number;
   expectedVolatility: number;
   expectedSharpe: number;

@@ -284,6 +284,11 @@ def execution_quality_latest() -> dict:
     return _repo.latest_execution_quality()
 
 
+@router.get('/quality/latest_summary')
+def execution_quality_latest_summary() -> dict:
+    return _repo.latest_execution_quality_summary()
+
+
 @router.get('/fills')
 def execution_fills(limit: int = 100) -> dict:
     items = _repo.store.fetchall_dict(

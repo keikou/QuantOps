@@ -230,3 +230,49 @@ class Sprint5Repository:
         payload['latest_plans'] = plans
         payload['as_of'] = quality.get('created_at')
         return payload
+
+    def latest_execution_quality_summary(self) -> dict[str, Any]:
+        latest = dict(getattr(CONTAINER, 'latest_execution_quality', {}) or {})
+        if latest:
+            latest.setdefault('status', 'ok')
+            latest.setdefault('as_of', latest.get('created_at'))
+            return {
+                'status': str(latest.get('status', 'ok') or 'ok'),
+                'snapshot_id': latest.get('snapshot_id'),
+                'created_at': latest.get('created_at'),
+                'as_of': latest.get('as_of') or latest.get('created_at'),
+                'run_id': latest.get('run_id'),
+                'cycle_id': latest.get('cycle_id'),
+                'mode': latest.get('mode'),
+                'order_count': int(latest.get('order_count', 0) or 0),
+                'fill_count': int(latest.get('fill_count', 0) or 0),
+                'fill_rate': float(latest.get('fill_rate', 0.0) or 0.0),
+                'avg_slippage_bps': float(latest.get('avg_slippage_bps', 0.0) or 0.0),
+                'latency_ms_p50': float(latest.get('latency_ms_p50', 0.0) or 0.0),
+                'latency_ms_p95': float(latest.get('latency_ms_p95', 0.0) or 0.0),
+            }
+
+        quality = self.store.fetchone_dict(
+            """
+            SELECT snapshot_id, created_at, run_id, cycle_id, mode, order_count, fill_count, fill_rate,
+                   avg_slippage_bps, latency_ms_p50, latency_ms_p95
+            FROM execution_quality_snapshots
+            ORDER BY created_at DESC
+            LIMIT 1
+            """
+        )
+        if not quality:
+            return {
+                'status': 'ok',
+                'order_count': 0,
+                'fill_count': 0,
+                'fill_rate': 0.0,
+                'avg_slippage_bps': 0.0,
+                'latency_ms_p50': 0.0,
+                'latency_ms_p95': 0.0,
+                'as_of': None,
+            }
+        payload = dict(quality)
+        payload['status'] = 'ok'
+        payload['as_of'] = quality.get('created_at')
+        return payload

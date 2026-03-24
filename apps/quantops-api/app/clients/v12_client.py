@@ -200,7 +200,7 @@ class V12Client:
         return await self._request_first("GET", ["/execution/quality/latest"])
 
     async def get_execution_quality(self) -> dict[str, Any]:
-        return await self._request_first("GET", ["/execution/quality/latest"])
+        return await self._request_first("GET", ["/execution/quality/latest_summary", "/execution/quality/latest"])
 
     async def get_execution_planner_latest(self) -> dict[str, Any]:
         return await self._request_first("GET", ["/execution/planner/latest", "/execution/plans?limit=20"])
@@ -370,7 +370,7 @@ class V12Client:
                 "global": {"status": "ok", "alerts": []},
                 "as_of": utc_now_iso(),
             }
-        if path == "/execution/quality/latest":
+        if path in {"/execution/quality/latest", "/execution/quality/latest_summary"}:
             return {
                 "status": "ok",
                 "run_id": "mock",

@@ -67,11 +67,7 @@ class PortfolioService:
         return round(max(-10.0, min(10.0, sharpe)), 6)
 
     async def get_overview(self) -> dict:
-        overview_payload, execution_quality, equity_history = await asyncio.gather(
-            self.v12_client.get_portfolio_dashboard(),
-            self.v12_client.get_execution_quality(),
-            self.v12_client.get_equity_history(),
-        )
+        overview_payload = await self.v12_client.get_portfolio_dashboard()
         overview = overview_payload if isinstance(overview_payload, dict) else {}
         positions_source = overview
         positions = self._normalize_positions(positions_source)
@@ -103,8 +99,6 @@ class PortfolioService:
         unrealized_pnl = float(summary.get('unrealized_pnl', 0.0) or 0.0)
         pnl = round(realized_pnl + unrealized_pnl, 6)
         expected_volatility = round(max(gross_exposure * 0.08, 0.0), 6)
-        has_stale_quotes = any(bool(item.get('stale')) for item in positions)
-        expected_sharpe = None if has_stale_quotes else self._safe_expected_sharpe_from_equity_history(equity_history.get("items") or [])
         long_exposure = float(summary.get('long_exposure', 0.0) or 0.0)
         short_exposure = float(summary.get('short_exposure', 0.0) or 0.0)
         if positions and long_exposure == 0.0 and short_exposure == 0.0:
@@ -134,13 +128,43 @@ class PortfolioService:
             'short_exposure': round(short_exposure, 6),
             'leverage': round(gross_exposure, 6),
             'expected_volatility': expected_volatility,
-            'expected_sharpe': expected_sharpe,
             'weights': {item['symbol']: item['weight'] for item in positions},
             'positions': positions,
             'quotes_as_of': overview.get('quotes_as_of') or positions_source.get('quotes_as_of'),
             'stale_positions': sum(1 for item in positions if bool(item.get('stale'))),
-            'fill_rate': float(execution_quality.get('fill_rate', 0.0) or 0.0),
             'as_of': overview.get('as_of') or positions_source.get('as_of') or utc_now_iso(),
+        }
+
+    async def get_metrics(self) -> dict:
+        execution_quality, equity_history = await asyncio.gather(
+            self.v12_client.get_execution_quality(),
+            self.v12_client.get_equity_history(),
+        )
+        execution_quality = execution_quality if isinstance(execution_quality, dict) else {}
+        equity_history = equity_history if isinstance(equity_history, dict) else {}
+        equity_items = equity_history.get("items") or []
+        if not isinstance(equity_items, list):
+            equity_items = []
+
+        returns: list[float] = []
+        prev = None
+        for item in equity_items:
+            value = self._safe_float(item.get("value"))
+            if prev and abs(prev) > 1e-9:
+                returns.append((value - prev) / abs(prev))
+            prev = value
+
+        expected_volatility = 0.0
+        if returns:
+            mean_ret = sum(returns) / len(returns)
+            variance = sum((r - mean_ret) ** 2 for r in returns) / max(len(returns) - 1, 1)
+            expected_volatility = round(variance ** 0.5, 6)
+
+        return {
+            "fill_rate": self._safe_float(execution_quality.get("fill_rate"), 0.0),
+            "expected_sharpe": self._safe_expected_sharpe_from_equity_history(equity_items),
+            "expected_volatility": expected_volatility,
+            "as_of": execution_quality.get("as_of") or equity_history.get("as_of") or utc_now_iso(),
         }
 
     async def get_positions(self) -> list[dict]:
@@ -235,15 +259,9 @@ class PortfolioService:
         }
 
     async def get_overview_debug(self) -> dict:
-        overview_payload, execution_quality, equity_history = await asyncio.gather(
-            self.v12_client.get_portfolio_dashboard(),
-            self.v12_client.get_execution_quality(),
-            self.v12_client.get_equity_history(),
-        )
+        overview_payload = await self.v12_client.get_portfolio_dashboard()
         overview = overview_payload if isinstance(overview_payload, dict) else {}
         positions_source = overview
-        execution_quality = execution_quality if isinstance(execution_quality, dict) else {}
-        equity_history = equity_history if isinstance(equity_history, dict) else {}
         positions = self._normalize_positions(positions_source)
         summary = overview.get("summary") if isinstance(overview.get("summary"), dict) else overview
         summary = summary if isinstance(summary, dict) else {}
@@ -307,10 +325,6 @@ class PortfolioService:
         market_value_key = self._first_present_key(summary, "market_value")
         quotes_as_of = overview.get("quotes_as_of") or positions_source.get("quotes_as_of")
         as_of = overview.get("as_of") or positions_source.get("as_of") or utc_now_iso()
-        equity_points = equity_history.get("items") or []
-        if not isinstance(equity_points, list):
-            equity_points = []
-
         status = "ok"
         source = "live"
         reason = None
@@ -318,8 +332,6 @@ class PortfolioService:
             name
             for name, payload in {
                 "portfolio_dashboard": overview,
-                "execution_quality": execution_quality,
-                "equity_history": equity_history,
             }.items()
             if str(payload.get("status", "") or "").lower() == "degraded"
         ]
@@ -368,16 +380,12 @@ class PortfolioService:
                 "net_exposure": round(net_exposure, 6),
                 "long_exposure": round(long_exposure, 6),
                 "short_exposure": round(short_exposure, 6),
-                "fill_rate": self._safe_float(execution_quality.get("fill_rate", 0.0)),
-                "expected_sharpe": self._safe_expected_sharpe_from_equity_history(equity_points),
             },
             "provenance": {
                 "read_mode": "portfolio_overview_with_equity_trace",
                 "background_refresh_scheduled": False,
                 "upstream_dependencies": [
                     "v12:/portfolio/overview",
-                    "v12:/execution/quality/latest",
-                    "v12:/portfolio/equity-history",
                 ],
                 "field_sources": {
                     "total_equity": f"summary.{total_equity_key}" if total_equity_key else "derived(balance + market_value)",
@@ -397,13 +405,49 @@ class PortfolioService:
             "counts": {
                 "position_count": len(positions),
                 "stale_positions": sum(1 for item in positions if bool(item.get("stale"))),
-                "equity_history_points": len(equity_points),
             },
             "raw": {
                 "portfolio_dashboard": overview,
+                "normalized_positions": positions,
+            },
+        }
+
+    async def get_metrics_debug(self) -> dict:
+        execution_quality, equity_history = await asyncio.gather(
+            self.v12_client.get_execution_quality(),
+            self.v12_client.get_equity_history(),
+        )
+        execution_quality = execution_quality if isinstance(execution_quality, dict) else {}
+        equity_history = equity_history if isinstance(equity_history, dict) else {}
+        metrics = await self.get_metrics()
+        equity_points = equity_history.get("items") or []
+        if not isinstance(equity_points, list):
+            equity_points = []
+
+        return {
+            "scope": "portfolio.metrics",
+            "status": "ok",
+            "source": "live",
+            "reason": None,
+            "as_of": metrics["as_of"],
+            "timings": {
+                "snapshot_age_sec": self._snapshot_age_sec(metrics["as_of"]),
+            },
+            "summary": metrics,
+            "provenance": {
+                "read_mode": "metrics_only",
+                "background_refresh_scheduled": False,
+                "upstream_dependencies": [
+                    "v12:/execution/quality/latest",
+                    "v12:/portfolio/equity-history",
+                ],
+            },
+            "counts": {
+                "equity_history_points": len(equity_points),
+            },
+            "raw": {
                 "execution_quality": execution_quality,
                 "equity_history": equity_history,
-                "normalized_positions": positions,
             },
         }
 

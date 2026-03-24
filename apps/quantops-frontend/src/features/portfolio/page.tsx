@@ -4,8 +4,8 @@ import { KpiCard } from '@/components/cards/kpi-card';
 import { ErrorState } from '@/components/shared/error-state';
 import { LoadingState } from '@/components/shared/loading-state';
 import { SimpleTable } from '@/components/tables/simple-table';
-import { usePortfolioOverview, usePositions } from '@/lib/api/hooks';
-import type { PortfolioOverview } from '@/types/api';
+import { usePortfolioMetrics, usePortfolioOverview, usePositions } from '@/lib/api/hooks';
+import type { PortfolioMetrics, PortfolioOverview } from '@/types/api';
 
 const EMPTY_PORTFOLIO: PortfolioOverview = {
   totalEquity: 0,
@@ -17,6 +17,10 @@ const EMPTY_PORTFOLIO: PortfolioOverview = {
   netExposure: 0,
   realizedPnl: 0,
   unrealizedPnl: 0,
+  lastUpdated: '',
+};
+
+const EMPTY_METRICS: PortfolioMetrics = {
   fillRate: 0,
   expectedVolatility: 0,
   expectedSharpe: 0,
@@ -29,6 +33,7 @@ function fmt(value: number) {
 
 export default function PortfolioPage() {
   const overview = usePortfolioOverview();
+  const metrics = usePortfolioMetrics();
   const positions = usePositions();
 
   const overviewEnvelope = overview.data;
@@ -37,6 +42,7 @@ export default function PortfolioPage() {
   if (overview.error && !hasOverviewData) return <ErrorState message="Portfolio overview load failed" />;
 
   const data = hasOverviewData ? overviewEnvelope!.data : EMPTY_PORTFOLIO;
+  const metricsData = metrics.data?.data ?? EMPTY_METRICS;
   const rows = positions.data?.data ?? [];
 
   return (
@@ -53,7 +59,7 @@ export default function PortfolioPage() {
         <KpiCard title="Unrealized" value={data.unrealized} />
         <KpiCard title="Gross Exposure" value={data.grossExposure} />
         <KpiCard title="Net Exposure" value={data.netExposure} />
-        <KpiCard title="Expected Sharpe" value={data.expectedSharpe} />
+        <KpiCard title="Expected Sharpe" value={metricsData.expectedSharpe} />
       </div>
       <div className="text-xs text-slate-400">Equity formula: Total Equity = Used Margin + Free Margin = Balance + Unrealized {data.lastUpdated ? `· as of ${data.lastUpdated}` : ''}</div>
       <SimpleTable

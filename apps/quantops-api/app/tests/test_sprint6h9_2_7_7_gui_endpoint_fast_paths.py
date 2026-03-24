@@ -179,6 +179,18 @@ def test_portfolio_overview_parallelizes_upstream_reads() -> None:
     elapsed = time.perf_counter() - started
 
     assert payload["total_equity"] == 100.0
+    assert "fill_rate" not in payload
+    assert elapsed < 0.1
+
+
+def test_portfolio_metrics_parallelizes_upstream_reads() -> None:
+    client = _PortfolioClient()
+    service = PortfolioService(client)  # type: ignore[arg-type]
+
+    started = time.perf_counter()
+    payload = asyncio.run(service.get_metrics())
+    elapsed = time.perf_counter() - started
+
     assert payload["fill_rate"] == 1.0
     assert elapsed < 0.15
 

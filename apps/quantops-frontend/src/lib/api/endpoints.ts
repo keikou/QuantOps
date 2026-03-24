@@ -1,6 +1,7 @@
 export const endpoints = {
   overview: '/api/v1/dashboard/overview',
   portfolioOverview: '/api/v1/portfolio/overview',
+  portfolioMetrics: '/api/v1/portfolio/metrics',
   portfolioPositions: '/api/v1/portfolio/positions',
   riskSnapshot: '/api/v1/risk/snapshot',
   monitoringSystem: '/api/v1/monitoring/system',

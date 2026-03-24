@@ -51,6 +51,13 @@ def test_runtime_run_once_persists_full_pipeline() -> None:
     assert execution['order_count'] == execution['fill_count']
     assert len(execution['latest_fills']) == execution['fill_count']
 
+    summary = client.get('/execution/quality/latest_summary').json()
+    assert summary['run_id'] == run_id
+    assert summary['order_count'] == execution['order_count']
+    assert summary['fill_count'] == execution['fill_count']
+    assert 'latest_fills' not in summary
+    assert 'latest_plans' not in summary
+
 
 def test_scheduler_routes_show_seeded_jobs_and_runs() -> None:
     _reset_runtime_tables()
