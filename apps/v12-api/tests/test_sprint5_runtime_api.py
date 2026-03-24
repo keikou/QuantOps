@@ -222,3 +222,40 @@ def test_execution_bridge_latest_reuses_short_ttl_cache(monkeypatch) -> None:
     assert first.json()['build_status'] == 'live'
     assert second.json()['build_status'] == 'fresh_cache'
     assert call_count['count'] == 1
+
+
+def test_runtime_status_reuses_short_ttl_cache(monkeypatch) -> None:
+    runtime_routes._runtime_status_cache = None
+    call_count = {'runs': 0, 'state': 0, 'query': 0}
+
+    def fake_list_runs(*, limit: int = 1) -> list[dict]:
+        call_count['runs'] += 1
+        return [{'run_id': f'run-{call_count["runs"]}', 'created_at': '2026-03-24T00:00:00+00:00'}]
+
+    def fake_trading_state() -> dict:
+        call_count['state'] += 1
+        return {'trading_state': 'running', 'note': f'note-{call_count["state"]}'}
+
+    def fake_fetchone_dict(query: str, params=None):
+        call_count['query'] += 1
+        if 'portfolio_positions' in query:
+            return {'run_id': 'run-1', 'created_at': '2026-03-24T00:00:00+00:00', 'position_count': 3}
+        if 'signals' in query:
+            return {'created_at': '2026-03-24T00:00:00+00:00', 'signal_count': 7}
+        if 'execution_quality_snapshots' in query:
+            return {'created_at': '2026-03-24T00:00:00+00:00', 'fill_count': 2, 'order_count': 2}
+        return None
+
+    monkeypatch.setattr(runtime_routes._service, 'list_runs', fake_list_runs)
+    monkeypatch.setattr(runtime_routes._service, 'get_trading_state', fake_trading_state)
+    monkeypatch.setattr(CONTAINER.runtime_store, 'fetchone_dict', fake_fetchone_dict)
+
+    first = client.get('/runtime/status')
+    second = client.get('/runtime/status')
+
+    assert first.status_code == 200
+    assert second.status_code == 200
+    assert first.json() == second.json()
+    assert call_count['runs'] == 1
+    assert call_count['state'] == 1
+    assert call_count['query'] == 3

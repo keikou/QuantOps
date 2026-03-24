@@ -11,6 +11,8 @@ router = APIRouter(prefix='/runtime', tags=['runtime'])
 _service = RuntimeService()
 _RUNTIME_RUNS_CACHE_TTL_SECONDS = 3.0
 _runtime_runs_cache: dict[int, tuple[float, list[dict]]] = {}
+_RUNTIME_STATUS_CACHE_TTL_SECONDS = 3.0
+_runtime_status_cache: tuple[float, dict] | None = None
 
 
 @router.post('/run-once')
@@ -42,6 +44,13 @@ def run_detail(run_id: str) -> dict:
 
 @router.get('/status')
 def runtime_status() -> dict:
+    global _runtime_status_cache
+    now = time.monotonic()
+    cached = _runtime_status_cache
+    if cached is not None:
+        expires_at, payload = cached
+        if now < expires_at:
+            return payload
     latest_run = next(iter(_service.list_runs(limit=1)), None)
     latest_position = CONTAINER.runtime_store.fetchone_dict(
         '''
@@ -70,7 +79,7 @@ def runtime_status() -> dict:
         '''
     )
     trading_state = _service.get_trading_state()
-    return {
+    payload = {
         'status': 'ok',
         'mock_mode': False,
         'latest_run_id': latest_run.get('run_id') if latest_run else None,
@@ -84,6 +93,8 @@ def runtime_status() -> dict:
         'state_note': trading_state.get('note', ''),
         'as_of': latest_run.get('created_at') if latest_run else None,
     }
+    _runtime_status_cache = (now + _RUNTIME_STATUS_CACHE_TTL_SECONDS, payload)
+    return payload
 
 
 @router.get('/events/latest')

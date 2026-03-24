@@ -335,6 +335,25 @@ def test_dashboard_overview_marks_stale_and_fresh_cache_responses() -> None:
     assert fresh_payload["data_freshness_sec"] is not None
 
 
+def test_dashboard_overview_ignores_non_numeric_snapshot_version() -> None:
+    class _StringSnapshotDashboardClient(_DashboardClient):
+        async def get_portfolio_dashboard(self) -> dict:
+            payload = await super().get_portfolio_dashboard()
+            payload["summary"]["active_snapshot_version"] = "cycle_20260324203107_38ccac79"
+            payload["summary"]["position_row_count"] = 2
+            payload["summary"]["strategy_row_count"] = 1
+            return payload
+
+    service = DashboardService(_StringSnapshotDashboardClient(), _SchedulerRepository(), _AlertService())  # type: ignore[arg-type]
+
+    payload = asyncio.run(service.get_overview())
+
+    assert payload["total_equity"] == 100.0
+    assert payload["active_snapshot_version"] is None
+    assert payload["position_row_count"] == 2
+    assert payload["strategy_row_count"] == 1
+
+
 def test_get_dashboard_service_is_shared_singleton() -> None:
     first = get_dashboard_service()
     second = get_dashboard_service()

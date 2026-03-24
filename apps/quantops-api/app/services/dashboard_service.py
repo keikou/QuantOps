@@ -69,6 +69,15 @@ class DashboardService:
             return default
 
     @staticmethod
+    def _safe_int(value: object, default: int = 0) -> int:
+        try:
+            if value is None or value == "":
+                return default
+            return int(value)
+        except (TypeError, ValueError):
+            return default
+
+    @staticmethod
     def _snapshot_age_sec(value: object) -> float | None:
         if not value:
             return None
@@ -356,8 +365,11 @@ class DashboardService:
                 or portfolio.get("as_of")
                 or as_of
             ),
-            "active_snapshot_version": summary.get("active_snapshot_version")
-            or (portfolio_dashboard.get("snapshot") or {}).get("active_snapshot_version"),
+            "active_snapshot_version": self._safe_int(
+                summary.get("active_snapshot_version")
+                or (portfolio_dashboard.get("snapshot") or {}).get("active_snapshot_version"),
+                default=0,
+            ) or None,
             "position_row_count": int(summary.get("position_row_count") or len(items)),
             "strategy_row_count": int(summary.get("strategy_row_count") or 0),
         }
