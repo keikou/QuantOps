@@ -93,7 +93,8 @@ const diagnosisViews: Array<{ label: string; issueCode?: string; retryability?: 
 
 const RUNTIME_WINDOW_MINUTES = 5;
 const RUNTIME_ISSUE_LIMIT = 5;
-const EXECUTION_ROW_LIMIT = 10;
+const RUNTIME_RUN_LIMIT = 10;
+const EXECUTION_ROW_LIMIT = 5;
 
 function runtimeRunsQueryKey(filters?: {
   limit?: number;
@@ -107,7 +108,7 @@ function runtimeRunsQueryKey(filters?: {
   eventChainComplete?: boolean;
   artifactAvailable?: boolean;
 }) {
-  return ['command-center-runtime-runs', filters?.limit ?? 25, filters?.windowMinutes ?? 5, filters?.operatorState ?? '', filters?.bridgeState ?? '', filters?.issueCode ?? '', filters?.reasonCode ?? '', filters?.blockingComponent ?? '', filters?.degraded ?? 'any', filters?.eventChainComplete ?? 'any', filters?.artifactAvailable ?? 'any'] as const;
+  return ['command-center-runtime-runs', filters?.limit ?? RUNTIME_RUN_LIMIT, filters?.windowMinutes ?? 5, filters?.operatorState ?? '', filters?.bridgeState ?? '', filters?.issueCode ?? '', filters?.reasonCode ?? '', filters?.blockingComponent ?? '', filters?.degraded ?? 'any', filters?.eventChainComplete ?? 'any', filters?.artifactAvailable ?? 'any'] as const;
 }
 
 function runtimeIssuesQueryKey(limit = 25, windowMinutes = RUNTIME_WINDOW_MINUTES) {
@@ -168,7 +169,7 @@ function ExecutionLiveUpdates({
       queryClient.setQueryData<ApiEnvelope<FeedPayload<CommandCenterRuntimeRunSummary>>>(runtimeRunsQueryKey(runFilters), (previous) => {
         const current = previous?.data?.items ?? [];
         const filtered = matchesRuntimeFilters(incoming, runFilters)
-          ? upsertRuntimeRun(current, incoming, runFilters.limit ?? 25)
+          ? upsertRuntimeRun(current, incoming, runFilters.limit ?? RUNTIME_RUN_LIMIT)
           : current.filter((row) => row.runId !== incoming.runId);
         return {
           data: {
@@ -247,7 +248,7 @@ export default function Page() {
                 : { operatorState: runtimeFilter };
   const runtimeRuns = useCommandCenterRuntimeRuns(
     {
-      limit: 25,
+      limit: RUNTIME_RUN_LIMIT,
       windowMinutes: RUNTIME_WINDOW_MINUTES,
       ...runtimeViewFilters,
       issueCode: issueCodeFilter || runtimeViewFilters.issueCode,
@@ -332,8 +333,8 @@ export default function Page() {
     <div className="space-y-6">
       <ExecutionLiveUpdates
         runFilters={{
-          limit: 25,
-          windowMinutes: RUNTIME_WINDOW_MINUTES,
+      limit: RUNTIME_RUN_LIMIT,
+      windowMinutes: RUNTIME_WINDOW_MINUTES,
           ...runtimeViewFilters,
           issueCode: issueCodeFilter || runtimeViewFilters.issueCode,
           reasonCode: reasonFilter || runtimeViewFilters.reasonCode,
@@ -428,7 +429,7 @@ export default function Page() {
         <div className="mt-3 grid gap-2 text-sm text-slate-300 md:grid-cols-2 xl:grid-cols-4">
           <div>Fills display: <span className="text-slate-100">stable {stableFilledCount} | recent {rows.length} | delta {fmtDelta(fillDelta)}</span></div>
           <div>Orders window: <span className="text-slate-100">stable submitted {stableSubmittedCount} | recent top {orderRows.length}</span></div>
-          <div>Runs window: <span className="text-slate-100">recent {runtimeRunsData.length} within {RUNTIME_WINDOW_MINUTES}m</span></div>
+          <div>Runs window: <span className="text-slate-100">recent {runtimeRunsData.length} within {RUNTIME_WINDOW_MINUTES}m (cap {RUNTIME_RUN_LIMIT})</span></div>
           <div>Issues window: <span className="text-slate-100">recent {runtimeIssueRows.length} across last {RUNTIME_ISSUE_LIMIT} buckets</span></div>
         </div>
       </div>
@@ -516,7 +517,7 @@ export default function Page() {
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
             <div className="font-medium text-slate-100">Recent Runtime Runs</div>
-            <div className="text-sm text-slate-400">Historical triage across the latest runs, using the same semantics as run detail.</div>
+            <div className="text-sm text-slate-400">Historical triage across the latest runs, using the same semantics as run detail. Recent window is capped for lower latency.</div>
           </div>
           <div className="flex flex-wrap gap-2">
             {runtimeFilterOptions.map((option) => (
