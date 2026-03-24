@@ -106,6 +106,7 @@ def get_incident_repository() -> IncidentRepository:
 def get_monitoring_service() -> MonitoringService:
     return MonitoringService(get_v12_client(), get_monitoring_repository())
 
+@lru_cache(maxsize=1)
 def get_alert_service() -> AlertService:
     return AlertService(get_alert_repository(), get_audit_repository(), get_risk_repository(), get_monitoring_repository())
 
