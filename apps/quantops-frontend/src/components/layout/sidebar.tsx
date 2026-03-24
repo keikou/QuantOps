@@ -31,6 +31,7 @@ export function Sidebar() {
           <Link
             key={href}
             href={href}
+            prefetch={false}
             className={cn(
               'block rounded-xl px-3 py-2 text-sm transition hover:bg-slate-800 hover:text-white',
               pathname === href ? 'bg-slate-800 text-white' : 'text-slate-300'

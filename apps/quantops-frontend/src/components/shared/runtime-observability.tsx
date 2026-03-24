@@ -77,6 +77,7 @@ function RuntimeDetailLink({ runtime, label = 'Open Run Detail', subtle = false 
   return (
     <Link
       href={detailPath}
+      prefetch={false}
       className={
         subtle
           ? 'text-xs text-cyan-200 transition hover:text-cyan-100'

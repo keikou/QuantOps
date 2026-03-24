@@ -599,7 +599,7 @@ export default function Page() {
                     </td>
                     <td className="px-3 py-3 align-top">
                       {row.detailPath ? (
-                        <Link href={row.detailPath} className="text-cyan-200 transition hover:text-cyan-100">
+                        <Link href={row.detailPath} prefetch={false} className="text-cyan-200 transition hover:text-cyan-100">
                           Open
                         </Link>
                       ) : (
