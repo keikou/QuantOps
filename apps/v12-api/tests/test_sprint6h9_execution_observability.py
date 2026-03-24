@@ -16,7 +16,7 @@ def _reset_runtime_state() -> None:
         'execution_state_snapshots','execution_block_reasons','orchestrator_runs','orchestrator_cycles','signals',
         'signal_evaluations','portfolio_signal_decisions','portfolio_diagnostics','portfolio_positions','portfolio_snapshots',
         'rebalance_plans','market_prices_latest','market_prices_history','position_snapshots_latest','position_snapshots_history',
-        'position_snapshot_versions',
+        'position_snapshot_versions','truth_engine_state',
         'equity_snapshots','cash_ledger'
     ]:
         try:
@@ -179,3 +179,59 @@ def test_sprint6h9_runtime_run_once_emits_writer_metrics() -> None:
     entries = [json.loads(line) for line in writer_log.read_text(encoding='utf-8').splitlines() if line.strip()]
     assert entries
     assert any(entry['cycle_id'] == result['cycle_id'] for entry in entries)
+
+
+def test_sprint6h9_equity_snapshot_reuses_watermark_when_only_prices_change() -> None:
+    _reset_runtime_state()
+    truth = TruthEngine()
+    as_of = datetime.now(timezone.utc).isoformat()
+    CONTAINER.runtime_store.append('execution_fills', {
+        'fill_id': 'fill-eq-1',
+        'run_id': 'run-eq-1',
+        'plan_id': 'plan-eq-1',
+        'strategy_id': 'strategy-eq-1',
+        'alpha_family': 'trend',
+        'symbol': 'BTCUSDT',
+        'side': 'buy',
+        'fill_qty': 1.0,
+        'fill_price': 100.0,
+        'fee_bps': 0.0,
+        'created_at': as_of,
+    })
+    CONTAINER.runtime_store.append('market_prices_latest', {
+        'symbol': 'BTCUSDT',
+        'mark_price': 101.0,
+        'source': 'test',
+        'price_time': as_of,
+        'quote_age_sec': 0.0,
+        'stale': False,
+        'fallback_reason': None,
+        'updated_at': as_of,
+    })
+
+    positions_v1 = truth.rebuild_positions(as_of)
+    equity_v1 = truth.compute_equity_snapshot(positions_v1, as_of)
+    assert truth.last_compute_equity_snapshot_metrics['rebuild_mode'] == 'full'
+
+    as_of_2 = (datetime.now(timezone.utc) + timedelta(seconds=1)).isoformat()
+    CONTAINER.runtime_store.execute("DELETE FROM market_prices_latest WHERE symbol = 'BTCUSDT'")
+    CONTAINER.runtime_store.append('market_prices_latest', {
+        'symbol': 'BTCUSDT',
+        'mark_price': 103.0,
+        'source': 'test',
+        'price_time': as_of_2,
+        'quote_age_sec': 0.0,
+        'stale': False,
+        'fallback_reason': None,
+        'updated_at': as_of_2,
+    })
+
+    positions_v2 = truth.rebuild_positions(as_of_2)
+    equity_v2 = truth.compute_equity_snapshot(positions_v2, as_of_2)
+
+    assert truth.last_rebuild_positions_metrics['rebuild_mode'] == 'incremental'
+    assert truth.last_rebuild_positions_metrics['fills_scanned'] == 0
+    assert truth.last_compute_equity_snapshot_metrics['rebuild_mode'] == 'incremental'
+    assert truth.last_compute_equity_snapshot_metrics['fills_scanned'] == 0
+    assert round(equity_v2['market_value'], 2) == 103.00
+    assert round(equity_v2['total_equity'] - equity_v1['total_equity'], 2) == 2.00
