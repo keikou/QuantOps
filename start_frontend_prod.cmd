@@ -1,4 +1,9 @@
 @echo off
+setlocal
+set SKIP_BUILD=0
+if /I "%~1"=="--skip-build" set SKIP_BUILD=1
+if /I "%SKIP_FRONTEND_BUILD%"=="1" set SKIP_BUILD=1
+
 cd /d %~dp0\apps\quantops-frontend
 
 echo ==== QuantOps Frontend Production ====
@@ -9,7 +14,7 @@ if not exist node_modules (
     if errorlevel 1 goto :error
 )
 
-if /I not "%SKIP_FRONTEND_BUILD%"=="1" (
+if not "%SKIP_BUILD%"=="1" (
     call npm run build
     if errorlevel 1 goto :error
 )
