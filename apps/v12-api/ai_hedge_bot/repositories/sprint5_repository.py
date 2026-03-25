@@ -46,6 +46,41 @@ class Sprint5Repository:
             return version_id
         return None if versioned_rows == 0 else version_id
 
+    def _latest_market_price_map(self) -> dict[str, dict[str, Any]]:
+        rows = self.store.fetchall_dict(
+            """
+            SELECT symbol, mark_price, source, price_time, quote_age_sec, stale
+            FROM market_prices_latest
+            """
+        )
+        return {str(row.get('symbol') or ''): row for row in rows}
+
+    def _revalue_positions(self, rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        price_by_symbol = self._latest_market_price_map()
+        valued: list[dict[str, Any]] = []
+        for row in rows:
+            symbol = str(row.get('symbol') or '')
+            signed_qty = float(row.get('signed_qty', 0.0) or 0.0)
+            avg_entry_price = float(row.get('avg_entry_price', 0.0) or 0.0)
+            price_meta = price_by_symbol.get(symbol) or {}
+            mark_price = float(price_meta.get('mark_price', row.get('mark_price', avg_entry_price)) or avg_entry_price)
+            market_value = round(signed_qty * mark_price, 8)
+            unrealized_pnl = round((mark_price - avg_entry_price) * signed_qty, 8)
+            valued.append(
+                {
+                    **row,
+                    'mark_price': round(mark_price, 8),
+                    'market_value': market_value,
+                    'unrealized_pnl': unrealized_pnl,
+                    'exposure_notional': round(abs(market_value), 8),
+                    'price_source': price_meta.get('source', row.get('price_source')),
+                    'quote_time': price_meta.get('price_time', row.get('quote_time')),
+                    'quote_age_sec': float(price_meta.get('quote_age_sec', row.get('quote_age_sec', 0.0)) or 0.0),
+                    'stale': bool(price_meta.get('stale', row.get('stale', False))),
+                }
+            )
+        return valued
+
     def create_alpha_signal_snapshot(self, row: dict[str, Any]) -> None:
         self.store.append('alpha_signal_snapshots', row)
 
@@ -145,6 +180,7 @@ class Sprint5Repository:
                 ORDER BY exposure_notional DESC, symbol ASC
                 """
             )
+        latest_positions = self._revalue_positions(latest_positions)
         if equity or latest_positions:
             latest_run = self.store.fetchone_dict(
                 """
@@ -249,6 +285,7 @@ class Sprint5Repository:
                 ORDER BY exposure_notional DESC, symbol ASC
                 """
             )
+        latest_positions = self._revalue_positions(latest_positions)
         latest_run = self.store.fetchone_dict(
             """
             SELECT run_id, created_at

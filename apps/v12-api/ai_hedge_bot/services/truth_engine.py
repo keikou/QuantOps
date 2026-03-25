@@ -656,6 +656,51 @@ class TruthEngine:
             for fill in fills:
                 self._apply_fill_to_position_states(states, fill)
         state_build_duration_ms = round((time.perf_counter() - state_build_started_at) * 1000.0, 2)
+        if not full_rebuild and not fills:
+            valued = []
+            for row in active_rows:
+                symbol = str(row["symbol"])
+                price_meta = price_by_symbol.get(symbol) or {}
+                avg_entry = float(row.get("avg_entry_price", 0.0) or 0.0)
+                signed_qty = float(row.get("signed_qty", 0.0) or 0.0)
+                mark = float(price_meta.get("mark_price") or row.get("mark_price") or avg_entry)
+                market_value = round(signed_qty * mark, 8)
+                unrealized = round((mark - avg_entry) * signed_qty, 8)
+                valued.append(
+                    {
+                        **row,
+                        "mark_price": round(mark, 8),
+                        "market_value": market_value,
+                        "unrealized_pnl": unrealized,
+                        "exposure_notional": round(abs(market_value), 8),
+                        "price_source": price_meta.get("source", row.get("price_source", "missing_mark_price")),
+                        "quote_time": price_meta.get("price_time", row.get("quote_time", as_of)),
+                        "quote_age_sec": float(price_meta.get("quote_age_sec", row.get("quote_age_sec", 0.0)) or 0.0),
+                        "stale": bool(price_meta.get("stale", row.get("stale", False))),
+                        "updated_at": as_of,
+                    }
+                )
+            build_duration_ms = round((time.perf_counter() - started_at) * 1000.0, 2)
+            active_version = self._active_position_snapshot_version()
+            self.last_rebuild_positions_metrics = {
+                "snapshot_version": active_version,
+                "fills_scanned": 0,
+                "new_fills_applied": 0,
+                "position_rows": len(valued),
+                "build_duration_ms": build_duration_ms,
+                "rebuild_mode": "incremental",
+                "full_rebuild_reason": None,
+                "fills_fetch_duration_ms": fills_fetch_duration_ms,
+                "price_fetch_duration_ms": price_fetch_duration_ms,
+                "state_build_duration_ms": state_build_duration_ms,
+                "version_insert_duration_ms": 0.0,
+                "row_materialize_duration_ms": 0.0,
+                "row_write_duration_ms": 0.0,
+                "activation_duration_ms": 0.0,
+                "cleanup_duration_ms": 0.0,
+                "history_rows_written": 0,
+            }
+            return valued
         snapshot_version = new_cycle_id()
         version_insert_duration_ms = 0.0
         row_materialize_started_at = time.perf_counter()
@@ -702,6 +747,7 @@ class TruthEngine:
         row_write_duration_ms = 0.0
         build_duration_ms = round((time.perf_counter() - started_at) * 1000.0, 2)
         activation_duration_ms = 0.0
+        cleanup_duration_ms = 0.0
         transaction_started_at = time.perf_counter()
         with store._session() as conn:
             version_insert_started_at = time.perf_counter()
@@ -749,6 +795,16 @@ class TruthEngine:
                 conn=conn,
             )
             self._set_fill_watermark("positions_last_fill", fills[-1] if fills else None, as_of, conn=conn)
+            cleanup_started_at = time.perf_counter()
+            store.execute(
+                """
+                DELETE FROM position_snapshots_latest
+                WHERE (snapshot_version IS NULL OR snapshot_version <> ?)
+                """,
+                [snapshot_version],
+                conn=conn,
+            )
+            cleanup_duration_ms = round((time.perf_counter() - cleanup_started_at) * 1000.0, 2)
             try:
                 conn.commit()
             except Exception:
@@ -769,6 +825,7 @@ class TruthEngine:
             "row_materialize_duration_ms": row_materialize_duration_ms,
             "row_write_duration_ms": row_write_duration_ms,
             "activation_duration_ms": activation_duration_ms,
+            "cleanup_duration_ms": cleanup_duration_ms,
             "history_rows_written": len(history_rows),
         }
         return valued
