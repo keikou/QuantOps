@@ -197,6 +197,8 @@ export function OverviewPage() {
   const jobRows = jobs.data?.data ?? [];
   const monitoringData = monitoring.data?.data;
   const portfolioMetrics = portfolioMetricsQuery.data?.data;
+  const overviewDisplay = data?.displayValue;
+  const metricsDisplay = portfolioMetrics?.displayValue;
   const equityHistoryFeed = equityHistory.data?.data;
   const chartData = equityHistoryFeed?.items?.length ? equityHistoryFeed.items : (data?.pnlSeries ?? []);
   const displayedOpenAlerts = data?.openAlerts != null ? Math.max(data.openAlerts, openAlertRows.length) : (openAlertRows.length || '-');
@@ -240,16 +242,16 @@ export function OverviewPage() {
       <DataStatusBanner label="Monitoring" status={monitoringStatus} reason={monitoringData?.statusReason} asOf={monitoringData?.asOf} />
       <DataStatusBanner label="Risk" status={riskStatus} reason={riskData?.statusReason} asOf={riskData?.asOf} />
       <div className="page-grid">
-        <KpiCard title="Total Equity" value={fmtMetric(data?.totalEquity)} />
-        <KpiCard title="Balance" value={fmtMetric(data?.balance)} />
-        <KpiCard title="Used Margin" value={fmtMetric(data?.usedMargin)} />
-        <KpiCard title="Free Margin" value={fmtMetric(data?.freeMargin)} />
+        <KpiCard title="Total Equity" value={fmtMetric(overviewDisplay?.totalEquity ?? data?.totalEquity)} />
+        <KpiCard title="Balance" value={fmtMetric(overviewDisplay?.balance ?? data?.balance)} />
+        <KpiCard title="Used Margin" value={fmtMetric(overviewDisplay?.usedMargin ?? data?.usedMargin)} />
+        <KpiCard title="Free Margin" value={fmtMetric(overviewDisplay?.freeMargin ?? data?.freeMargin)} />
         <KpiCard title="Unrealized" value={fmtMetric(data?.unrealized)} />
         <KpiCard title="Daily PnL" value={fmtMetric(data?.dailyPnl)} />
-        <KpiCard title="Gross Exposure" value={fmtMetric(data?.grossExposure)} />
-        <KpiCard title="Net Exposure" value={fmtMetric(data?.netExposure)} />
-        <KpiCard title="Fill Rate" value={portfolioMetricsQuery.isLoading && !portfolioMetrics ? '-' : fmtMetric(portfolioMetrics?.fillRate)} />
-        <KpiCard title="Expected Sharpe" value={portfolioMetricsQuery.isLoading && !portfolioMetrics ? '-' : fmtMetric(portfolioMetrics?.expectedSharpe)} />
+        <KpiCard title="Gross Exposure" value={fmtMetric(overviewDisplay?.grossExposure ?? data?.grossExposure)} />
+        <KpiCard title="Net Exposure" value={fmtMetric(overviewDisplay?.netExposure ?? data?.netExposure)} />
+        <KpiCard title="Fill Rate" value={portfolioMetricsQuery.isLoading && !portfolioMetrics ? '-' : fmtMetric(metricsDisplay?.fillRate ?? portfolioMetrics?.fillRate)} />
+        <KpiCard title="Expected Sharpe" value={portfolioMetricsQuery.isLoading && !portfolioMetrics ? '-' : fmtMetric(metricsDisplay?.expectedSharpe ?? portfolioMetrics?.expectedSharpe)} />
       </div>
       <div className="text-xs text-slate-400">Equity formula: Total Equity = Used Margin + Free Margin = Balance + Unrealized {data?.asOf ? `| as of ${data.asOf}` : ''}</div>
       <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 text-sm text-slate-300">

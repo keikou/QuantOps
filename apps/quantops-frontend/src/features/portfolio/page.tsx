@@ -75,6 +75,8 @@ export default function PortfolioPage() {
 
   const data = hasOverviewData ? overviewEnvelope!.data : EMPTY_PORTFOLIO;
   const metricsData = metrics.data?.data ?? EMPTY_METRICS;
+  const overviewDisplay = data.displayValue;
+  const metricsDisplay = metricsData.displayValue;
   const positionsFeed = positions.data?.data;
   const rows = positionsFeed?.items ?? [];
   const overviewStatus = resolveDataStatus({
@@ -108,14 +110,14 @@ export default function PortfolioPage() {
       </div>
       {overview.error ? <div className="rounded-md border border-amber-700/40 bg-amber-950/30 px-3 py-2 text-xs text-amber-200">Refresh failed. Showing last successful value.</div> : null}
       <div className="page-grid">
-        <KpiCard title="Total Equity" value={data.totalEquity} />
-        <KpiCard title="Balance" value={data.balance} />
-        <KpiCard title="Used Margin" value={data.usedMargin} />
-        <KpiCard title="Free Margin" value={data.freeMargin} />
+        <KpiCard title="Total Equity" value={overviewDisplay?.totalEquity ?? data.totalEquity} />
+        <KpiCard title="Balance" value={overviewDisplay?.balance ?? data.balance} />
+        <KpiCard title="Used Margin" value={overviewDisplay?.usedMargin ?? data.usedMargin} />
+        <KpiCard title="Free Margin" value={overviewDisplay?.freeMargin ?? data.freeMargin} />
         <KpiCard title="Unrealized" value={data.unrealized} />
-        <KpiCard title="Gross Exposure" value={data.grossExposure} />
-        <KpiCard title="Net Exposure" value={data.netExposure} />
-        <KpiCard title="Expected Sharpe" value={metricsData.expectedSharpe} />
+        <KpiCard title="Gross Exposure" value={overviewDisplay?.grossExposure ?? data.grossExposure} />
+        <KpiCard title="Net Exposure" value={overviewDisplay?.netExposure ?? data.netExposure} />
+        <KpiCard title="Expected Sharpe" value={metricsDisplay?.expectedSharpe ?? metricsData.expectedSharpe} />
       </div>
       <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 text-sm text-slate-300">
         <div className="font-medium text-slate-100">Stable Summary</div>
