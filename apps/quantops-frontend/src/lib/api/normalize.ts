@@ -83,6 +83,7 @@ export function normalizeOverview(input: any) {
     asOf: toString(x.asOf ?? x.as_of),
     buildStatus: toString(x.buildStatus ?? x.build_status, ''),
     sourceSnapshotTime: toString(x.sourceSnapshotTime ?? x.source_snapshot_time, ''),
+    rebuiltAt: toString(x.rebuiltAt ?? x.rebuilt_at, ''),
     dataFreshnessSec: toNumber(x.dataFreshnessSec ?? x.data_freshness_sec),
     activeSnapshotVersion: toNumber(x.activeSnapshotVersion ?? x.active_snapshot_version),
     positionRowCount: toNumber(x.positionRowCount ?? x.position_row_count),
@@ -138,6 +139,7 @@ export function normalizePortfolioOverview(input: any) {
     unrealizedPnl: toNumber(x.unrealizedPnl ?? x.unrealized_pnl ?? x.unrealized),
     buildStatus: toString(x.buildStatus ?? x.build_status, ''),
     sourceSnapshotTime: toString(x.sourceSnapshotTime ?? x.source_snapshot_time, ''),
+    rebuiltAt: toString(x.rebuiltAt ?? x.rebuilt_at, ''),
     dataFreshnessSec: toNumber(x.dataFreshnessSec ?? x.data_freshness_sec),
     lastUpdated: toString(x.lastUpdated ?? x.last_updated ?? x.asOf ?? x.as_of),
     stableValue: x.stableValue || x.stable_value ? {
@@ -177,6 +179,7 @@ export function normalizePortfolioMetrics(input: any) {
     expectedSharpe: toNumber(x.expectedSharpe ?? x.expected_sharpe ?? x.sharpe),
     buildStatus: toString(x.buildStatus ?? x.build_status, ''),
     sourceSnapshotTime: toString(x.sourceSnapshotTime ?? x.source_snapshot_time, ''),
+    rebuiltAt: toString(x.rebuiltAt ?? x.rebuilt_at, ''),
     dataFreshnessSec: toNumber(x.dataFreshnessSec ?? x.data_freshness_sec),
     lastUpdated: toString(x.lastUpdated ?? x.last_updated ?? x.asOf ?? x.as_of),
     stableValue: x.stableValue || x.stable_value ? {
@@ -214,6 +217,7 @@ export function normalizePositions(input: any) {
     asOf: toString(payload.asOf ?? payload.as_of, ''),
     buildStatus: toString(payload.buildStatus ?? payload.build_status, ''),
     sourceSnapshotTime: toString(payload.sourceSnapshotTime ?? payload.source_snapshot_time, ''),
+    rebuiltAt: toString(payload.rebuiltAt ?? payload.rebuilt_at, ''),
     dataFreshnessSec: toNumber(payload.dataFreshnessSec ?? payload.data_freshness_sec),
   } satisfies FeedPayload<any>;
 }
@@ -488,6 +492,7 @@ export function normalizeExecutionViewLatest(input: any) {
     asOf: toString(x.asOf ?? x.as_of),
     buildStatus: toString(x.buildStatus ?? x.build_status, ''),
     sourceSnapshotTime: toString(x.sourceSnapshotTime ?? x.source_snapshot_time, ''),
+    rebuiltAt: toString(x.rebuiltAt ?? x.rebuilt_at, ''),
     dataFreshnessSec: toNumber(x.dataFreshnessSec ?? x.data_freshness_sec),
   };
 }
@@ -511,6 +516,7 @@ export function normalizeExecutionFills(input: any) {
     asOf: toString(payload.asOf ?? payload.as_of, ''),
     buildStatus: toString(payload.buildStatus ?? payload.build_status, ''),
     sourceSnapshotTime: toString(payload.sourceSnapshotTime ?? payload.source_snapshot_time, ''),
+    rebuiltAt: toString(payload.rebuiltAt ?? payload.rebuilt_at, ''),
     dataFreshnessSec: toNumber(payload.dataFreshnessSec ?? payload.data_freshness_sec),
   } satisfies FeedPayload<any>;
 }
@@ -535,6 +541,7 @@ export function normalizeExecutionOrders(input: any) {
     asOf: toString(payload.asOf ?? payload.as_of, ''),
     buildStatus: toString(payload.buildStatus ?? payload.build_status, ''),
     sourceSnapshotTime: toString(payload.sourceSnapshotTime ?? payload.source_snapshot_time, ''),
+    rebuiltAt: toString(payload.rebuiltAt ?? payload.rebuilt_at, ''),
     dataFreshnessSec: toNumber(payload.dataFreshnessSec ?? payload.data_freshness_sec),
   } satisfies FeedPayload<any>;
 }
@@ -548,6 +555,7 @@ export function normalizeExecutionState(input: any) {
     reason: toString(x.reason, ''),
     buildStatus: toString(x.buildStatus ?? x.build_status, ''),
     sourceSnapshotTime: toString(x.sourceSnapshotTime ?? x.source_snapshot_time, ''),
+    rebuiltAt: toString(x.rebuiltAt ?? x.rebuilt_at, ''),
     dataFreshnessSec: toNumber(x.dataFreshnessSec ?? x.data_freshness_sec),
     plannerAgeSec: toNumber(x.plannerAgeSec ?? x.planner_age_sec),
     executionAgeSec: toNumber(x.executionAgeSec ?? x.execution_age_sec),
@@ -574,6 +582,7 @@ export function normalizeCommandCenterRuntimeLatest(input: any): CommandCenterRu
     cycleId: toString(x.cycleId ?? x.cycle_id, ''),
     buildStatus: toString(x.buildStatus ?? x.build_status, ''),
     sourceSnapshotTime: toString(x.sourceSnapshotTime ?? x.source_snapshot_time, ''),
+    rebuiltAt: toString(x.rebuiltAt ?? x.rebuilt_at, ''),
     dataFreshnessSec: toNumber(x.dataFreshnessSec ?? x.data_freshness_sec),
     stableValue: stableValue ? {
       bridgeState: toString(stableValue.bridgeState ?? stableValue.bridge_state, ''),

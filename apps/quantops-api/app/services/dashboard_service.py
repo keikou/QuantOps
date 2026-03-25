@@ -98,6 +98,7 @@ class DashboardService:
 
     def _decorate_overview_response(self, payload: dict, *, build_status: str) -> dict:
         result = dict(payload)
+        result["rebuilt_at"] = result.get("rebuilt_at") or utc_now_iso()
         source_snapshot_time = result.get("source_snapshot_time") or result.get("as_of")
         result["source_snapshot_time"] = source_snapshot_time
         result["data_freshness_sec"] = self._snapshot_age_sec(source_snapshot_time)

@@ -17,6 +17,7 @@ async def _main():
     assert view['status'] == 'ok'
     assert view['planner']['status'] == 'ok'
     assert view['state']['status'] == 'ok'
+    assert view['rebuilt_at']
     assert view['stable_value']['execution_state'] == view['state']['execution_state']
     assert view['display_value']['trading_state'] == view['stable_value']['trading_state']
     assert planner['status'] == 'ok'
@@ -82,17 +83,22 @@ async def _cache_main():
     first_fills = await service.get_fills(limit=10)
     second_fills = await service.get_fills(limit=10)
     assert first_view["build_status"] == "live"
+    assert first_view["rebuilt_at"]
     assert second_view["build_status"] == "fresh_cache"
     assert first_view["planner"]["status"] == "ok"
     assert first_view["state"]["status"] == "ok"
     assert first_view["display_value"]["execution_state"] == "running"
     assert first_planner["build_status"] == "live"
+    assert first_planner["rebuilt_at"]
     assert second_planner["build_status"] == "fresh_cache"
     assert first_state["build_status"] == "live"
+    assert first_state["rebuilt_at"]
     assert second_state["build_status"] == "fresh_cache"
     assert first_orders["build_status"] == "live"
+    assert first_orders["rebuilt_at"]
     assert second_orders["build_status"] == "fresh_cache"
     assert first_fills["build_status"] == "live"
+    assert first_fills["rebuilt_at"]
     assert second_fills["build_status"] == "fresh_cache"
 
 

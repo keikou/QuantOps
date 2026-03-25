@@ -177,6 +177,7 @@ def test_command_center_runtime_latest_exposes_operator_summary_fields() -> None
     assert payload["run_id"] == "run-123"
     assert payload["operator_state"] == "submitted_no_fill"
     assert payload["build_status"] == "live"
+    assert payload["rebuilt_at"]
     assert payload["source_snapshot_time"] == "2026-03-23T00:00:09+00:00"
     assert payload["degraded"] is True
     assert payload["latest_reason_code"] == "ORDER_REJECTED"
@@ -213,6 +214,7 @@ def test_command_center_runtime_latest_bounds_auxiliary_reads() -> None:
     assert payload["run_id"] == "run-123"
     assert payload["operator_state"] == "submitted_no_fill"
     assert payload["build_status"] == "live"
+    assert payload["rebuilt_at"]
     assert payload["latest_reason_code"] == "ORDER_REJECTED"
     assert payload["last_successful_fill_at"] is None
     assert payload["last_successful_portfolio_update_at"] is None
@@ -231,6 +233,7 @@ def test_command_center_runtime_latest_coalesces_concurrent_live_builds() -> Non
     assert first["run_id"] == "run-123"
     assert second["latest_reason_code"] == "ORDER_REJECTED"
     assert first["build_status"] == "live"
+    assert first["rebuilt_at"]
     assert service.build_calls == 1
 
 
@@ -248,6 +251,7 @@ def test_command_center_runtime_latest_marks_stale_and_fresh_cache_responses() -
 
     stale_payload = asyncio.run(service.get_runtime_latest())
     assert stale_payload["build_status"] == "stale_cache"
+    assert stale_payload["rebuilt_at"]
 
     fresh_source_iso = "2026-03-23T00:00:09+00:00"
     fresh_cached_iso = "2999-01-01T00:00:00+00:00"

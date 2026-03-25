@@ -38,6 +38,7 @@ class ExecutionService:
             payload.setdefault('as_of', utc_now_iso())
             payload.setdefault('build_status', 'live')
             payload.setdefault('source_snapshot_time', payload.get('as_of'))
+            payload.setdefault('rebuilt_at', utc_now_iso())
             payload.setdefault('data_freshness_sec', self._snapshot_age_sec(payload.get('source_snapshot_time') or payload.get('as_of')))
             payload['_cached_at'] = utc_now_iso()
             return payload
@@ -61,11 +62,13 @@ class ExecutionService:
             planner.setdefault('as_of', utc_now_iso())
             planner.setdefault('build_status', 'live')
             planner.setdefault('source_snapshot_time', planner.get('as_of'))
+            planner.setdefault('rebuilt_at', utc_now_iso())
             planner.setdefault('data_freshness_sec', self._snapshot_age_sec(planner.get('source_snapshot_time') or planner.get('as_of')))
             state.setdefault('status', 'ok')
             state.setdefault('as_of', utc_now_iso())
             state.setdefault('build_status', 'live')
             state.setdefault('source_snapshot_time', state.get('as_of'))
+            state.setdefault('rebuilt_at', utc_now_iso())
             state.setdefault('data_freshness_sec', self._snapshot_age_sec(state.get('source_snapshot_time') or state.get('as_of')))
             as_of = state.get('as_of') or planner.get('as_of') or utc_now_iso()
             source_snapshot_time = state.get('source_snapshot_time') or planner.get('source_snapshot_time') or as_of
@@ -80,6 +83,7 @@ class ExecutionService:
                 'display_value': display_value,
                 'as_of': as_of,
                 'source_snapshot_time': source_snapshot_time,
+                'rebuilt_at': utc_now_iso(),
                 'data_freshness_sec': self._snapshot_age_sec(source_snapshot_time),
                 'build_status': build_status,
                 '_cached_at': utc_now_iso(),
@@ -171,6 +175,7 @@ class ExecutionService:
             'items': items,
             'as_of': as_of,
             'limit': limit,
+            'rebuilt_at': utc_now_iso(),
             'build_status': 'live',
             'source_snapshot_time': as_of,
             'data_freshness_sec': self._snapshot_age_sec(as_of),
@@ -237,6 +242,7 @@ class ExecutionService:
             payload.setdefault('as_of', utc_now_iso())
             payload.setdefault('build_status', 'live')
             payload.setdefault('source_snapshot_time', payload.get('as_of'))
+            payload.setdefault('rebuilt_at', utc_now_iso())
             payload.setdefault('data_freshness_sec', self._snapshot_age_sec(payload.get('source_snapshot_time') or payload.get('as_of')))
             payload['_cached_at'] = utc_now_iso()
             return payload

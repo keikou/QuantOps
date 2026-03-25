@@ -101,6 +101,7 @@ class PortfolioService:
     @staticmethod
     def _decorate_overview_contract(payload: dict, *, build_status: str) -> dict:
         result = dict(payload)
+        result['rebuilt_at'] = result.get('rebuilt_at') or utc_now_iso()
         result['build_status'] = build_status
         stable_value = {
             'total_equity': result.get('total_equity'),
@@ -124,6 +125,7 @@ class PortfolioService:
     @staticmethod
     def _decorate_metrics_contract(payload: dict, *, build_status: str) -> dict:
         result = dict(payload)
+        result['rebuilt_at'] = result.get('rebuilt_at') or utc_now_iso()
         result['build_status'] = build_status
         stable_value = {
             'fill_rate': result.get('fill_rate'),
@@ -372,6 +374,7 @@ class PortfolioService:
             "items": positions,
             "as_of": payload.get("as_of") or utc_now_iso(),
             "source_snapshot_time": payload.get("source_snapshot_time") or payload.get("as_of"),
+            "rebuilt_at": payload.get("rebuilt_at") or utc_now_iso(),
             "build_status": payload.get("build_status") or "live",
         }
         snapshot_age = self._snapshot_age_sec(result.get("source_snapshot_time"))

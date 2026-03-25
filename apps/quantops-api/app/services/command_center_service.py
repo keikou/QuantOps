@@ -92,6 +92,7 @@ class CommandCenterService:
 
     def _decorate_runtime_latest_response(self, payload: dict, *, build_status: str) -> dict:
         result = dict(payload)
+        result["rebuilt_at"] = result.get("rebuilt_at") or utc_now_iso()
         source_snapshot_time = self._runtime_freshness_anchor(result)
         result["source_snapshot_time"] = source_snapshot_time
         result["data_freshness_sec"] = self._snapshot_age_sec(source_snapshot_time)
@@ -135,6 +136,7 @@ class CommandCenterService:
             "items": items,
             "as_of": source_snapshot_time,
             "source_snapshot_time": source_snapshot_time,
+            "rebuilt_at": utc_now_iso(),
             "data_freshness_sec": self._snapshot_age_sec(source_snapshot_time),
             "build_status": build_status,
             "_cached_at": utc_now_iso(),

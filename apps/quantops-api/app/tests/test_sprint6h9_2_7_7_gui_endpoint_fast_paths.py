@@ -174,6 +174,7 @@ def test_dashboard_overview_parallelizes_upstream_reads() -> None:
     assert payload["active_strategies"] == 2
     assert payload["build_status"] == "live"
     assert payload["source_snapshot_time"] == "2026-03-22T00:00:00+00:00"
+    assert payload["rebuilt_at"]
     assert payload["stable_value"]["total_equity"] == 100.0
     assert payload["display_value"]["running_jobs"] == 1
     assert payload["live_delta"]["alerts_window"] is None
@@ -205,6 +206,7 @@ def test_portfolio_positions_skips_unused_execution_quality_call() -> None:
     assert len(payload["items"]) == 2
     assert client.execution_quality_calls == 0
     assert payload["build_status"] == "live"
+    assert payload["rebuilt_at"]
     assert "price_source" not in payload["items"][0]
     assert "quote_time" not in payload["items"][0]
     assert client.portfolio_positions_calls == 1
@@ -462,6 +464,7 @@ def test_portfolio_metrics_parallelizes_upstream_reads() -> None:
     assert client.portfolio_metrics_calls == 1
     assert client.execution_quality_calls == 0
     assert client.equity_history_calls == 0
+    assert payload["rebuilt_at"]
     assert payload["stable_value"]["fill_rate"] == 1.0
     assert payload["display_value"]["expected_sharpe"] == 0.5
     assert payload["live_delta"]["recent_equity_points_window"] is None
@@ -555,6 +558,7 @@ def test_analytics_equity_history_uses_short_ttl_cache_and_coalesces() -> None:
     assert len(second["items"]) == 3
     assert len(third["items"]) == 3
     assert first["build_status"] == "live"
+    assert first["rebuilt_at"]
     assert client.equity_history_calls == 1
 
 

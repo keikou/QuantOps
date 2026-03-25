@@ -199,11 +199,12 @@ Completed:
   - overview summary
   - portfolio overview
   - portfolio metrics
+- `rebuilt_at` added across the main QuantOps summary/feed contracts so operators can distinguish source freshness from response rebuild time
 
 Still open:
 
 - extend the same explicit stable/display contract to any remaining mixed secondary summary routes if needed
-- decide whether to formalize `source_fill_watermark` / `rebuilt_at` in more read-model responses
+- decide whether to formalize `source_fill_watermark` in more read-model responses
 
 ## Prioritized Issue Backlog
 
@@ -230,7 +231,6 @@ The highest-value remaining items are now:
 1. Keep profiling the equity path to confirm there is no hidden heavy aggregate left after the latest reuse changes
 2. Decide whether more read-model responses should expose:
    - `source_fill_watermark`
-   - `rebuilt_at`
 3. Prepare the branch for PR/review by summarizing:
    - broad timeout improvements
    - startup sequencing changes

@@ -45,6 +45,7 @@ class AnalyticsService:
                 'items': items,
                 'as_of': payload.get('as_of') or items[-1].get('as_of'),
                 'source_snapshot_time': payload.get('source_snapshot_time') or payload.get('as_of') or items[-1].get('as_of'),
+                'rebuilt_at': payload.get('rebuilt_at') or utc_now_iso(),
                 'build_status': payload.get('build_status') or 'live',
             }
         else:
@@ -55,6 +56,7 @@ class AnalyticsService:
                     'base_equity': 100000.0,
                     'as_of': utc_now_iso(),
                     'source_snapshot_time': utc_now_iso(),
+                    'rebuilt_at': utc_now_iso(),
                     'build_status': 'fallback',
                 }
             else:
@@ -71,6 +73,7 @@ class AnalyticsService:
                     'base_equity': base_equity,
                     'as_of': as_of,
                     'source_snapshot_time': as_of,
+                    'rebuilt_at': utc_now_iso(),
                     'build_status': 'fallback',
                 }
         source_snapshot_time = result.get('source_snapshot_time') or result.get('as_of')

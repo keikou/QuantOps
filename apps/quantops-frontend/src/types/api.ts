@@ -21,6 +21,7 @@ export type OverviewData = {
   asOf?: string;
   buildStatus?: string;
   sourceSnapshotTime?: string;
+  rebuiltAt?: string;
   dataFreshnessSec?: number;
   activeSnapshotVersion?: number;
   positionRowCount?: number;
@@ -78,6 +79,7 @@ export type PortfolioOverview = {
   unrealizedPnl: number;
   buildStatus?: string;
   sourceSnapshotTime?: string;
+  rebuiltAt?: string;
   dataFreshnessSec?: number;
   lastUpdated: string;
   stableValue?: {
@@ -114,6 +116,7 @@ export type PortfolioMetrics = {
   expectedSharpe: number;
   buildStatus?: string;
   sourceSnapshotTime?: string;
+  rebuiltAt?: string;
   dataFreshnessSec?: number;
   lastUpdated: string;
   stableValue?: {
@@ -264,6 +267,7 @@ export type FeedPayload<T> = {
   asOf?: string;
   buildStatus?: string;
   sourceSnapshotTime?: string;
+  rebuiltAt?: string;
   dataFreshnessSec?: number;
 };
 
@@ -358,6 +362,7 @@ export type ExecutionState = {
 export type ExecutionViewLatest = {
   planner: ExecutionPlannerLatest;
   state: ExecutionState;
+  rebuiltAt?: string;
   stableValue?: {
     tradingState?: string;
     executionState?: string;
@@ -457,6 +462,7 @@ export type CommandCenterRuntimeLatest = {
   cycleId?: string;
   buildStatus?: string;
   sourceSnapshotTime?: string;
+  rebuiltAt?: string;
   dataFreshnessSec?: number;
   stableValue?: {
     bridgeState?: string;
