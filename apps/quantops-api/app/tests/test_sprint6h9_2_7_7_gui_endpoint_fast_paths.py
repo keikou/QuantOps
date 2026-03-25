@@ -311,6 +311,95 @@ def test_portfolio_overview_parallelizes_upstream_reads() -> None:
     assert elapsed < 0.12
 
 
+def test_portfolio_overview_uses_aggregated_positions_for_margin_breakdown() -> None:
+    class _AggregatedMarginClient(_PortfolioClient):
+        async def get_portfolio_dashboard(self) -> dict:
+            await self._sleep()
+            return {
+                "summary": {
+                    "total_equity": 100.0,
+                    "cash_balance": 30.0,
+                    "unrealized_pnl": 8.0,
+                    "gross_exposure": 0.4,
+                    "net_exposure": 0.4,
+                },
+                "positions": [
+                    {
+                        "symbol": "BTCUSDT",
+                        "side": "long",
+                        "weight": 0.6,
+                        "notional": 60.0,
+                        "pnl": 12.0,
+                        "quantity": 2.0,
+                        "avg_price": 24.0,
+                        "mark_price": 30.0,
+                        "strategy_id": "s1",
+                        "alpha_family": "trend",
+                    },
+                    {
+                        "symbol": "BTCUSDT",
+                        "side": "short",
+                        "weight": 0.2,
+                        "notional": 20.0,
+                        "pnl": -4.0,
+                        "quantity": 1.0,
+                        "avg_price": 34.0,
+                        "mark_price": 30.0,
+                        "strategy_id": "s2",
+                        "alpha_family": "mean_reversion",
+                    },
+                ],
+                "as_of": "2026-03-22T00:00:00+00:00",
+            }
+
+        async def get_portfolio_positions(self) -> dict:
+            self.portfolio_positions_calls += 1
+            await self._sleep()
+            return {
+                "items": [
+                    {
+                        "symbol": "BTCUSDT",
+                        "side": "long",
+                        "weight": 0.6,
+                        "notional": 60.0,
+                        "pnl": 12.0,
+                        "quantity": 2.0,
+                        "avg_price": 24.0,
+                        "mark_price": 30.0,
+                        "strategy_id": "s1",
+                        "alpha_family": "trend",
+                    },
+                    {
+                        "symbol": "BTCUSDT",
+                        "side": "short",
+                        "weight": 0.2,
+                        "notional": 20.0,
+                        "pnl": -4.0,
+                        "quantity": 1.0,
+                        "avg_price": 34.0,
+                        "mark_price": 30.0,
+                        "strategy_id": "s2",
+                        "alpha_family": "mean_reversion",
+                    },
+                ],
+                "as_of": "2026-03-22T00:00:00+00:00",
+                "source_snapshot_time": "2026-03-22T00:00:00+00:00",
+                "build_status": "live",
+            }
+
+    client = _AggregatedMarginClient()
+    service = PortfolioService(client)  # type: ignore[arg-type]
+
+    payload = asyncio.run(service.get_overview())
+
+    assert len(payload["positions"]) == 1
+    assert payload["positions"][0]["symbol"] == "BTCUSDT"
+    assert payload["positions"][0]["quantity"] == 1.0
+    assert payload["used_margin"] == 14.0
+    assert payload["free_margin"] == 86.0
+    assert client.portfolio_positions_calls == 1
+
+
 def test_portfolio_metrics_parallelizes_upstream_reads() -> None:
     client = _PortfolioClient()
     service = PortfolioService(client)  # type: ignore[arg-type]

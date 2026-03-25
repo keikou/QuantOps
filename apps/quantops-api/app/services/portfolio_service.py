@@ -207,13 +207,20 @@ class PortfolioService:
         self._metrics_inflight_task.add_done_callback(_clear_task)
 
     async def _build_overview_live(self) -> dict:
-        overview_payload = await self.v12_client.get_portfolio_dashboard()
+        overview_payload, positions_payload = await asyncio.gather(
+            self.v12_client.get_portfolio_dashboard(),
+            self.get_positions(),
+        )
         overview = overview_payload if isinstance(overview_payload, dict) else {}
+        positions_response = positions_payload if isinstance(positions_payload, dict) else {}
         positions_source = overview
-        positions = self._normalize_positions(positions_source)
+        positions = positions_response.get("items") if isinstance(positions_response.get("items"), list) else []
+        if not positions:
+            positions = self._normalize_positions(positions_source)
+        positions_breakdown_payload = {"items": positions}
         summary = overview.get('summary') if isinstance(overview.get('summary'), dict) else overview
         try:
-            breakdown = compute_equity_breakdown(overview, positions_source)
+            breakdown = compute_equity_breakdown(overview, positions_breakdown_payload)
         except Exception:  # pragma: no cover - defensive fallback for malformed upstream payloads
             logger.exception('equity_breakdown_failed_portfolio')
             summary_balance = float(summary.get('cash_balance', 0.0) or summary.get('balance', 0.0) or summary.get('cash', 0.0) or summary.get('free_cash', 0.0) or 0.0)
