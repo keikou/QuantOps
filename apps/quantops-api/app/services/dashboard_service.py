@@ -102,6 +102,23 @@ class DashboardService:
         result["source_snapshot_time"] = source_snapshot_time
         result["data_freshness_sec"] = self._snapshot_age_sec(source_snapshot_time)
         result["build_status"] = build_status
+        stable_value = {
+            "total_equity": result.get("total_equity"),
+            "balance": result.get("balance"),
+            "used_margin": result.get("used_margin"),
+            "free_margin": result.get("free_margin"),
+            "gross_exposure": result.get("gross_exposure"),
+            "net_exposure": result.get("net_exposure"),
+            "active_strategies": result.get("active_strategies"),
+            "open_alerts": result.get("open_alerts"),
+            "running_jobs": result.get("running_jobs"),
+        }
+        result["stable_value"] = stable_value
+        result["live_delta"] = {
+            "alerts_window": None,
+            "jobs_window": None,
+        }
+        result["display_value"] = dict(stable_value)
         return result
 
     async def _call_with_timeout(self, operation, timeout_seconds: float) -> dict:

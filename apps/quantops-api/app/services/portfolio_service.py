@@ -98,6 +98,52 @@ class PortfolioService:
         sharpe = mean_ret / std
         return round(max(-10.0, min(10.0, sharpe)), 6)
 
+    @staticmethod
+    def _decorate_overview_contract(payload: dict, *, build_status: str) -> dict:
+        result = dict(payload)
+        result['build_status'] = build_status
+        stable_value = {
+            'total_equity': result.get('total_equity'),
+            'balance': result.get('balance'),
+            'used_margin': result.get('used_margin'),
+            'free_margin': result.get('free_margin'),
+            'unrealized': result.get('unrealized'),
+            'gross_exposure': result.get('gross_exposure'),
+            'net_exposure': result.get('net_exposure'),
+            'realized_pnl': result.get('realized_pnl'),
+            'unrealized_pnl': result.get('unrealized_pnl'),
+        }
+        result['stable_value'] = stable_value
+        result['live_delta'] = {
+            'positions_window': None,
+            'metrics_window': None,
+        }
+        result['display_value'] = dict(stable_value)
+        return result
+
+    @staticmethod
+    def _decorate_metrics_contract(payload: dict, *, build_status: str) -> dict:
+        result = dict(payload)
+        result['build_status'] = build_status
+        stable_value = {
+            'fill_rate': result.get('fill_rate'),
+            'expected_sharpe': result.get('expected_sharpe'),
+            'expected_volatility': result.get('expected_volatility'),
+        }
+        result['stable_value'] = stable_value
+        result['live_delta'] = {
+            'recent_fills_window': None,
+            'recent_equity_points_window': None,
+        }
+        result['display_value'] = dict(stable_value)
+        return result
+
+    def _decorate_cached_overview_response(self, payload: dict, *, build_status: str) -> dict:
+        return self._decorate_overview_contract(payload, build_status=build_status)
+
+    def _decorate_cached_metrics_response(self, payload: dict, *, build_status: str) -> dict:
+        return self._decorate_metrics_contract(payload, build_status=build_status)
+
     def _get_cached_metrics(self, *, allow_stale: bool = False) -> dict | None:
         expires_at = self._metrics_cache_expires_at
         updated_at = self._metrics_cache_updated_at
@@ -357,12 +403,12 @@ class PortfolioService:
     async def get_overview(self) -> dict:
         cached = self._get_cached_overview()
         if cached is not None:
-            return cached
+            return self._decorate_cached_overview_response(cached, build_status='fresh_cache')
 
         stale_cached = self._get_cached_overview(allow_stale=True)
         if stale_cached is not None:
             self._schedule_overview_refresh()
-            return stale_cached
+            return self._decorate_cached_overview_response(stale_cached, build_status='stale_cache')
 
         task = self._overview_inflight_task
         if task is not None and not task.done():
@@ -371,7 +417,7 @@ class PortfolioService:
         task = asyncio.create_task(self._build_overview_live())
         self._overview_inflight_task = task
         try:
-            return await task
+            return self._decorate_cached_overview_response(await task, build_status='live')
         finally:
             if self._overview_inflight_task is task:
                 self._overview_inflight_task = None
@@ -379,12 +425,12 @@ class PortfolioService:
     async def get_metrics(self) -> dict:
         cached = self._get_cached_metrics()
         if cached is not None:
-            return cached
+            return self._decorate_cached_metrics_response(cached, build_status='fresh_cache')
 
         stale_cached = self._get_cached_metrics(allow_stale=True)
         if stale_cached is not None:
             self._schedule_metrics_refresh()
-            return stale_cached
+            return self._decorate_cached_metrics_response(stale_cached, build_status='stale_cache')
 
         task = self._metrics_inflight_task
         if task is not None and not task.done():
@@ -393,7 +439,7 @@ class PortfolioService:
         task = asyncio.create_task(self._build_metrics_live())
         self._metrics_inflight_task = task
         try:
-            return await task
+            return self._decorate_cached_metrics_response(await task, build_status='live')
         finally:
             if self._metrics_inflight_task is task:
                 self._metrics_inflight_task = None

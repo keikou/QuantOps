@@ -95,6 +95,32 @@ export function normalizeOverview(input: any) {
     runningJobs: toNumber(x.runningJobs ?? x.running_jobs ?? jobs.length),
     pnlSeries: Array.isArray(x.pnlSeries) ? x.pnlSeries : Array.isArray(x.pnl_series) ? x.pnl_series : [],
     leverage: toNumber(x.leverage),
+    stableValue: x.stableValue || x.stable_value ? {
+      totalEquity: toNumber((x.stableValue ?? x.stable_value)?.totalEquity ?? (x.stableValue ?? x.stable_value)?.total_equity),
+      balance: toNumber((x.stableValue ?? x.stable_value)?.balance),
+      usedMargin: toNumber((x.stableValue ?? x.stable_value)?.usedMargin ?? (x.stableValue ?? x.stable_value)?.used_margin),
+      freeMargin: toNumber((x.stableValue ?? x.stable_value)?.freeMargin ?? (x.stableValue ?? x.stable_value)?.free_margin),
+      grossExposure: toNumber((x.stableValue ?? x.stable_value)?.grossExposure ?? (x.stableValue ?? x.stable_value)?.gross_exposure),
+      netExposure: toNumber((x.stableValue ?? x.stable_value)?.netExposure ?? (x.stableValue ?? x.stable_value)?.net_exposure),
+      activeStrategies: toNumber((x.stableValue ?? x.stable_value)?.activeStrategies ?? (x.stableValue ?? x.stable_value)?.active_strategies),
+      openAlerts: toNumber((x.stableValue ?? x.stable_value)?.openAlerts ?? (x.stableValue ?? x.stable_value)?.open_alerts),
+      runningJobs: toNumber((x.stableValue ?? x.stable_value)?.runningJobs ?? (x.stableValue ?? x.stable_value)?.running_jobs),
+    } : undefined,
+    liveDelta: x.liveDelta || x.live_delta ? {
+      alertsWindow: ((x.liveDelta ?? x.live_delta)?.alertsWindow ?? (x.liveDelta ?? x.live_delta)?.alerts_window) ?? null,
+      jobsWindow: ((x.liveDelta ?? x.live_delta)?.jobsWindow ?? (x.liveDelta ?? x.live_delta)?.jobs_window) ?? null,
+    } : undefined,
+    displayValue: x.displayValue || x.display_value ? {
+      totalEquity: toNumber((x.displayValue ?? x.display_value)?.totalEquity ?? (x.displayValue ?? x.display_value)?.total_equity),
+      balance: toNumber((x.displayValue ?? x.display_value)?.balance),
+      usedMargin: toNumber((x.displayValue ?? x.display_value)?.usedMargin ?? (x.displayValue ?? x.display_value)?.used_margin),
+      freeMargin: toNumber((x.displayValue ?? x.display_value)?.freeMargin ?? (x.displayValue ?? x.display_value)?.free_margin),
+      grossExposure: toNumber((x.displayValue ?? x.display_value)?.grossExposure ?? (x.displayValue ?? x.display_value)?.gross_exposure),
+      netExposure: toNumber((x.displayValue ?? x.display_value)?.netExposure ?? (x.displayValue ?? x.display_value)?.net_exposure),
+      activeStrategies: toNumber((x.displayValue ?? x.display_value)?.activeStrategies ?? (x.displayValue ?? x.display_value)?.active_strategies),
+      openAlerts: toNumber((x.displayValue ?? x.display_value)?.openAlerts ?? (x.displayValue ?? x.display_value)?.open_alerts),
+      runningJobs: toNumber((x.displayValue ?? x.display_value)?.runningJobs ?? (x.displayValue ?? x.display_value)?.running_jobs),
+    } : undefined,
   };
 }
 
@@ -114,6 +140,32 @@ export function normalizePortfolioOverview(input: any) {
     sourceSnapshotTime: toString(x.sourceSnapshotTime ?? x.source_snapshot_time, ''),
     dataFreshnessSec: toNumber(x.dataFreshnessSec ?? x.data_freshness_sec),
     lastUpdated: toString(x.lastUpdated ?? x.last_updated ?? x.asOf ?? x.as_of),
+    stableValue: x.stableValue || x.stable_value ? {
+      totalEquity: toNumber((x.stableValue ?? x.stable_value)?.totalEquity ?? (x.stableValue ?? x.stable_value)?.total_equity),
+      balance: toNumber((x.stableValue ?? x.stable_value)?.balance),
+      usedMargin: toNumber((x.stableValue ?? x.stable_value)?.usedMargin ?? (x.stableValue ?? x.stable_value)?.used_margin),
+      freeMargin: toNumber((x.stableValue ?? x.stable_value)?.freeMargin ?? (x.stableValue ?? x.stable_value)?.free_margin),
+      unrealized: toNumber((x.stableValue ?? x.stable_value)?.unrealized),
+      grossExposure: toNumber((x.stableValue ?? x.stable_value)?.grossExposure ?? (x.stableValue ?? x.stable_value)?.gross_exposure),
+      netExposure: toNumber((x.stableValue ?? x.stable_value)?.netExposure ?? (x.stableValue ?? x.stable_value)?.net_exposure),
+      realizedPnl: toNumber((x.stableValue ?? x.stable_value)?.realizedPnl ?? (x.stableValue ?? x.stable_value)?.realized_pnl),
+      unrealizedPnl: toNumber((x.stableValue ?? x.stable_value)?.unrealizedPnl ?? (x.stableValue ?? x.stable_value)?.unrealized_pnl),
+    } : undefined,
+    liveDelta: x.liveDelta || x.live_delta ? {
+      positionsWindow: ((x.liveDelta ?? x.live_delta)?.positionsWindow ?? (x.liveDelta ?? x.live_delta)?.positions_window) ?? null,
+      metricsWindow: ((x.liveDelta ?? x.live_delta)?.metricsWindow ?? (x.liveDelta ?? x.live_delta)?.metrics_window) ?? null,
+    } : undefined,
+    displayValue: x.displayValue || x.display_value ? {
+      totalEquity: toNumber((x.displayValue ?? x.display_value)?.totalEquity ?? (x.displayValue ?? x.display_value)?.total_equity),
+      balance: toNumber((x.displayValue ?? x.display_value)?.balance),
+      usedMargin: toNumber((x.displayValue ?? x.display_value)?.usedMargin ?? (x.displayValue ?? x.display_value)?.used_margin),
+      freeMargin: toNumber((x.displayValue ?? x.display_value)?.freeMargin ?? (x.displayValue ?? x.display_value)?.free_margin),
+      unrealized: toNumber((x.displayValue ?? x.display_value)?.unrealized),
+      grossExposure: toNumber((x.displayValue ?? x.display_value)?.grossExposure ?? (x.displayValue ?? x.display_value)?.gross_exposure),
+      netExposure: toNumber((x.displayValue ?? x.display_value)?.netExposure ?? (x.displayValue ?? x.display_value)?.net_exposure),
+      realizedPnl: toNumber((x.displayValue ?? x.display_value)?.realizedPnl ?? (x.displayValue ?? x.display_value)?.realized_pnl),
+      unrealizedPnl: toNumber((x.displayValue ?? x.display_value)?.unrealizedPnl ?? (x.displayValue ?? x.display_value)?.unrealized_pnl),
+    } : undefined,
   };
 }
 
@@ -127,6 +179,20 @@ export function normalizePortfolioMetrics(input: any) {
     sourceSnapshotTime: toString(x.sourceSnapshotTime ?? x.source_snapshot_time, ''),
     dataFreshnessSec: toNumber(x.dataFreshnessSec ?? x.data_freshness_sec),
     lastUpdated: toString(x.lastUpdated ?? x.last_updated ?? x.asOf ?? x.as_of),
+    stableValue: x.stableValue || x.stable_value ? {
+      fillRate: toNumber((x.stableValue ?? x.stable_value)?.fillRate ?? (x.stableValue ?? x.stable_value)?.fill_rate),
+      expectedVolatility: toNumber((x.stableValue ?? x.stable_value)?.expectedVolatility ?? (x.stableValue ?? x.stable_value)?.expected_volatility),
+      expectedSharpe: toNumber((x.stableValue ?? x.stable_value)?.expectedSharpe ?? (x.stableValue ?? x.stable_value)?.expected_sharpe),
+    } : undefined,
+    liveDelta: x.liveDelta || x.live_delta ? {
+      recentFillsWindow: ((x.liveDelta ?? x.live_delta)?.recentFillsWindow ?? (x.liveDelta ?? x.live_delta)?.recent_fills_window) ?? null,
+      recentEquityPointsWindow: ((x.liveDelta ?? x.live_delta)?.recentEquityPointsWindow ?? (x.liveDelta ?? x.live_delta)?.recent_equity_points_window) ?? null,
+    } : undefined,
+    displayValue: x.displayValue || x.display_value ? {
+      fillRate: toNumber((x.displayValue ?? x.display_value)?.fillRate ?? (x.displayValue ?? x.display_value)?.fill_rate),
+      expectedVolatility: toNumber((x.displayValue ?? x.display_value)?.expectedVolatility ?? (x.displayValue ?? x.display_value)?.expected_volatility),
+      expectedSharpe: toNumber((x.displayValue ?? x.display_value)?.expectedSharpe ?? (x.displayValue ?? x.display_value)?.expected_sharpe),
+    } : undefined,
   };
 }
 

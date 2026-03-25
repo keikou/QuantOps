@@ -38,6 +38,32 @@ export type OverviewData = {
   riskTradingState?: string;
   killSwitch?: string;
   alertState?: string;
+  stableValue?: {
+    totalEquity?: number;
+    balance?: number;
+    usedMargin?: number;
+    freeMargin?: number;
+    grossExposure?: number;
+    netExposure?: number;
+    activeStrategies?: number;
+    openAlerts?: number;
+    runningJobs?: number;
+  };
+  liveDelta?: {
+    alertsWindow?: number | null;
+    jobsWindow?: number | null;
+  };
+  displayValue?: {
+    totalEquity?: number;
+    balance?: number;
+    usedMargin?: number;
+    freeMargin?: number;
+    grossExposure?: number;
+    netExposure?: number;
+    activeStrategies?: number;
+    openAlerts?: number;
+    runningJobs?: number;
+  };
 };
 
 export type PortfolioOverview = {
@@ -54,6 +80,32 @@ export type PortfolioOverview = {
   sourceSnapshotTime?: string;
   dataFreshnessSec?: number;
   lastUpdated: string;
+  stableValue?: {
+    totalEquity?: number;
+    balance?: number;
+    usedMargin?: number;
+    freeMargin?: number;
+    unrealized?: number;
+    grossExposure?: number;
+    netExposure?: number;
+    realizedPnl?: number;
+    unrealizedPnl?: number;
+  };
+  liveDelta?: {
+    positionsWindow?: number | null;
+    metricsWindow?: number | null;
+  };
+  displayValue?: {
+    totalEquity?: number;
+    balance?: number;
+    usedMargin?: number;
+    freeMargin?: number;
+    unrealized?: number;
+    grossExposure?: number;
+    netExposure?: number;
+    realizedPnl?: number;
+    unrealizedPnl?: number;
+  };
 };
 
 export type PortfolioMetrics = {
@@ -64,6 +116,20 @@ export type PortfolioMetrics = {
   sourceSnapshotTime?: string;
   dataFreshnessSec?: number;
   lastUpdated: string;
+  stableValue?: {
+    fillRate?: number;
+    expectedVolatility?: number;
+    expectedSharpe?: number;
+  };
+  liveDelta?: {
+    recentFillsWindow?: number | null;
+    recentEquityPointsWindow?: number | null;
+  };
+  displayValue?: {
+    fillRate?: number;
+    expectedVolatility?: number;
+    expectedSharpe?: number;
+  };
 };
 
 export type PositionRow = {

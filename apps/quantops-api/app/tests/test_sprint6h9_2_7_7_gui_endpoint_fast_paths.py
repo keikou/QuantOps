@@ -174,6 +174,9 @@ def test_dashboard_overview_parallelizes_upstream_reads() -> None:
     assert payload["active_strategies"] == 2
     assert payload["build_status"] == "live"
     assert payload["source_snapshot_time"] == "2026-03-22T00:00:00+00:00"
+    assert payload["stable_value"]["total_equity"] == 100.0
+    assert payload["display_value"]["running_jobs"] == 1
+    assert payload["live_delta"]["alerts_window"] is None
     assert elapsed < 0.15
 
 
@@ -351,6 +354,9 @@ def test_portfolio_overview_parallelizes_upstream_reads() -> None:
 
     assert payload["total_equity"] == 100.0
     assert "fill_rate" not in payload
+    assert payload["stable_value"]["used_margin"] == 0.0
+    assert payload["display_value"]["gross_exposure"] == 0.6
+    assert payload["live_delta"]["positions_window"] is None
     assert elapsed < 0.12
 
 
@@ -456,6 +462,9 @@ def test_portfolio_metrics_parallelizes_upstream_reads() -> None:
     assert client.portfolio_metrics_calls == 1
     assert client.execution_quality_calls == 0
     assert client.equity_history_calls == 0
+    assert payload["stable_value"]["fill_rate"] == 1.0
+    assert payload["display_value"]["expected_sharpe"] == 0.5
+    assert payload["live_delta"]["recent_equity_points_window"] is None
     assert elapsed < 0.15
 
 
@@ -493,7 +502,11 @@ def test_portfolio_metrics_returns_stale_cache_and_refreshes_in_background() -> 
 
     payload = asyncio.run(run_test())
 
-    assert payload == stale_payload
+    assert payload["fill_rate"] == stale_payload["fill_rate"]
+    assert payload["expected_sharpe"] == stale_payload["expected_sharpe"]
+    assert payload["build_status"] == "stale_cache"
+    assert payload["stable_value"]["fill_rate"] == stale_payload["fill_rate"]
+    assert payload["display_value"]["expected_sharpe"] == stale_payload["expected_sharpe"]
     assert client.portfolio_metrics_calls == 1
     assert client.execution_quality_calls == 0
     assert client.equity_history_calls == 0
