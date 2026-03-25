@@ -425,17 +425,20 @@ class DashboardService:
         started = time.perf_counter()
 
         (
+            positions_payload,
             dashboard_payload,
             runtime_payload,
             registry_payload,
         ) = await asyncio.gather(
+            self.v12_client.get_portfolio_positions(),
             self.v12_client.get_portfolio_dashboard(),
             self.v12_client.get_runtime_status(),
             self.v12_client.get_strategy_registry(),
         )
 
+        portfolio_positions = self._as_dict(positions_payload)
         portfolio_dashboard = self._as_dict(dashboard_payload)
-        portfolio = portfolio_dashboard
+        portfolio = portfolio_positions if portfolio_positions else portfolio_dashboard
         runtime = self._as_dict(runtime_payload)
         registry = self._as_dict(registry_payload)
         summary = (
@@ -666,7 +669,7 @@ class DashboardService:
                 "job_count": len(job_rows),
             },
             "raw": {
-                "portfolio_positions": portfolio,
+                "portfolio_positions": portfolio_positions,
                 "portfolio_dashboard": portfolio_dashboard,
                 "runtime_status": runtime,
                 "strategy_registry": registry,

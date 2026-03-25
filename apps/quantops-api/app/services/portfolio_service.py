@@ -554,10 +554,15 @@ class PortfolioService:
         }
 
     async def get_overview_debug(self) -> dict:
-        overview_payload = await self.v12_client.get_portfolio_dashboard()
+        overview_payload, positions_payload = await asyncio.gather(
+            self.v12_client.get_portfolio_dashboard(),
+            self.v12_client.get_portfolio_positions(),
+        )
         overview = overview_payload if isinstance(overview_payload, dict) else {}
-        positions_source = overview
-        positions = self._normalize_positions(positions_source)
+        positions_source = positions_payload if isinstance(positions_payload, dict) else {}
+        if not positions_source:
+            positions_source = overview
+        positions = self._normalize_positions(positions_source, include_debug_fields=True)
         summary = overview.get("summary") if isinstance(overview.get("summary"), dict) else overview
         summary = summary if isinstance(summary, dict) else {}
 
@@ -681,6 +686,7 @@ class PortfolioService:
                 "background_refresh_scheduled": False,
                 "upstream_dependencies": [
                     "v12:/portfolio/overview",
+                    "v12:/portfolio/positions/latest",
                 ],
                 "field_sources": {
                     "total_equity": f"summary.{total_equity_key}" if total_equity_key else "derived(balance + market_value)",
@@ -703,6 +709,7 @@ class PortfolioService:
             },
             "raw": {
                 "portfolio_dashboard": overview,
+                "portfolio_positions": positions_source,
                 "normalized_positions": positions,
             },
         }
