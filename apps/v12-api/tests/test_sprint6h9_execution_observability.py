@@ -134,6 +134,8 @@ def test_sprint6h9_position_snapshots_use_active_version() -> None:
     metrics_v1 = dict(truth.last_rebuild_positions_metrics)
     assert len(positions_v1) == 1
     assert metrics_v1['snapshot_version']
+    assert metrics_v1['rebuild_mode'] == 'full'
+    assert metrics_v1['full_rebuild_reason'] == 'missing_active_snapshot'
 
     second_as_of = (datetime.now(timezone.utc) + timedelta(seconds=1)).isoformat()
     CONTAINER.runtime_store.append('execution_fills', {
@@ -154,6 +156,7 @@ def test_sprint6h9_position_snapshots_use_active_version() -> None:
     assert metrics_v1['snapshot_version'] != metrics_v2['snapshot_version']
     assert metrics_v2['rebuild_mode'] == 'incremental'
     assert metrics_v2['new_fills_applied'] == 1
+    assert metrics_v2['full_rebuild_reason'] is None
 
     active = CONTAINER.runtime_store.fetchone_dict(
         "SELECT version_id FROM position_snapshot_versions WHERE build_status = 'active' ORDER BY activated_at DESC LIMIT 1"
@@ -217,6 +220,7 @@ def test_sprint6h9_equity_snapshot_reuses_watermark_when_only_prices_change() ->
     positions_v1 = truth.rebuild_positions(as_of)
     equity_v1 = truth.compute_equity_snapshot(positions_v1, as_of)
     assert truth.last_compute_equity_snapshot_metrics['rebuild_mode'] == 'full'
+    assert truth.last_compute_equity_snapshot_metrics['full_rebuild_reason'] == 'missing_previous_snapshot'
 
     as_of_2 = (datetime.now(timezone.utc) + timedelta(seconds=1)).isoformat()
     CONTAINER.runtime_store.execute("DELETE FROM market_prices_latest WHERE symbol = 'BTCUSDT'")
@@ -238,5 +242,6 @@ def test_sprint6h9_equity_snapshot_reuses_watermark_when_only_prices_change() ->
     assert truth.last_rebuild_positions_metrics['fills_scanned'] == 0
     assert truth.last_compute_equity_snapshot_metrics['rebuild_mode'] == 'incremental'
     assert truth.last_compute_equity_snapshot_metrics['fills_scanned'] == 0
+    assert truth.last_compute_equity_snapshot_metrics['full_rebuild_reason'] is None
     assert round(equity_v2['market_value'], 2) == 103.00
     assert round(equity_v2['total_equity'] - equity_v1['total_equity'], 2) == 2.00

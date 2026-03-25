@@ -626,7 +626,12 @@ class TruthEngine:
         store = CONTAINER.runtime_store
         watermark_created_at, watermark_fill_id = self._get_fill_watermark("positions_last_fill")
         active_rows = self._fetch_active_position_rows()
-        full_rebuild = not active_rows or not watermark_created_at or not watermark_fill_id
+        full_rebuild_reason = None
+        if not active_rows:
+            full_rebuild_reason = "missing_active_snapshot"
+        elif not watermark_created_at or not watermark_fill_id:
+            full_rebuild_reason = "missing_fill_watermark"
+        full_rebuild = full_rebuild_reason is not None
         fills = self._fetch_new_fills(watermark_created_at, watermark_fill_id) if not full_rebuild else store.fetchall_dict(
             """
             SELECT fill_id, run_id, plan_id, strategy_id, alpha_family, symbol, side, fill_qty, fill_price, fee_bps, created_at
@@ -727,6 +732,7 @@ class TruthEngine:
             "position_rows": len(latest_rows),
             "build_duration_ms": build_duration_ms,
             "rebuild_mode": "full" if full_rebuild else "incremental",
+            "full_rebuild_reason": full_rebuild_reason,
         }
         return valued
 
@@ -742,7 +748,12 @@ class TruthEngine:
             LIMIT 1
             """
         )
-        full_rebuild = previous is None or not watermark_created_at or not watermark_fill_id
+        full_rebuild_reason = None
+        if previous is None:
+            full_rebuild_reason = "missing_previous_snapshot"
+        elif not watermark_created_at or not watermark_fill_id:
+            full_rebuild_reason = "missing_fill_watermark"
+        full_rebuild = full_rebuild_reason is not None
         fills = self._fetch_new_fills(watermark_created_at, watermark_fill_id) if not full_rebuild else store.fetchall_dict(
             """
             SELECT fill_id, run_id, plan_id, strategy_id, alpha_family, symbol, side, fill_qty, fill_price, fee_bps, created_at
@@ -815,6 +826,7 @@ class TruthEngine:
             "position_rows": len(positions),
             "build_duration_ms": round((time.perf_counter() - started_at) * 1000.0, 2),
             "rebuild_mode": "full" if full_rebuild else "incremental",
+            "full_rebuild_reason": full_rebuild_reason,
         }
         return row
 
