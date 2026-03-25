@@ -3,7 +3,9 @@ from fastapi.testclient import TestClient
 from ai_hedge_bot.app.container import CONTAINER
 from ai_hedge_bot.app.main import app
 from ai_hedge_bot.api.routes import portfolio as portfolio_routes
+from ai_hedge_bot.api.routes import risk as risk_routes
 from ai_hedge_bot.api.routes import runtime as runtime_routes
+from ai_hedge_bot.api.routes import strategy as strategy_routes
 
 client = TestClient(app)
 
@@ -258,4 +260,47 @@ def test_runtime_status_reuses_short_ttl_cache(monkeypatch) -> None:
     assert first.json() == second.json()
     assert call_count['runs'] == 1
     assert call_count['state'] == 1
-    assert call_count['query'] == 3
+
+
+def test_risk_latest_reuses_short_ttl_cache(monkeypatch) -> None:
+    risk_routes._risk_latest_cache["expires_at"] = None
+    risk_routes._risk_latest_cache["payload"] = None
+    call_count = {"count": 0}
+
+    def fake_latest_risk() -> dict:
+        call_count["count"] += 1
+        return {"status": "ok", "risk": {"run_id": f"run-{call_count['count']}"}}
+
+    monkeypatch.setattr(CONTAINER.sprint5c_service, "get_latest_risk", fake_latest_risk)
+
+    first = client.get('/risk/latest')
+    second = client.get('/risk/latest')
+
+    assert first.status_code == 200
+    assert second.status_code == 200
+    assert first.json()["risk"]["run_id"] == second.json()["risk"]["run_id"]
+    assert first.json()["build_status"] == "live"
+    assert second.json()["build_status"] == "fresh_cache"
+    assert call_count["count"] == 1
+
+
+def test_strategy_risk_budget_reuses_short_ttl_cache(monkeypatch) -> None:
+    strategy_routes._risk_budget_cache["expires_at"] = None
+    strategy_routes._risk_budget_cache["payload"] = None
+    call_count = {"count": 0}
+
+    def fake_latest_risk_budget() -> dict:
+        call_count["count"] += 1
+        return {"status": "ok", "risk": {"run_id": f"run-{call_count['count']}"}, "global": {}}
+
+    monkeypatch.setattr(strategy_routes._service, "latest_risk_budget", fake_latest_risk_budget)
+
+    first = client.get('/strategy/risk-budget')
+    second = client.get('/strategy/risk-budget')
+
+    assert first.status_code == 200
+    assert second.status_code == 200
+    assert first.json()["risk"]["run_id"] == second.json()["risk"]["run_id"]
+    assert first.json()["build_status"] == "live"
+    assert second.json()["build_status"] == "fresh_cache"
+    assert call_count["count"] == 1

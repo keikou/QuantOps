@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from datetime import timedelta
 
 from fastapi import APIRouter
 from pydantic import BaseModel
@@ -12,6 +13,8 @@ router = APIRouter(prefix='/strategy', tags=['strategy'])
 _service = StrategyService()
 _repo = Sprint5Repository()
 _lifecycle_state: dict[str, dict] = {}
+_risk_budget_cache: dict[str, object | None] = {"expires_at": None, "payload": None}
+_RISK_BUDGET_TTL_SECONDS = 5.0
 
 
 def _now() -> str:
@@ -53,7 +56,18 @@ def allocate_capital() -> dict:
 
 @router.get('/risk-budget')
 def risk_budget() -> dict:
-    return _service.latest_risk_budget()
+    now = datetime.now(timezone.utc)
+    expires_at = _risk_budget_cache.get("expires_at")
+    payload = _risk_budget_cache.get("payload")
+    if isinstance(expires_at, datetime) and expires_at > now and isinstance(payload, dict):
+        cached = dict(payload)
+        cached["build_status"] = "fresh_cache"
+        return cached
+    live = dict(_service.latest_risk_budget())
+    live["build_status"] = "live"
+    _risk_budget_cache["payload"] = dict(live)
+    _risk_budget_cache["expires_at"] = now + timedelta(seconds=_RISK_BUDGET_TTL_SECONDS)
+    return live
 
 
 @router.get('/signals/latest')
