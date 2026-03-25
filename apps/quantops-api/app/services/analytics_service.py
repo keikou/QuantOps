@@ -1,13 +1,82 @@
 from __future__ import annotations
 
+import asyncio
+from datetime import datetime, timedelta, timezone
+import logging
+
 from app.clients.v12_client import V12Client, utc_now_iso
 from app.repositories.analytics_repository import AnalyticsRepository
 
 
+logger = logging.getLogger(__name__)
+
+
 class AnalyticsService:
+    EQUITY_HISTORY_CACHE_TTL_SECONDS = 5.0
+    EQUITY_HISTORY_STALE_MAX_AGE_SECONDS = 60.0
+
     def __init__(self, v12_client: V12Client, analytics_repository: AnalyticsRepository) -> None:
         self.v12_client = v12_client
         self.analytics_repository = analytics_repository
+        self._equity_history_cache: dict | None = None
+        self._equity_history_cache_expires_at: datetime | None = None
+        self._equity_history_cache_updated_at: datetime | None = None
+        self._equity_history_inflight_task: asyncio.Task | None = None
+
+    def _get_cached_equity_history(self, *, allow_stale: bool = False) -> dict | None:
+        expires_at = self._equity_history_cache_expires_at
+        updated_at = self._equity_history_cache_updated_at
+        if self._equity_history_cache is None or expires_at is None or updated_at is None:
+            return None
+        now = datetime.now(timezone.utc)
+        if expires_at > now:
+            return dict(self._equity_history_cache)
+        if not allow_stale:
+            return None
+        if (now - updated_at).total_seconds() > self.EQUITY_HISTORY_STALE_MAX_AGE_SECONDS:
+            return None
+        return dict(self._equity_history_cache)
+
+    async def _build_equity_history_live(self) -> dict:
+        payload = await self.v12_client.get_equity_history()
+        items = payload.get('items') or []
+        if items:
+            result = {'items': items, 'as_of': payload.get('as_of') or items[-1].get('as_of')}
+        else:
+            series = self.analytics_repository.pnl_series(limit=200)
+            if not series:
+                result = {'items': [], 'base_equity': 100000.0, 'as_of': utc_now_iso()}
+            else:
+                base_equity = 100000.0
+                cumulative = 0.0
+                built_items = []
+                for row in series:
+                    cumulative += float(row.get('total_pnl', 0.0) or 0.0)
+                    label = str(row.get('as_of', utc_now_iso()))
+                    built_items.append({'name': label, 'value': round(base_equity + cumulative, 6), 'pnl': round(cumulative, 6), 'as_of': label})
+                result = {'items': built_items, 'base_equity': base_equity, 'as_of': built_items[-1]['as_of'] if built_items else utc_now_iso()}
+        now = datetime.now(timezone.utc)
+        self._equity_history_cache = dict(result)
+        self._equity_history_cache_updated_at = now
+        self._equity_history_cache_expires_at = now + timedelta(seconds=self.EQUITY_HISTORY_CACHE_TTL_SECONDS)
+        return result
+
+    def _schedule_equity_history_refresh(self) -> None:
+        task = self._equity_history_inflight_task
+        if task is not None and not task.done():
+            return
+        self._equity_history_inflight_task = asyncio.create_task(self._build_equity_history_live())
+
+        def _clear_task(finished: asyncio.Task) -> None:
+            try:
+                finished.exception()
+            except Exception:
+                logger.exception("analytics_equity_history_background_refresh_failed")
+            finally:
+                if self._equity_history_inflight_task is finished:
+                    self._equity_history_inflight_task = None
+
+        self._equity_history_inflight_task.add_done_callback(_clear_task)
 
     async def refresh(self) -> dict:
         registry = await self.v12_client.get_strategy_registry()
@@ -147,21 +216,26 @@ class AnalyticsService:
         return self.analytics_repository.runtime_states()
 
     async def equity_history(self) -> dict:
-        payload = await self.v12_client.get_equity_history()
-        items = payload.get('items') or []
-        if items:
-            return {'items': items, 'as_of': payload.get('as_of') or items[-1].get('as_of')}
-        series = self.analytics_repository.pnl_series(limit=200)
-        if not series:
-            return {'items': [], 'base_equity': 100000.0, 'as_of': utc_now_iso()}
-        base_equity = 100000.0
-        cumulative = 0.0
-        items = []
-        for row in series:
-            cumulative += float(row.get('total_pnl', 0.0) or 0.0)
-            label = str(row.get('as_of', utc_now_iso()))
-            items.append({'name': label, 'value': round(base_equity + cumulative, 6), 'pnl': round(cumulative, 6), 'as_of': label})
-        return {'items': items, 'base_equity': base_equity, 'as_of': items[-1]['as_of'] if items else utc_now_iso()}
+        cached = self._get_cached_equity_history()
+        if cached is not None:
+            return cached
+
+        stale_cached = self._get_cached_equity_history(allow_stale=True)
+        if stale_cached is not None:
+            self._schedule_equity_history_refresh()
+            return stale_cached
+
+        task = self._equity_history_inflight_task
+        if task is not None and not task.done():
+            return await task
+
+        task = asyncio.create_task(self._build_equity_history_live())
+        self._equity_history_inflight_task = task
+        try:
+            return await task
+        finally:
+            if self._equity_history_inflight_task is task:
+                self._equity_history_inflight_task = None
 
     async def latest_execution_fills(self) -> dict:
         payload = await self.v12_client.get_execution_fills(limit=100)

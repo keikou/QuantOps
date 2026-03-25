@@ -75,6 +75,7 @@ def get_scheduler_service() -> SchedulerService:
     return SchedulerService(get_scheduler_repository(), get_audit_repository(), get_risk_repository())
 
 
+@lru_cache(maxsize=1)
 def get_analytics_service() -> AnalyticsService:
     return AnalyticsService(get_v12_client(), get_analytics_repository())
 

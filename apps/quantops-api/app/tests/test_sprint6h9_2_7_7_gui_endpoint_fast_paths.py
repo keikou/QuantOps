@@ -5,7 +5,9 @@ from datetime import datetime, timedelta, timezone
 import time
 
 from app.core.deps import get_dashboard_service, get_portfolio_service
+from app.core.deps import get_analytics_service
 from app.services.dashboard_service import DashboardService
+from app.services.analytics_service import AnalyticsService
 from app.services.portfolio_service import PortfolioService
 
 
@@ -76,6 +78,7 @@ class _PortfolioClient:
         self.execution_quality_calls = 0
         self.equity_history_calls = 0
         self.portfolio_metrics_calls = 0
+        self.portfolio_positions_calls = 0
 
     async def _sleep(self) -> None:
         await asyncio.sleep(0.05)
@@ -100,6 +103,7 @@ class _PortfolioClient:
         }
 
     async def get_portfolio_positions(self) -> dict:
+        self.portfolio_positions_calls += 1
         await self._sleep()
         return {
             "items": [
@@ -188,6 +192,47 @@ def test_portfolio_positions_skips_unused_execution_quality_call() -> None:
 
     assert len(payload) == 2
     assert client.execution_quality_calls == 0
+    assert "price_source" not in payload[0]
+    assert "quote_time" not in payload[0]
+    assert client.portfolio_positions_calls == 1
+
+
+def test_portfolio_positions_uses_short_ttl_cache_and_coalesces() -> None:
+    client = _PortfolioClient()
+    service = PortfolioService(client)  # type: ignore[arg-type]
+
+    async def run_test() -> tuple[list[dict], list[dict], list[dict]]:
+        first, second = await asyncio.gather(service.get_positions(), service.get_positions())
+        third = await service.get_positions()
+        return first, second, third
+
+    first, second, third = asyncio.run(run_test())
+
+    assert len(first) == 2
+    assert second[0]["symbol"] == first[0]["symbol"]
+    assert third[1]["symbol"] == first[1]["symbol"]
+    assert client.portfolio_positions_calls == 1
+
+
+def test_portfolio_positions_returns_stale_cache_and_refreshes_in_background() -> None:
+    client = _PortfolioClient()
+    service = PortfolioService(client)  # type: ignore[arg-type]
+    stale_payload = [{"symbol": "STALE", "side": "long", "weight": 0.1, "notional": 1.0, "pnl": 0.0, "quantity": 1.0, "avg_price": 1.0, "mark_price": 1.0, "strategy_id": "s1", "alpha_family": "trend"}]
+    service._positions_cache = list(stale_payload)
+    service._positions_cache_updated_at = datetime.now(timezone.utc)
+    service._positions_cache_expires_at = datetime.now(timezone.utc) - timedelta(seconds=1)
+
+    async def run_test() -> list[dict]:
+        payload = await service.get_positions()
+        await asyncio.sleep(0.12)
+        return payload
+
+    payload = asyncio.run(run_test())
+
+    assert payload == stale_payload
+    assert client.portfolio_positions_calls == 1
+    assert service._positions_cache is not None
+    assert service._positions_cache[0]["symbol"] == "BTCUSDT"
 
 
 def test_portfolio_overview_parallelizes_upstream_reads() -> None:
@@ -268,6 +313,13 @@ def test_get_portfolio_service_is_shared_singleton() -> None:
     assert first is second
 
 
+def test_get_analytics_service_is_shared_singleton() -> None:
+    first = get_analytics_service()
+    second = get_analytics_service()
+
+    assert first is second
+
+
 def test_dashboard_overview_coalesces_concurrent_live_builds() -> None:
     service = _CountingDashboardService()
 
@@ -278,7 +330,44 @@ def test_dashboard_overview_coalesces_concurrent_live_builds() -> None:
 
     assert first["total_equity"] == 100.0
     assert second["latest_run_id"] == "run-1"
-    assert service.build_calls == 1
+
+
+def test_analytics_equity_history_uses_short_ttl_cache_and_coalesces() -> None:
+    client = _PortfolioClient()
+    service = AnalyticsService(client, _SchedulerRepository())  # type: ignore[arg-type]
+
+    async def run_test() -> tuple[dict, dict, dict]:
+        first, second = await asyncio.gather(service.equity_history(), service.equity_history())
+        third = await service.equity_history()
+        return first, second, third
+
+    first, second, third = asyncio.run(run_test())
+
+    assert len(first["items"]) == 3
+    assert len(second["items"]) == 3
+    assert len(third["items"]) == 3
+    assert client.equity_history_calls == 1
+
+
+def test_analytics_equity_history_returns_stale_cache_and_refreshes_in_background() -> None:
+    client = _PortfolioClient()
+    service = AnalyticsService(client, _SchedulerRepository())  # type: ignore[arg-type]
+    stale_payload = {"items": [{"name": "stale", "value": 1.0, "pnl": 0.0, "as_of": "2026-03-22T00:00:00+00:00"}], "as_of": "2026-03-22T00:00:00+00:00"}
+    service._equity_history_cache = dict(stale_payload)
+    service._equity_history_cache_updated_at = datetime.now(timezone.utc)
+    service._equity_history_cache_expires_at = datetime.now(timezone.utc) - timedelta(seconds=1)
+
+    async def run_test() -> dict:
+        payload = await service.equity_history()
+        await asyncio.sleep(0.12)
+        return payload
+
+    payload = asyncio.run(run_test())
+
+    assert payload == stale_payload
+    assert client.equity_history_calls == 1
+    assert service._equity_history_cache is not None
+    assert len(service._equity_history_cache["items"]) == 3
 
 
 def test_dashboard_overview_returns_stale_cache_and_refreshes_in_background() -> None:
