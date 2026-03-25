@@ -45,6 +45,8 @@ class TruthEngine:
         self.last_compute_equity_snapshot_metrics: dict[str, Any] = {}
         self._last_rebuild_positions_fill_watermark: tuple[str | None, str | None, bool] | None = None
         self._last_rebuild_positions_fills: list[dict[str, Any]] | None = None
+        self._last_position_rollup_as_of: str | None = None
+        self._last_position_rollup: dict[str, float] | None = None
 
     def ensure_schema(self) -> None:
         store = CONTAINER.runtime_store
@@ -443,6 +445,28 @@ class TruthEngine:
             return None
         return list(self._last_rebuild_positions_fills)
 
+    @staticmethod
+    def _summarize_positions_for_equity(positions: list[dict[str, Any]]) -> dict[str, float]:
+        return {
+            "realized_total": round(sum(float(p.get("realized_pnl", 0.0) or 0.0) for p in positions), 8),
+            "unrealized": round(sum(float(p.get("unrealized_pnl", 0.0) or 0.0) for p in positions), 8),
+            "used_margin": round(sum(float(p.get("avg_entry_price", 0.0) or 0.0) * float(p.get("abs_qty", 0.0) or 0.0) for p in positions), 8),
+            "current_long_notional": round(sum(max(0.0, float(p.get("market_value", 0.0) or 0.0)) for p in positions), 8),
+            "current_short_notional": round(sum(abs(min(0.0, float(p.get("market_value", 0.0) or 0.0))) for p in positions), 8),
+            "market_value": round(sum(float(p.get("market_value", 0.0) or 0.0) for p in positions), 8),
+        }
+
+    def _remember_position_rollup(self, as_of: str, positions: list[dict[str, Any]]) -> None:
+        self._last_position_rollup_as_of = as_of
+        self._last_position_rollup = self._summarize_positions_for_equity(positions)
+
+    def _reuse_position_rollup(self, as_of: str) -> dict[str, float] | None:
+        if self._last_position_rollup_as_of != as_of:
+            return None
+        if self._last_position_rollup is None:
+            return None
+        return dict(self._last_position_rollup)
+
     def get_latest_market_prices(self, symbols: list[str] | None = None) -> dict[str, dict[str, Any]]:
         store = CONTAINER.runtime_store
         rows = []
@@ -766,6 +790,7 @@ class TruthEngine:
                 "cleanup_duration_ms": 0.0,
                 "history_rows_written": 0,
             }
+            self._remember_position_rollup(as_of, valued)
             return valued
         active_version = self._active_position_snapshot_version()
         incremental_inplace = not full_rebuild and bool(fills) and bool(active_version)
@@ -930,6 +955,7 @@ class TruthEngine:
             "cleanup_duration_ms": cleanup_duration_ms,
             "history_rows_written": len(history_rows),
         }
+        self._remember_position_rollup(as_of, valued)
         return valued
 
     def compute_equity_snapshot(self, positions: list[dict[str, Any]], as_of: str) -> dict[str, Any]:
@@ -979,11 +1005,16 @@ class TruthEngine:
             else:
                 cash_balance = round(prev_cash, 8)
                 fees_paid = round(prev_fees, 8)
-        unrealized = round(sum(float(p.get("unrealized_pnl", 0.0) or 0.0) for p in positions), 8)
-        used_margin = round(sum(float(p.get("avg_entry_price", 0.0) or 0.0) * float(p.get("abs_qty", 0.0) or 0.0) for p in positions), 8)
-        current_long_notional = round(sum(max(0.0, float(p.get("market_value", 0.0) or 0.0)) for p in positions), 8)
-        current_short_notional = round(sum(abs(min(0.0, float(p.get("market_value", 0.0) or 0.0))) for p in positions), 8)
-        market_value = round(sum(float(p.get("market_value", 0.0) or 0.0) for p in positions), 8)
+        position_rollup = self._reuse_position_rollup(as_of)
+        position_rollup_source = "cached" if position_rollup is not None else "computed"
+        if position_rollup is None:
+            position_rollup = self._summarize_positions_for_equity(positions)
+        realized_total = float(position_rollup["realized_total"])
+        unrealized = float(position_rollup["unrealized"])
+        used_margin = float(position_rollup["used_margin"])
+        current_long_notional = float(position_rollup["current_long_notional"])
+        current_short_notional = float(position_rollup["current_short_notional"])
+        market_value = float(position_rollup["market_value"])
         collateral_equity = round(cash_balance + market_value, 8)
         total_equity = round(collateral_equity, 8)
         available_margin = round(max(total_equity - used_margin, 0.0), 8)
@@ -1029,6 +1060,7 @@ class TruthEngine:
             "build_duration_ms": round((time.perf_counter() - started_at) * 1000.0, 2),
             "rebuild_mode": "full" if full_rebuild else "incremental",
             "full_rebuild_reason": full_rebuild_reason,
+            "position_rollup_source": position_rollup_source,
         }
         return row
 

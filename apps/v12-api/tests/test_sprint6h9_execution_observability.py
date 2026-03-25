@@ -517,3 +517,24 @@ def test_sprint6h9_equity_snapshot_reuses_rebuild_fill_fetch() -> None:
     truth.compute_equity_snapshot(positions_2, as_of_2)
 
     assert fetch_calls == 1
+    assert truth.last_compute_equity_snapshot_metrics['position_rollup_source'] == 'cached'
+
+
+def test_sprint6h9_equity_snapshot_computes_rollup_without_matching_rebuild_cycle() -> None:
+    _reset_runtime_state()
+    truth = TruthEngine()
+    as_of = datetime.now(timezone.utc).isoformat()
+    positions = [
+        {
+            'symbol': 'BTCUSDT',
+            'avg_entry_price': 100.0,
+            'abs_qty': 1.5,
+            'market_value': 153.0,
+            'unrealized_pnl': 3.0,
+            'realized_pnl': 5.0,
+        }
+    ]
+    row = truth.compute_equity_snapshot(positions, as_of)
+
+    assert round(row['market_value'], 2) == 153.00
+    assert truth.last_compute_equity_snapshot_metrics['position_rollup_source'] == 'computed'
