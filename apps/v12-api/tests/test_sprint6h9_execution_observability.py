@@ -240,6 +240,7 @@ def test_sprint6h9_equity_snapshot_reuses_watermark_when_only_prices_change() ->
 
     assert truth.last_rebuild_positions_metrics['rebuild_mode'] == 'incremental'
     assert truth.last_rebuild_positions_metrics['fills_scanned'] == 0
+    assert truth.last_rebuild_positions_metrics['history_rows_written'] == 0
     assert truth.last_compute_equity_snapshot_metrics['rebuild_mode'] == 'incremental'
     assert truth.last_compute_equity_snapshot_metrics['fills_scanned'] == 0
     assert truth.last_compute_equity_snapshot_metrics['full_rebuild_reason'] is None

@@ -190,6 +190,7 @@ class OrchestrationService:
             'position_row_materialize_duration_ms': position_metrics.get('row_materialize_duration_ms', 0.0),
             'position_row_write_duration_ms': position_metrics.get('row_write_duration_ms', 0.0),
             'position_activation_duration_ms': position_metrics.get('activation_duration_ms', 0.0),
+            'position_history_rows_written': position_metrics.get('history_rows_written', 0),
             'equity_build_duration_ms': equity_metrics.get('build_duration_ms', 0.0),
             'equity_full_rebuild_reason': equity_metrics.get('full_rebuild_reason'),
         }

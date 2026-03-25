@@ -695,7 +695,8 @@ class TruthEngine:
                 "updated_at": as_of,
             }
             latest_rows.append(row)
-            history_rows.append({"snapshot_time": as_of, **{k: v for k, v in row.items() if k != "updated_at"}})
+            if full_rebuild or fills:
+                history_rows.append({"snapshot_time": as_of, **{k: v for k, v in row.items() if k != "updated_at"}})
             valued.append(row)
         row_materialize_duration_ms = round((time.perf_counter() - row_materialize_started_at) * 1000.0, 2)
         row_write_duration_ms = 0.0
@@ -722,7 +723,8 @@ class TruthEngine:
             row_write_started_at = time.perf_counter()
             if latest_rows:
                 store.append("position_snapshots_latest", latest_rows, conn=conn)
-                store.append("position_snapshots_history", history_rows, conn=conn)
+                if history_rows:
+                    store.append("position_snapshots_history", history_rows, conn=conn)
             row_write_duration_ms = round((time.perf_counter() - row_write_started_at) * 1000.0, 2)
             activation_started_at = time.perf_counter()
             store.execute(
@@ -767,6 +769,7 @@ class TruthEngine:
             "row_materialize_duration_ms": row_materialize_duration_ms,
             "row_write_duration_ms": row_write_duration_ms,
             "activation_duration_ms": activation_duration_ms,
+            "history_rows_written": len(history_rows),
         }
         return valued
 
