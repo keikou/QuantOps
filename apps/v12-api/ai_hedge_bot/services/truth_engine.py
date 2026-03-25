@@ -333,6 +333,32 @@ class TruthEngine:
             return
         self._set_state_value(key, f"{created_at}|{fill_id}", as_of, conn=conn)
 
+    def _get_equity_state(self) -> dict[str, float] | None:
+        raw = self._get_state_value("equity_snapshot_state")
+        if not raw:
+            return None
+        try:
+            cash_balance, fees_paid, realized_pnl, peak_equity = raw.split("|", 3)
+            return {
+                "cash_balance": float(cash_balance or self.initial_capital),
+                "fees_paid": float(fees_paid or 0.0),
+                "realized_pnl": float(realized_pnl or 0.0),
+                "peak_equity": float(peak_equity or self.initial_capital),
+            }
+        except Exception:
+            return None
+
+    def _set_equity_state(self, row: dict[str, Any], as_of: str, conn=None) -> None:
+        payload = "|".join(
+            [
+                str(float(row.get("cash_balance", self.initial_capital) or self.initial_capital)),
+                str(float(row.get("fees_paid", 0.0) or 0.0)),
+                str(float(row.get("realized_pnl", 0.0) or 0.0)),
+                str(float(row.get("peak_equity", self.initial_capital) or self.initial_capital)),
+            ]
+        )
+        self._set_state_value("equity_snapshot_state", payload, as_of, conn=conn)
+
     def _active_position_snapshot_version(self) -> str | None:
         row = CONTAINER.runtime_store.fetchone_dict(
             """
@@ -878,14 +904,16 @@ class TruthEngine:
         started_at = time.perf_counter()
         store = CONTAINER.runtime_store
         watermark_created_at, watermark_fill_id = self._get_fill_watermark("equity_last_fill")
-        previous = store.fetchone_dict(
-            """
-            SELECT cash_balance, fees_paid, realized_pnl, peak_equity
-            FROM equity_snapshots
-            ORDER BY snapshot_time DESC
-            LIMIT 1
-            """
-        )
+        previous = self._get_equity_state()
+        if previous is None:
+            previous = store.fetchone_dict(
+                """
+                SELECT cash_balance, fees_paid, realized_pnl, peak_equity
+                FROM equity_snapshots
+                ORDER BY snapshot_time DESC
+                LIMIT 1
+                """
+            )
         full_rebuild_reason = None
         if previous is None:
             full_rebuild_reason = "missing_previous_snapshot"
@@ -956,8 +984,14 @@ class TruthEngine:
             "drawdown": drawdown,
             "peak_equity": round(peak, 8),
         }
-        store.append("equity_snapshots", row)
-        self._set_fill_watermark("equity_last_fill", fills[-1] if fills else None, as_of)
+        with store._session() as conn:
+            store.append("equity_snapshots", row, conn=conn)
+            self._set_fill_watermark("equity_last_fill", fills[-1] if fills else None, as_of, conn=conn)
+            self._set_equity_state(row, as_of, conn=conn)
+            try:
+                conn.commit()
+            except Exception:
+                pass
         self.last_compute_equity_snapshot_metrics = {
             "fills_scanned": len(fills),
             "new_fills_applied": len(fills),

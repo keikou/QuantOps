@@ -324,3 +324,56 @@ def test_sprint6h9_incremental_history_writes_only_affected_positions() -> None:
     assert truth.last_rebuild_positions_metrics['rebuild_mode'] == 'incremental'
     assert truth.last_rebuild_positions_metrics['fills_scanned'] == 1
     assert truth.last_rebuild_positions_metrics['history_rows_written'] == 1
+
+
+def test_sprint6h9_incremental_equity_snapshot_uses_state_when_history_row_missing() -> None:
+    _reset_runtime_state()
+    truth = TruthEngine()
+    as_of = datetime.now(timezone.utc).isoformat()
+    CONTAINER.runtime_store.append('execution_fills', {
+        'fill_id': 'fill-eq-1',
+        'run_id': 'run-eq-1',
+        'plan_id': 'plan-eq-1',
+        'strategy_id': 'strategy-a',
+        'alpha_family': 'trend',
+        'symbol': 'BTCUSDT',
+        'side': 'buy',
+        'fill_qty': 1.0,
+        'fill_price': 100.0,
+        'fee_bps': 0.0,
+        'created_at': as_of,
+    })
+    CONTAINER.runtime_store.append('market_prices_latest', {
+        'symbol': 'BTCUSDT',
+        'mark_price': 100.0,
+        'source': 'test',
+        'price_time': as_of,
+        'quote_age_sec': 0.0,
+        'stale': False,
+        'fallback_reason': None,
+        'updated_at': as_of,
+    })
+    positions_v1 = truth.rebuild_positions(as_of)
+    equity_v1 = truth.compute_equity_snapshot(positions_v1, as_of)
+    assert truth.last_compute_equity_snapshot_metrics['rebuild_mode'] == 'full'
+
+    CONTAINER.runtime_store.execute("DELETE FROM equity_snapshots")
+    as_of_2 = (datetime.now(timezone.utc) + timedelta(seconds=1)).isoformat()
+    CONTAINER.runtime_store.execute("DELETE FROM market_prices_latest WHERE symbol = 'BTCUSDT'")
+    CONTAINER.runtime_store.append('market_prices_latest', {
+        'symbol': 'BTCUSDT',
+        'mark_price': 101.0,
+        'source': 'test',
+        'price_time': as_of_2,
+        'quote_age_sec': 0.0,
+        'stale': False,
+        'fallback_reason': None,
+        'updated_at': as_of_2,
+    })
+    positions_v2 = truth.rebuild_positions(as_of_2)
+    equity_v2 = truth.compute_equity_snapshot(positions_v2, as_of_2)
+
+    assert truth.last_compute_equity_snapshot_metrics['rebuild_mode'] == 'incremental'
+    assert truth.last_compute_equity_snapshot_metrics['full_rebuild_reason'] is None
+    assert truth.last_compute_equity_snapshot_metrics['fills_scanned'] == 0
+    assert round(equity_v2['total_equity'] - equity_v1['total_equity'], 2) == 1.00
