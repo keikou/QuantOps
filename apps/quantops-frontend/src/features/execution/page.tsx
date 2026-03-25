@@ -11,7 +11,7 @@ import { LoadingState } from '@/components/shared/loading-state';
 import { RuntimeBlockCard, RuntimeStatusBadgeStrip, RuntimeSummaryCards, RuntimeTimelinePanel } from '@/components/shared/runtime-observability';
 import { SimpleTable } from '@/components/tables/simple-table';
 import { normalizeCommandCenterRuntimeRuns, normalizeRuntimeIssueBuckets } from '@/lib/api/normalize';
-import { useCommandCenterRuntimeIssues, useCommandCenterRuntimeLatest, useCommandCenterRuntimeRuns, useExecutionLatest, useExecutionOrders, useExecutionSummary, useExecutionViewLatest } from '@/lib/api/hooks';
+import { useAcknowledgeRuntimeIssue, useCommandCenterRuntimeIssues, useCommandCenterRuntimeLatest, useCommandCenterRuntimeRuns, useExecutionLatest, useExecutionOrders, useExecutionSummary, useExecutionViewLatest } from '@/lib/api/hooks';
 import type { ApiEnvelope, CommandCenterRealtimeEvent, CommandCenterRuntimeRunSummary, DataStatus, FeedPayload, RuntimeIssueBucket } from '@/types/api';
 
 type RuntimeFilterKey =
@@ -227,6 +227,7 @@ export default function Page() {
   const latest = useExecutionLatest(detailReady, EXECUTION_ROW_LIMIT);
   const orders = useExecutionOrders(detailReady, EXECUTION_ROW_LIMIT);
   const runtimeIssues = useCommandCenterRuntimeIssues(RUNTIME_ISSUE_LIMIT, detailReady, RUNTIME_WINDOW_MINUTES);
+  const acknowledgeIssue = useAcknowledgeRuntimeIssue();
   const runtimeViewFilters: {
     operatorState?: string;
     reasonCode?: string;
@@ -489,26 +490,42 @@ export default function Page() {
         </div>
         <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           {runtimeIssueRows.length ? runtimeIssueRows.slice(0, 4).map((issue) => (
-            <button
+            <div
               key={issue.code}
-              type="button"
-              onClick={() => setIssueCodeFilter(issue.code)}
               className={`rounded-2xl border p-4 text-left transition ${
                 issueCodeFilter === issue.code
                   ? 'border-cyan-500/40 bg-cyan-500/10'
                   : 'border-slate-800 bg-slate-950/60 hover:border-cyan-500/30'
               }`}
-              >
+            >
                 <div className="flex items-center justify-between gap-3">
-                  <div className="text-sm font-medium text-slate-100">{labelize(issue.code)}</div>
-                  <div className="rounded-full border border-slate-700 bg-slate-800/70 px-2 py-0.5 text-[11px] text-slate-200">{issue.count}</div>
+                  <button type="button" onClick={() => setIssueCodeFilter(issue.code)} className="text-left text-sm font-medium text-slate-100 transition hover:text-cyan-100">
+                    {labelize(issue.code)}
+                  </button>
+                  <div className="flex items-center gap-2">
+                    {issue.acknowledged ? (
+                      <div className="rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 text-[11px] text-emerald-100">Acknowledged</div>
+                    ) : null}
+                    <div className="rounded-full border border-slate-700 bg-slate-800/70 px-2 py-0.5 text-[11px] text-slate-200">{issue.count}</div>
+                  </div>
                 </div>
               <div className="mt-2 text-xs text-slate-400">{issue.severity} | {issue.retryability} | {issue.recurrenceStatus} | {issue.trend}</div>
               <div className="mt-2 text-sm text-slate-300">{issue.operatorAction}</div>
               <div className="mt-3 text-xs text-cyan-200">Component: {issue.likelyComponent || '-'}</div>
               <div className="mt-1 text-xs text-slate-500">Seen in {issue.distinctRunCount} of last {issue.windowRunCount} runs</div>
               <div className="mt-1 text-xs text-slate-500">Example run: {issue.exampleRunId || '-'}</div>
-            </button>
+              <div className="mt-3 flex items-center justify-between gap-2">
+                <div className="text-[11px] text-slate-500">{issue.acknowledgement?.acknowledgedAt ? `At ${issue.acknowledgement.acknowledgedAt}` : 'Unacknowledged'}</div>
+                <button
+                  type="button"
+                  disabled={acknowledgeIssue.isPending}
+                  onClick={() => acknowledgeIssue.mutate({ diagnosisCode: issue.code })}
+                  className="rounded-full border border-slate-700 bg-slate-800/70 px-3 py-1 text-xs text-slate-200 transition hover:border-slate-600 hover:text-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {issue.acknowledged ? 'Update Ack' : 'Acknowledge'}
+                </button>
+              </div>
+            </div>
           )) : (
             <div className="text-sm text-slate-400">No active runtime issues detected.</div>
           )}
@@ -569,6 +586,7 @@ export default function Page() {
                 <th className="px-3 py-2 text-left font-medium">Reason</th>
                 <th className="px-3 py-2 text-left font-medium">Plans / Orders / Fills</th>
                 <th className="px-3 py-2 text-left font-medium">Diagnosis</th>
+                <th className="px-3 py-2 text-left font-medium">Review</th>
                 <th className="px-3 py-2 text-left font-medium">Flags</th>
                 <th className="px-3 py-2 text-left font-medium">Detail</th>
               </tr>
@@ -594,6 +612,12 @@ export default function Page() {
                       <div className="text-xs text-slate-400">{row.diagnosis?.retryability || '-'}</div>
                     </td>
                     <td className="px-3 py-3 align-top">
+                      <div>{labelize(row.review?.reviewStatus || row.reviewStatus)}</div>
+                      <div className="text-xs text-slate-400">
+                        {row.review?.acknowledged ? `Ack by ${row.review?.reviewedBy || 'operator'}` : 'Unreviewed'}
+                      </div>
+                    </td>
+                    <td className="px-3 py-3 align-top">
                       <div>{row.degraded ? 'Degraded' : 'Normal'}</div>
                       <div className="text-xs text-slate-400">
                         Chain {row.eventChainComplete ? 'complete' : 'incomplete'}{row.artifactAvailable ? ' · bundle' : ''}
@@ -612,7 +636,7 @@ export default function Page() {
                 ))
               ) : (
                 <tr className="text-slate-400">
-                  <td className="px-3 py-4" colSpan={9}>
+                  <td className="px-3 py-4" colSpan={10}>
                     {runtimeRuns.isLoading ? 'Loading recent runtime runs…' : 'No runs matched the current filter.'}
                   </td>
                 </tr>

@@ -438,6 +438,14 @@ export type RuntimeDiagnosis = {
   summary?: string;
 };
 
+export type RuntimeReviewState = {
+  reviewStatus: string;
+  acknowledged: boolean;
+  operatorNote?: string;
+  reviewedBy?: string;
+  reviewedAt?: string;
+};
+
 export type RuntimeIssueBucket = {
   code: string;
   count: number;
@@ -454,6 +462,12 @@ export type RuntimeIssueBucket = {
   windowRunCount: number;
   windowStart?: string;
   windowEnd?: string;
+  acknowledged?: boolean;
+  acknowledgement?: {
+    acknowledgedBy?: string;
+    acknowledgedAt?: string;
+    note?: string;
+  };
 };
 
 export type CommandCenterRuntimeLatest = {
@@ -548,6 +562,9 @@ export type CommandCenterRuntimeRunSummary = {
   artifactAvailable: boolean;
   diagnosis?: RuntimeDiagnosis;
   diagnosisCode?: string;
+  review?: RuntimeReviewState;
+  reviewStatus?: string;
+  acknowledged?: boolean;
 };
 
 export type CommandCenterRuntimeDebug = {
@@ -615,6 +632,7 @@ export type CommandCenterRuntimeDebug = {
     firstSeenAt?: string;
     lastSeenAt?: string;
   };
+  review?: RuntimeReviewState;
   counts?: Record<string, number>;
   stages: RuntimeStage[];
   timeline: RuntimeTimelineEvent[];

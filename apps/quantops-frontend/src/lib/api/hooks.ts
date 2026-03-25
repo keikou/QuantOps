@@ -291,6 +291,26 @@ export function useCommandCenterRuntimeDebug(runId: string) {
     placeholderData: (previousData) => previousData,
   });
 }
+export function useReviewRuntimeRun() {
+  return useInvalidateMutation<{ runId: string; reviewStatus: string; acknowledged?: boolean; operatorNote?: string }>(
+    ({ runId, reviewStatus, acknowledged, operatorNote }) =>
+      apiMutate<ActionResult>(endpoints.commandCenterRuntimeRunReview(runId), 'POST', {
+        review_status: reviewStatus,
+        acknowledged,
+        operator_note: operatorNote,
+      }),
+    [['command-center-runtime-runs'], ['command-center-runtime-issues'], ['command-center-runtime-debug']]
+  );
+}
+export function useAcknowledgeRuntimeIssue() {
+  return useInvalidateMutation<{ diagnosisCode: string; note?: string }>(
+    ({ diagnosisCode, note }) =>
+      apiMutate<ActionResult>(endpoints.commandCenterRuntimeIssueAcknowledge(diagnosisCode), 'POST', {
+        note,
+      }),
+    [['command-center-runtime-runs'], ['command-center-runtime-issues']]
+  );
+}
 export function useStrategyRegistry() {
   return useQuery({
     queryKey: ['strategy-registry'],

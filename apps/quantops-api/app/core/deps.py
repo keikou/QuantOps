@@ -13,6 +13,7 @@ from app.repositories.incident_repository import IncidentRepository
 from app.repositories.monitoring_repository import MonitoringRepository
 from app.repositories.duckdb import DuckDBConnectionFactory
 from app.repositories.risk_repository import RiskRepository
+from app.repositories.runtime_workflow_repository import RuntimeWorkflowRepository
 from app.repositories.scheduler_repository import SchedulerRepository
 from app.services.admin_service import AdminService
 from app.services.alert_service import AlertService
@@ -54,6 +55,10 @@ def get_risk_repository() -> RiskRepository:
 
 def get_audit_repository() -> AuditRepository:
     return AuditRepository(get_db_factory())
+
+
+def get_runtime_workflow_repository() -> RuntimeWorkflowRepository:
+    return RuntimeWorkflowRepository(get_db_factory())
 
 
 def get_analytics_repository() -> AnalyticsRepository:
@@ -149,6 +154,7 @@ def get_command_center_service() -> CommandCenterService:
         get_audit_repository(),
         get_risk_repository(),
         get_notification_service(),
+        get_runtime_workflow_repository(),
     )
 
 

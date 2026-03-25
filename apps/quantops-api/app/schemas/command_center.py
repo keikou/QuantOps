@@ -101,6 +101,16 @@ class CommandCenterRiskActionRequest(BaseModel):
     note: str | None = None
 
 
+class CommandCenterRuntimeRunReviewRequest(BaseModel):
+    review_status: str
+    acknowledged: bool | None = None
+    operator_note: str | None = None
+
+
+class CommandCenterRuntimeIssueAcknowledgeRequest(BaseModel):
+    note: str | None = None
+
+
 class CommandCenterActionResponse(BaseModel):
     ok: bool = True
     message: str

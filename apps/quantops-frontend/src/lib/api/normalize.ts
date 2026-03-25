@@ -651,6 +651,17 @@ export function normalizeCommandCenterRuntimeLatest(input: any): CommandCenterRu
   };
 }
 
+function normalizeRuntimeReviewState(input: any) {
+  const review = input ?? {};
+  return {
+    reviewStatus: toString(review.reviewStatus ?? review.review_status, 'new'),
+    acknowledged: toBool(review.acknowledged, false),
+    operatorNote: toString(review.operatorNote ?? review.operator_note, ''),
+    reviewedBy: toString(review.reviewedBy ?? review.reviewed_by, ''),
+    reviewedAt: toString(review.reviewedAt ?? review.reviewed_at, ''),
+  };
+}
+
 export function normalizeCommandCenterRuntimeRuns(input: any): FeedPayload<CommandCenterRuntimeRunSummary> {
   const payload = getPayload<any>(input, {});
   const rows = Array.isArray(payload.items) ? payload.items : getArray<any>(input);
@@ -679,6 +690,9 @@ export function normalizeCommandCenterRuntimeRuns(input: any): FeedPayload<Comma
     detailPath: toString(row.detailPath ?? row.detail_path, ''),
     artifactAvailable: toBool(row.artifactAvailable ?? row.artifact_available, false),
     diagnosisCode: toString(row.diagnosisCode ?? row.diagnosis_code, ''),
+    review: normalizeRuntimeReviewState(row.review),
+    reviewStatus: toString(row.reviewStatus ?? row.review_status ?? row.review?.review_status, 'new'),
+    acknowledged: toBool(row.acknowledged ?? row.review?.acknowledged, false),
     diagnosis: row.diagnosis
       ? {
           primaryCode: toString(row.diagnosis.primaryCode ?? row.diagnosis.primary_code, ''),
@@ -720,6 +734,12 @@ export function normalizeRuntimeIssueBuckets(input: any): FeedPayload<any> {
     windowRunCount: toNumber(row.windowRunCount ?? row.window_run_count),
     windowStart: toString(row.windowStart ?? row.window_start, ''),
     windowEnd: toString(row.windowEnd ?? row.window_end, ''),
+    acknowledged: toBool(row.acknowledged, false),
+    acknowledgement: {
+      acknowledgedBy: toString(row.acknowledgement?.acknowledgedBy ?? row.acknowledgement?.acknowledged_by, ''),
+      acknowledgedAt: toString(row.acknowledgement?.acknowledgedAt ?? row.acknowledgement?.acknowledged_at, ''),
+      note: toString(row.acknowledgement?.note, ''),
+    },
   }));
   return {
     items,
@@ -820,6 +840,7 @@ export function normalizeCommandCenterRuntimeDebug(input: any): CommandCenterRun
           lastSeenAt: toString(x.diagnosis_context.last_seen_at, ''),
         }
       : undefined,
+    review: normalizeRuntimeReviewState(x.review),
     counts: x.counts ?? {},
     stages: stages.map((item: any) => ({
       key: toString(item.key, ''),

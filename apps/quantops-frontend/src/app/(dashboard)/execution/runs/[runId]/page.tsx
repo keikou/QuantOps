@@ -2,12 +2,13 @@
 
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
+import { useState } from 'react';
 
 import { KpiCard } from '@/components/cards/kpi-card';
 import { ErrorState } from '@/components/shared/error-state';
 import { LoadingState } from '@/components/shared/loading-state';
 import { RuntimeBlockCard, RuntimeStageTimelinePanel, RuntimeStatusBadgeStrip, RuntimeSummaryCards, RuntimeTimelinePanel } from '@/components/shared/runtime-observability';
-import { useCommandCenterRuntimeDebug } from '@/lib/api/hooks';
+import { useCommandCenterRuntimeDebug, useReviewRuntimeRun } from '@/lib/api/hooks';
 import type { CommandCenterRuntimeLatest } from '@/types/api';
 
 function DebugPayloadCard({ title, payload }: { title: string; payload: unknown }) {
@@ -25,11 +26,14 @@ export default function Page() {
   const params = useParams<{ runId: string }>();
   const runId = typeof params?.runId === 'string' ? params.runId : '';
   const runtime = useCommandCenterRuntimeDebug(runId);
+  const reviewRuntimeRun = useReviewRuntimeRun();
+  const [operatorNote, setOperatorNote] = useState('');
 
   if (runtime.isLoading && !runtime.data) return <LoadingState />;
   if (runtime.error && !runtime.data) return <ErrorState message="Runtime run detail failed" />;
 
   const detail = runtime.data?.data;
+  const review = detail?.review;
   const summary = detail?.summary;
   const runtimeCardData: CommandCenterRuntimeLatest | undefined = detail
     ? {
@@ -100,12 +104,68 @@ export default function Page() {
           <div className="font-medium text-slate-100">Diagnostic Bundle</div>
           <div className="mt-2">Artifact: <span className="text-slate-100">{detail?.artifacts?.bundle?.name || detail?.provenance?.artifactBundle?.name || '-'}</span></div>
           <div className="mt-1 break-all text-xs text-cyan-200">{detail?.artifacts?.bundle?.path || detail?.provenance?.artifactBundle?.path || 'No local artifact bundle found for this run.'}</div>
+          {(detail?.artifacts?.bundle?.path || detail?.provenance?.artifactBundle?.path) ? (
+            <button
+              type="button"
+              onClick={async () => {
+                await navigator.clipboard.writeText(detail?.artifacts?.bundle?.path || detail?.provenance?.artifactBundle?.path || '');
+              }}
+              className="mt-3 rounded-full border border-slate-700 bg-slate-800/70 px-3 py-1 text-xs text-slate-100 transition hover:border-cyan-500/40 hover:text-cyan-100"
+            >
+              Copy Bundle Path
+            </button>
+          ) : null}
           <div className="mt-3 grid gap-2 md:grid-cols-2">
             <div>Checkpoints: <span className="text-slate-100">{detail?.artifacts?.checkpointCount ?? 0}</span></div>
             <div>Audit logs: <span className="text-slate-100">{detail?.artifacts?.auditLogCount ?? 0}</span></div>
             <div>Available: <span className="text-slate-100">{detail?.artifacts?.available?.join(', ') || '-'}</span></div>
             <div>Missing: <span className="text-slate-100">{detail?.artifacts?.missing?.join(', ') || '-'}</span></div>
           </div>
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 text-sm text-slate-300">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <div className="font-medium text-slate-100">Operator Review</div>
+            <div className="text-xs text-slate-500">Read/write-light workflow state for runtime triage.</div>
+          </div>
+          <div className="rounded-full border border-slate-700 bg-slate-800/70 px-3 py-1 text-xs text-slate-200">
+            {review?.reviewStatus || 'new'}
+          </div>
+        </div>
+        <div className="mt-3 grid gap-2 md:grid-cols-2">
+          <div>Acknowledged: <span className="text-slate-100">{review?.acknowledged ? 'Yes' : 'No'}</span></div>
+          <div>Reviewed by: <span className="text-slate-100">{review?.reviewedBy || '-'}</span></div>
+          <div>Reviewed at: <span className="text-slate-100">{review?.reviewedAt || '-'}</span></div>
+          <div>Current note: <span className="text-slate-100">{review?.operatorNote || '-'}</span></div>
+        </div>
+        <textarea
+          value={operatorNote}
+          onChange={(event) => setOperatorNote(event.target.value)}
+          placeholder="Add operator note"
+          className="mt-4 min-h-24 w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-3 py-2 text-sm text-slate-100 outline-none transition focus:border-cyan-500/40"
+        />
+        <div className="mt-3 flex flex-wrap gap-2">
+          {['acknowledged', 'investigating', 'resolved', 'ignored'].map((status) => (
+            <button
+              key={status}
+              type="button"
+              disabled={reviewRuntimeRun.isPending || !runId}
+              onClick={() => reviewRuntimeRun.mutate({ runId, reviewStatus: status, operatorNote, acknowledged: true })}
+              className="rounded-full border border-slate-700 bg-slate-800/70 px-3 py-1 text-xs text-slate-100 transition hover:border-cyan-500/40 hover:text-cyan-100 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              Mark {status}
+            </button>
+          ))}
+          <button
+            type="button"
+            disabled={reviewRuntimeRun.isPending || !runId}
+            onClick={() => reviewRuntimeRun.mutate({ runId, reviewStatus: 'new', operatorNote: '', acknowledged: false })}
+            className="rounded-full border border-slate-700 bg-slate-800/70 px-3 py-1 text-xs text-slate-100 transition hover:border-slate-600 hover:text-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            Reset Review
+          </button>
         </div>
       </div>
 

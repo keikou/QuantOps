@@ -13,6 +13,8 @@ from app.schemas.command_center import (
     CommandCenterOverviewResponse,
     CommandCenterPortfolioSummaryResponse,
     CommandCenterRiskActionRequest,
+    CommandCenterRuntimeIssueAcknowledgeRequest,
+    CommandCenterRuntimeRunReviewRequest,
     CommandCenterRiskSummaryResponse,
     CommandCenterStrategiesResponse,
     CommandCenterStrategyActionRequest,
@@ -89,6 +91,42 @@ async def runtime_issues(
     payload = await service.get_runtime_issues(limit=limit, window_minutes=window_minutes)
     request.state.handler_duration_ms = round((time.perf_counter() - started) * 1000.0, 2)
     return payload
+
+
+@router.post('/runtime/runs/{run_id}/review', response_model=CommandCenterActionResponse)
+async def review_runtime_run(
+    run_id: str,
+    payload: CommandCenterRuntimeRunReviewRequest,
+    actor: RequestActor = Depends(get_request_actor),
+    service: CommandCenterService = Depends(get_command_center_service),
+) -> CommandCenterActionResponse:
+    require_role(actor, 'operator')
+    return CommandCenterActionResponse(
+        **await service.review_runtime_run(
+            run_id=run_id,
+            review_status=payload.review_status,
+            acknowledged=payload.acknowledged,
+            operator_note=payload.operator_note,
+            actor=actor,
+        )
+    )
+
+
+@router.post('/runtime/issues/{diagnosis_code}/acknowledge', response_model=CommandCenterActionResponse)
+async def acknowledge_runtime_issue(
+    diagnosis_code: str,
+    payload: CommandCenterRuntimeIssueAcknowledgeRequest,
+    actor: RequestActor = Depends(get_request_actor),
+    service: CommandCenterService = Depends(get_command_center_service),
+) -> CommandCenterActionResponse:
+    require_role(actor, 'operator')
+    return CommandCenterActionResponse(
+        **await service.acknowledge_runtime_issue(
+            diagnosis_code=diagnosis_code,
+            note=payload.note,
+            actor=actor,
+        )
+    )
 
 
 @router.get('/debug/execution')

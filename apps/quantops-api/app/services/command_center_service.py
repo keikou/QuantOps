@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 from datetime import datetime, timezone
+import json
 from pathlib import Path
 
 from app.clients.v12_client import V12Client, utc_now_iso
@@ -16,7 +17,9 @@ from app.services.control_service import ControlService
 from app.repositories.analytics_repository import AnalyticsRepository
 from app.repositories.audit_repository import AuditRepository
 from app.repositories.risk_repository import RiskRepository
+from app.repositories.runtime_workflow_repository import RuntimeWorkflowRepository
 from app.services.notification_service import NotificationService
+from app.security.rbac import RequestActor
 
 
 class CommandCenterService:
@@ -42,6 +45,7 @@ class CommandCenterService:
         audit_repository: AuditRepository,
         risk_repository: RiskRepository,
         notification_service: NotificationService,
+        runtime_workflow_repository: RuntimeWorkflowRepository | None = None,
     ) -> None:
         self.v12_client = v12_client
         self.dashboard_service = dashboard_service
@@ -56,6 +60,7 @@ class CommandCenterService:
         self.audit_repository = audit_repository
         self.risk_repository = risk_repository
         self.notification_service = notification_service
+        self.runtime_workflow_repository = runtime_workflow_repository
         self._runtime_latest_cache: dict | None = None
         self._runtime_latest_refresh_task: asyncio.Task | None = None
         self._runtime_latest_inflight_task: asyncio.Task | None = None
@@ -64,6 +69,55 @@ class CommandCenterService:
         self._runtime_runs_inflight: dict[tuple, asyncio.Task] = {}
         self._runtime_issues_cache: dict[tuple, dict] = {}
         self._runtime_issues_inflight: dict[tuple, asyncio.Task] = {}
+
+    @staticmethod
+    def _default_run_review_state() -> dict:
+        return {
+            "review_status": "new",
+            "acknowledged": False,
+            "operator_note": "",
+            "reviewed_by": "",
+            "reviewed_at": "",
+        }
+
+    def _get_run_review_map(self, run_ids: list[str]) -> dict[str, dict]:
+        if self.runtime_workflow_repository is None:
+            return {}
+        return self.runtime_workflow_repository.get_run_reviews(run_ids)
+
+    def _get_issue_ack_map(self, diagnosis_codes: list[str]) -> dict[str, dict]:
+        if self.runtime_workflow_repository is None:
+            return {}
+        return self.runtime_workflow_repository.get_issue_acknowledgements(diagnosis_codes)
+
+    def _attach_run_review_state(self, payload: dict, review: dict | None) -> dict:
+        result = dict(payload)
+        review_state = dict(self._default_run_review_state())
+        if isinstance(review, dict):
+            review_state.update(
+                {
+                    "review_status": str(review.get("review_status") or "new"),
+                    "acknowledged": bool(review.get("acknowledged", False)),
+                    "operator_note": str(review.get("operator_note") or ""),
+                    "reviewed_by": str(review.get("reviewed_by") or ""),
+                    "reviewed_at": str(review.get("reviewed_at") or ""),
+                }
+            )
+        result["review"] = review_state
+        result["review_status"] = review_state["review_status"]
+        result["acknowledged"] = review_state["acknowledged"]
+        return result
+
+    @staticmethod
+    def _attach_issue_ack_state(payload: dict, ack: dict | None) -> dict:
+        result = dict(payload)
+        result["acknowledgement"] = {
+            "acknowledged_by": str((ack or {}).get("acknowledged_by") or ""),
+            "acknowledged_at": str((ack or {}).get("acknowledged_at") or ""),
+            "note": str((ack or {}).get("note") or ""),
+        }
+        result["acknowledged"] = bool((ack or {}).get("acknowledged_at"))
+        return result
 
     @staticmethod
     def _runtime_freshness_anchor(payload: dict | None) -> object:
@@ -814,6 +868,12 @@ class CommandCenterService:
         summary["diagnosis_code"] = summary["diagnosis"]["primary_code"]
         return summary
 
+    @staticmethod
+    def _resolve_acknowledged(review_status: str, acknowledged: bool | None) -> bool:
+        if acknowledged is not None:
+            return bool(acknowledged)
+        return review_status != "new"
+
     async def get_overview(self) -> dict:
         dashboard = await self.dashboard_service.get_overview()
         execution = await self.analytics_service.execution_summary_live()
@@ -1065,7 +1125,9 @@ class CommandCenterService:
         diagnosis = self._classify_runtime_diagnosis(summary=summary, stages=stages, artifacts=artifacts)
         recurrence = None
         if diagnosis.get("primary_code"):
-            issues_payload = await self.get_runtime_issues(limit=25)
+            # Run detail recurrence should not disappear just because the run timestamp
+            # is outside the short dashboard window.
+            issues_payload = await self.get_runtime_issues(limit=25, window_minutes=60 * 24 * 365 * 10)
             for item in issues_payload.get("items", []):
                 if str(item.get("code") or "") == str(diagnosis.get("primary_code") or ""):
                     recurrence = {
@@ -1076,6 +1138,16 @@ class CommandCenterService:
                         "last_seen_at": item.get("last_seen_at"),
                     }
                     break
+            if recurrence is None:
+                run_timestamp = run_item.get("finished_at") or run_item.get("started_at") or bridge.get("last_transition_at") or planner.get("generated_at")
+                recurrence = {
+                    "seen_in_recent_runs": "1 of last 1 runs",
+                    "recurrence_status": "isolated",
+                    "trend": "flat",
+                    "first_seen_at": run_timestamp,
+                    "last_seen_at": run_timestamp,
+                }
+        review = self._get_run_review_map([str(resolved_run_id or "")]).get(str(resolved_run_id or ""))
         return {
             "scope": "command_center.runtime",
             "status": "ok" if resolved_run_id else "no_data",
@@ -1120,6 +1192,7 @@ class CommandCenterService:
             "artifacts": artifacts,
             "diagnosis": diagnosis,
             "diagnosis_context": recurrence,
+            "review": self._attach_run_review_state({}, review)["review"],
             "stages": stages,
             "timeline": self._timeline_items(events, limit=25),
             "raw": {
@@ -1153,7 +1226,9 @@ class CommandCenterService:
             all_rows = runs_payload.get("items") if isinstance(runs_payload.get("items"), list) else []
             run_rows = self._filter_runtime_rows_by_window(all_rows, window_minutes=window_minutes)
             summaries: list[dict] = []
+            review_map = self._get_run_review_map([str(run.get("run_id") or "") for run in run_rows])
             for result in (self._runtime_summary_from_run_row(run) for run in run_rows):
+                result = self._attach_run_review_state(result, review_map.get(str(result.get("run_id") or "")))
                 if self._matches_runtime_run_filters(
                     result,
                     operator_state=operator_state,
@@ -1250,6 +1325,8 @@ class CommandCenterService:
                 bucket["window_end"] = ordered_rows[0].get("completed_at") or ordered_rows[0].get("started_at") if ordered_rows else None
 
             items = sorted(buckets.values(), key=lambda item: (-int(item.get("count", 0) or 0), str(item.get("code") or "")))
+            ack_map = self._get_issue_ack_map([str(item.get("code") or "") for item in items])
+            items = [self._attach_issue_ack_state(item, ack_map.get(str(item.get("code") or ""))) for item in items]
             return self._decorate_runtime_feed_response(
                 runs_payload,
                 items=items,
@@ -1258,6 +1335,98 @@ class CommandCenterService:
             )
 
         return await self._coalesced_runtime_feed(key=key, cache=self._runtime_issues_cache, inflight=self._runtime_issues_inflight, builder=builder)
+
+    async def review_runtime_run(
+        self,
+        *,
+        run_id: str,
+        review_status: str,
+        acknowledged: bool | None,
+        operator_note: str | None,
+        actor: RequestActor,
+    ) -> dict:
+        normalized_status = str(review_status or "new").strip().lower()
+        allowed_statuses = {"new", "acknowledged", "investigating", "resolved", "ignored"}
+        if normalized_status not in allowed_statuses:
+            normalized_status = "new"
+        review_state = self._default_run_review_state()
+        if self.runtime_workflow_repository is not None:
+            review_state = self.runtime_workflow_repository.upsert_run_review(
+                run_id=run_id,
+                review_status=normalized_status,
+                acknowledged=self._resolve_acknowledged(normalized_status, acknowledged),
+                operator_note=str(operator_note or ""),
+                reviewed_by=actor.user_id,
+            )
+        self.audit_repository.log_operator_action(
+            action_type="command_center.runtime_run_review",
+            target_type="runtime_run",
+            target_id=run_id,
+            result_status="ok",
+            request_json=json.dumps(
+                {
+                    "run_id": run_id,
+                    "review_status": normalized_status,
+                    "acknowledged": review_state.get("acknowledged", False),
+                    "operator_note": str(operator_note or ""),
+                }
+            ),
+            user_id=actor.user_id,
+            role_name=actor.role,
+        )
+        self._runtime_runs_cache.clear()
+        self._runtime_issues_cache.clear()
+        return {
+            "ok": True,
+            "message": f"Runtime run {run_id} marked as {normalized_status}.",
+            "action": "review_runtime_run",
+            "target": run_id,
+            "details": review_state,
+            "as_of": utc_now_iso(),
+        }
+
+    async def acknowledge_runtime_issue(
+        self,
+        *,
+        diagnosis_code: str,
+        note: str | None,
+        actor: RequestActor,
+    ) -> dict:
+        ack_state = {
+            "diagnosis_code": diagnosis_code,
+            "note": str(note or ""),
+            "acknowledged_by": actor.user_id,
+            "acknowledged_at": utc_now_iso(),
+        }
+        if self.runtime_workflow_repository is not None:
+            ack_state = self.runtime_workflow_repository.acknowledge_issue(
+                diagnosis_code=diagnosis_code,
+                note=str(note or ""),
+                acknowledged_by=actor.user_id,
+            )
+        self.audit_repository.log_operator_action(
+            action_type="command_center.runtime_issue_acknowledge",
+            target_type="runtime_issue",
+            target_id=diagnosis_code,
+            result_status="ok",
+            request_json=json.dumps(
+                {
+                    "diagnosis_code": diagnosis_code,
+                    "note": str(note or ""),
+                }
+            ),
+            user_id=actor.user_id,
+            role_name=actor.role,
+        )
+        self._runtime_issues_cache.clear()
+        return {
+            "ok": True,
+            "message": f"Runtime issue {diagnosis_code} acknowledged.",
+            "action": "acknowledge_runtime_issue",
+            "target": diagnosis_code,
+            "details": ack_state,
+            "as_of": utc_now_iso(),
+        }
 
     async def get_execution_debug(self) -> dict:
         stored = self.analytics_service.execution_summary()

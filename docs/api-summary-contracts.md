@@ -174,6 +174,36 @@ Behavior:
 
 These should not be treated as authoritative portfolio/runtime totals.
 
+### Runtime triage workflow fields
+
+Runtime live-feed/detail payloads may also expose lightweight operator workflow state.
+
+Run-level fields:
+
+- `review.review_status`
+- `review.acknowledged`
+- `review.operator_note`
+- `review.reviewed_by`
+- `review.reviewed_at`
+
+Issue-bucket fields:
+
+- `acknowledged`
+- `acknowledgement.acknowledged_by`
+- `acknowledgement.acknowledged_at`
+- `acknowledgement.note`
+
+Mutation endpoints:
+
+- `POST /api/v1/command-center/runtime/runs/{run_id}/review`
+- `POST /api/v1/command-center/runtime/issues/{diagnosis_code}/acknowledge`
+
+Rules:
+
+- this workflow state is operator-facing metadata, not truth
+- it should be attached in QuantOps API, not inferred in frontend
+- it should remain read/write-light and must not pull heavy truth recompute onto the request path
+
 ## UI Rules
 
 ### Use `display_value` by default

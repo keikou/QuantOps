@@ -12,6 +12,8 @@ export const endpoints = {
   commandCenterRuntimeLatest: '/api/v1/command-center/runtime/latest',
   commandCenterRuntimeRuns: '/api/v1/command-center/runtime/runs',
   commandCenterRuntimeIssues: '/api/v1/command-center/runtime/issues',
+  commandCenterRuntimeRunReview: (runId: string) => `/api/v1/command-center/runtime/runs/${encodeURIComponent(runId)}/review`,
+  commandCenterRuntimeIssueAcknowledge: (diagnosisCode: string) => `/api/v1/command-center/runtime/issues/${encodeURIComponent(diagnosisCode)}/acknowledge`,
   commandCenterRuntimeDebug: '/api/v1/command-center/debug/runtime',
   commandCenterRuntimeDebugByRun: (runId: string) => `/api/v1/command-center/debug/runtime?run_id=${encodeURIComponent(runId)}`,
   executionLatest: '/api/v1/execution/fills',
