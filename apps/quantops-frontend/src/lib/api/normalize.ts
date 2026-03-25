@@ -376,6 +376,18 @@ export function normalizeExecutionPlannerLatest(input: any) {
   };
 }
 
+export function normalizeExecutionViewLatest(input: any) {
+  const x = getPayload<any>(input, {});
+  return {
+    planner: normalizeExecutionPlannerLatest(x.planner ?? {}),
+    state: normalizeExecutionState(x.state ?? {}),
+    asOf: toString(x.asOf ?? x.as_of),
+    buildStatus: toString(x.buildStatus ?? x.build_status, ''),
+    sourceSnapshotTime: toString(x.sourceSnapshotTime ?? x.source_snapshot_time, ''),
+    dataFreshnessSec: toNumber(x.dataFreshnessSec ?? x.data_freshness_sec),
+  };
+}
+
 export function normalizeExecutionFills(input: any) {
   const payload = getPayload<any>(input, {});
   const rows = Array.isArray(payload.items) ? payload.items : getArray<any>(input);

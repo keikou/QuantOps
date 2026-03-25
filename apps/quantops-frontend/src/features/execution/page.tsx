@@ -11,7 +11,7 @@ import { LoadingState } from '@/components/shared/loading-state';
 import { RuntimeBlockCard, RuntimeStatusBadgeStrip, RuntimeSummaryCards, RuntimeTimelinePanel } from '@/components/shared/runtime-observability';
 import { SimpleTable } from '@/components/tables/simple-table';
 import { normalizeCommandCenterRuntimeRuns, normalizeRuntimeIssueBuckets } from '@/lib/api/normalize';
-import { useCommandCenterRuntimeIssues, useCommandCenterRuntimeLatest, useCommandCenterRuntimeRuns, useExecutionLatest, useExecutionOrders, useExecutionPlannerLatest, useExecutionStateLatest, useExecutionSummary } from '@/lib/api/hooks';
+import { useCommandCenterRuntimeIssues, useCommandCenterRuntimeLatest, useCommandCenterRuntimeRuns, useExecutionLatest, useExecutionOrders, useExecutionSummary, useExecutionViewLatest } from '@/lib/api/hooks';
 import type { ApiEnvelope, CommandCenterRealtimeEvent, CommandCenterRuntimeRunSummary, DataStatus, FeedPayload, RuntimeIssueBucket } from '@/types/api';
 
 type RuntimeFilterKey =
@@ -214,12 +214,15 @@ export default function Page() {
   const summaryReady = Boolean(summary.data?.data) || Boolean(summary.error);
   const runtime = useCommandCenterRuntimeLatest(summaryReady);
   const runtimeReady = summaryReady && Boolean(runtime.data?.data || runtime.error);
-  const planner = useExecutionPlannerLatest(runtimeReady);
-  const plannerReady = runtimeReady && Boolean(planner.data?.data || planner.error);
-  const state = useExecutionStateLatest(plannerReady);
-  const stateReady = plannerReady && Boolean(state.data?.data || state.error);
+  const executionView = useExecutionViewLatest(runtimeReady);
+  const plannerData = executionView.data?.data?.planner;
+  const stateData = executionView.data?.data?.state;
+  const plannerError = executionView.error;
+  const stateError = executionView.error;
+  const plannerReady = runtimeReady && Boolean(plannerData || plannerError);
+  const stateReady = plannerReady && Boolean(stateData || stateError);
   const detailReady = stateReady && Boolean(
-    runtime.data?.data || planner.data?.data || state.data?.data || runtime.error || planner.error || state.error
+    runtime.data?.data || plannerData || stateData || runtime.error || plannerError || stateError
   );
   const latest = useExecutionLatest(detailReady, EXECUTION_ROW_LIMIT);
   const orders = useExecutionOrders(detailReady, EXECUTION_ROW_LIMIT);
@@ -265,8 +268,6 @@ export default function Page() {
   const ordersFeed = orders.data?.data;
   const rows = fillsFeed?.items ?? [];
   const orderRows = ordersFeed?.items ?? [];
-  const plannerData = planner.data?.data;
-  const stateData = state.data?.data;
   const runtimeData = runtime.data?.data;
   const plannerItems = plannerData?.items ?? [];
   const plannerRows = plannerItems.length
@@ -295,15 +296,15 @@ export default function Page() {
   });
   const plannerStatus = resolveDataStatus({
     status: mapBuildStatus(plannerData?.buildStatus, Boolean(plannerData)),
-    isLoading: planner.isLoading,
+    isLoading: executionView.isLoading,
     hasData: Boolean(plannerData),
-    error: planner.error,
+    error: plannerError,
   });
   const stateStatus = resolveDataStatus({
     status: mapBuildStatus(stateData?.buildStatus, Boolean(stateData)),
-    isLoading: state.isLoading,
+    isLoading: executionView.isLoading,
     hasData: Boolean(stateData),
-    error: state.error,
+    error: stateError,
   });
   const runtimeRunsFeed = runtimeRuns.data?.data;
   const runtimeIssuesFeed = runtimeIssues.data?.data;

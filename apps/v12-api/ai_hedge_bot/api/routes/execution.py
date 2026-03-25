@@ -254,6 +254,22 @@ def _get_execution_view_snapshot() -> dict[str, Any]:
     }
 
 
+def _get_execution_view_latest_payload() -> dict[str, Any]:
+    snapshot = _get_execution_view_snapshot()
+    planner = snapshot['planner']
+    state = snapshot['state']
+    source_snapshot_time = state.get('source_snapshot_time') or planner.get('source_snapshot_time')
+    return {
+        'status': 'ok',
+        'planner': planner,
+        'state': state,
+        'as_of': state.get('as_of') or planner.get('as_of'),
+        'source_snapshot_time': source_snapshot_time,
+        'data_freshness_sec': _snapshot_age_sec(source_snapshot_time),
+        'build_status': 'fresh_cache' if planner.get('build_status') == 'fresh_cache' and state.get('build_status') == 'fresh_cache' else 'live',
+    }
+
+
 def _get_execution_quality_latest_summary() -> dict[str, Any]:
     now = datetime.now(timezone.utc)
     expires_at = _execution_quality_summary_cache.get('expires_at')
@@ -417,6 +433,11 @@ def execution_plans_by_run(run_id: str) -> dict:
 @router.get('/planner/latest')
 def execution_planner_latest() -> dict:
     return _get_execution_view_snapshot()['planner']
+
+
+@router.get('/view/latest')
+def execution_view_latest() -> dict:
+    return _get_execution_view_latest_payload()
 
 
 @router.get('/bridge/latest')

@@ -16,6 +16,7 @@ export const endpoints = {
   commandCenterRuntimeDebugByRun: (runId: string) => `/api/v1/command-center/debug/runtime?run_id=${encodeURIComponent(runId)}`,
   executionLatest: '/api/v1/execution/fills',
   executionPlannerLatest: '/api/v1/execution/planner/latest',
+  executionViewLatest: '/api/v1/execution/view/latest',
   executionOrders: '/api/v1/execution/orders',
   executionFills: '/api/v1/execution/fills',
   executionStateLatest: '/api/v1/execution/state/latest',

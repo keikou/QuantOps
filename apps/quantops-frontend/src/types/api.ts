@@ -289,6 +289,15 @@ export type ExecutionState = {
   blockReasons?: Array<{ code: string; severity?: string; message?: string }>;
 };
 
+export type ExecutionViewLatest = {
+  planner: ExecutionPlannerLatest;
+  state: ExecutionState;
+  asOf: string;
+  buildStatus?: string;
+  sourceSnapshotTime?: string;
+  dataFreshnessSec?: number;
+};
+
 export type RuntimeTimelineEvent = {
   eventType: string;
   summary: string;

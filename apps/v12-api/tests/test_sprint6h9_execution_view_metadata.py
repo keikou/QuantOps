@@ -48,6 +48,7 @@ def test_execution_planner_and_state_expose_freshness_metadata() -> None:
 
     planner = client.get('/execution/planner/latest').json()
     state = client.get('/execution/state/latest').json()
+    view = client.get('/execution/view/latest').json()
 
     assert planner['status'] == 'ok'
     assert planner['build_status'] in {'live', 'fresh_cache'}
@@ -58,3 +59,10 @@ def test_execution_planner_and_state_expose_freshness_metadata() -> None:
     assert state['build_status'] in {'live', 'fresh_cache'}
     assert state['source_snapshot_time'] == state['as_of']
     assert 'data_freshness_sec' in state
+
+    assert view['status'] == 'ok'
+    assert view['build_status'] in {'live', 'fresh_cache'}
+    assert view['source_snapshot_time'] == view['as_of']
+    assert view['planner']['status'] == 'ok'
+    assert view['state']['status'] == 'ok'
+    assert 'data_freshness_sec' in view

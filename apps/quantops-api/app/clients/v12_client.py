@@ -210,6 +210,9 @@ class V12Client:
     async def get_execution_planner_latest(self) -> dict[str, Any]:
         return await self._request_first("GET", ["/execution/planner/latest", "/execution/plans?limit=20"])
 
+    async def get_execution_view_latest(self) -> dict[str, Any]:
+        return await self._request_first("GET", ["/execution/view/latest"])
+
     async def get_execution_plans_latest(self) -> dict[str, Any]:
         return await self._request_first("GET", ["/execution/plans/latest"])
 
@@ -401,6 +404,40 @@ class V12Client:
                 "active_plan_count": 0,
                 "open_order_count": 0,
                 "as_of": utc_now_iso(),
+            }
+        if path == "/execution/view/latest":
+            now = utc_now_iso()
+            return {
+                "status": "ok",
+                "as_of": now,
+                "source_snapshot_time": now,
+                "build_status": "live",
+                "planner": {
+                    "status": "ok",
+                    "trading_state": "running",
+                    "plan_count": 0,
+                    "visible_plan_count": 0,
+                    "expired_count": 0,
+                    "algo_mix": {},
+                    "route_mix": {},
+                    "items": [],
+                    "as_of": now,
+                    "source_snapshot_time": now,
+                    "data_freshness_sec": 0.0,
+                    "build_status": "live",
+                },
+                "state": {
+                    "status": "ok",
+                    "trading_state": "running",
+                    "execution_state": "idle",
+                    "block_reasons": [],
+                    "active_plan_count": 0,
+                    "open_order_count": 0,
+                    "as_of": now,
+                    "source_snapshot_time": now,
+                    "data_freshness_sec": 0.0,
+                    "build_status": "live",
+                },
             }
         if path == "/execution/block-reasons/latest":
             return {"status": "ok", "items": [], "as_of": utc_now_iso()}

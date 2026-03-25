@@ -7,12 +7,16 @@ from app.services.execution_service import ExecutionService
 async def _main():
     client = V12Client(base_url='http://localhost:8000', mock_mode=True)
     service = ExecutionService(client)
+    view = await service.get_view_latest()
     planner = await service.get_planner_latest()
     orders = await service.get_orders()
     fills = await service.get_fills()
     state = await service.get_state_latest()
     reasons = await service.get_block_reasons_latest()
 
+    assert view['status'] == 'ok'
+    assert view['planner']['status'] == 'ok'
+    assert view['state']['status'] == 'ok'
     assert planner['status'] == 'ok'
     assert 'items' in orders
     assert 'items' in fills
@@ -27,6 +31,9 @@ def test_execution_service_passthrough_endpoints():
 
 
 class _OldSnapshotExecutionClient:
+    async def get_execution_view_latest(self) -> dict:
+        return {}
+
     async def get_execution_planner_latest(self) -> dict:
         return {
             "status": "ok",
@@ -62,6 +69,8 @@ class _OldSnapshotExecutionClient:
 
 async def _cache_main():
     service = ExecutionService(_OldSnapshotExecutionClient())  # type: ignore[arg-type]
+    first_view = await service.get_view_latest()
+    second_view = await service.get_view_latest()
     first_planner = await service.get_planner_latest()
     second_planner = await service.get_planner_latest()
     first_state = await service.get_state_latest()
@@ -70,6 +79,10 @@ async def _cache_main():
     second_orders = await service.get_orders(limit=10)
     first_fills = await service.get_fills(limit=10)
     second_fills = await service.get_fills(limit=10)
+    assert first_view["build_status"] == "live"
+    assert second_view["build_status"] == "fresh_cache"
+    assert first_view["planner"]["status"] == "ok"
+    assert first_view["state"]["status"] == "ok"
     assert first_planner["build_status"] == "live"
     assert second_planner["build_status"] == "fresh_cache"
     assert first_state["build_status"] == "live"

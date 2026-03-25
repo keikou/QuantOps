@@ -17,6 +17,7 @@ import {
   normalizeExecutionPlannerLatest,
   normalizeExecutionSummary,
   normalizeExecutionState,
+  normalizeExecutionViewLatest,
   normalizeJobs,
   normalizeMonitoring,
   normalizeOverview,
@@ -41,6 +42,7 @@ import type {
   ExecutionOrderRow,
   ExecutionPlannerLatest,
   ExecutionState,
+  ExecutionViewLatest,
   PortfolioOverview,
   PortfolioMetrics,
   PositionFeed,
@@ -197,6 +199,15 @@ export function useExecutionPlannerLatest(enabled = true) {
   return useQuery({
     queryKey: ['execution-planner-latest'],
     queryFn: async () => envelope<ExecutionPlannerLatest>(normalizeExecutionPlannerLatest(await apiFetch<any>(endpoints.executionPlannerLatest))),
+    enabled,
+    refetchInterval: 15000,
+    placeholderData: (previousData) => previousData,
+  });
+}
+export function useExecutionViewLatest(enabled = true) {
+  return useQuery({
+    queryKey: ['execution-view-latest'],
+    queryFn: async () => envelope<ExecutionViewLatest>(normalizeExecutionViewLatest(await apiFetch<any>(endpoints.executionViewLatest))),
     enabled,
     refetchInterval: 15000,
     placeholderData: (previousData) => previousData,

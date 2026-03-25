@@ -14,6 +14,8 @@ class ExecutionService:
 
     def __init__(self, v12_client: V12Client) -> None:
         self.v12_client = v12_client
+        self._view_cache: dict | None = None
+        self._view_inflight: asyncio.Task | None = None
         self._planner_cache: dict | None = None
         self._planner_inflight: asyncio.Task | None = None
         self._state_cache: dict | None = None
@@ -41,6 +43,45 @@ class ExecutionService:
             return payload
 
         return await self._coalesced_summary(cache_name='_planner_cache', inflight_name='_planner_inflight', builder=builder)
+
+    async def get_view_latest(self) -> dict:
+        async def builder() -> dict:
+            payload = await self.v12_client.get_execution_view_latest()
+            if isinstance(payload, dict) and isinstance(payload.get('planner'), dict) and isinstance(payload.get('state'), dict):
+                planner = dict(payload.get('planner') or {})
+                state = dict(payload.get('state') or {})
+            else:
+                planner, state = await asyncio.gather(
+                    self.v12_client.get_execution_planner_latest(),
+                    self.v12_client.get_execution_state_latest(),
+                )
+                planner = planner if isinstance(planner, dict) else {}
+                state = state if isinstance(state, dict) else {}
+            planner.setdefault('status', 'ok')
+            planner.setdefault('as_of', utc_now_iso())
+            planner.setdefault('build_status', 'live')
+            planner.setdefault('source_snapshot_time', planner.get('as_of'))
+            planner.setdefault('data_freshness_sec', self._snapshot_age_sec(planner.get('source_snapshot_time') or planner.get('as_of')))
+            state.setdefault('status', 'ok')
+            state.setdefault('as_of', utc_now_iso())
+            state.setdefault('build_status', 'live')
+            state.setdefault('source_snapshot_time', state.get('as_of'))
+            state.setdefault('data_freshness_sec', self._snapshot_age_sec(state.get('source_snapshot_time') or state.get('as_of')))
+            as_of = state.get('as_of') or planner.get('as_of') or utc_now_iso()
+            source_snapshot_time = state.get('source_snapshot_time') or planner.get('source_snapshot_time') or as_of
+            build_status = 'fresh_cache' if planner.get('build_status') == 'fresh_cache' and state.get('build_status') == 'fresh_cache' else 'live'
+            return {
+                'status': 'ok',
+                'planner': planner,
+                'state': state,
+                'as_of': as_of,
+                'source_snapshot_time': source_snapshot_time,
+                'data_freshness_sec': self._snapshot_age_sec(source_snapshot_time),
+                'build_status': build_status,
+                '_cached_at': utc_now_iso(),
+            }
+
+        return await self._coalesced_summary(cache_name='_view_cache', inflight_name='_view_inflight', builder=builder)
 
     def _sort_key(self, row: dict) -> tuple[str, str, str]:
         return (
