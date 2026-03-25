@@ -330,3 +330,63 @@ def test_strategy_risk_budget_reuses_short_ttl_cache(monkeypatch) -> None:
     assert first.json()["build_status"] == "live"
     assert second.json()["build_status"] == "fresh_cache"
     assert call_count["count"] == 1
+
+
+def test_portfolio_positions_latest_reuses_short_ttl_cache(monkeypatch) -> None:
+    portfolio_routes._portfolio_positions_cache["expires_at"] = None
+    portfolio_routes._portfolio_positions_cache["payload"] = None
+    call_count = {"count": 0}
+
+    def fake_overview() -> dict:
+        call_count["count"] += 1
+        return {
+            "summary": {"total_equity": 1000.0, "as_of": "2026-03-24T00:00:00+00:00"},
+            "snapshot": {"run_id": f"run-{call_count['count']}", "created_at": "2026-03-24T00:00:00+00:00"},
+            "positions": [
+                {
+                    "symbol": "BTCUSDT",
+                    "side": "long",
+                    "exposure_notional": 100.0,
+                    "unrealized_pnl": 5.0,
+                    "abs_qty": 0.1,
+                    "avg_entry_price": 50000.0,
+                    "mark_price": 51000.0,
+                    "strategy_id": "trend_core",
+                    "alpha_family": "trend",
+                    "price_source": "mark",
+                    "quote_time": "2026-03-24T00:00:00+00:00",
+                    "quote_age_sec": 0.5,
+                    "stale": False,
+                }
+            ],
+        }
+
+    monkeypatch.setattr(portfolio_routes._repo, "latest_portfolio_overview", fake_overview)
+
+    first = client.get("/portfolio/positions/latest")
+    second = client.get("/portfolio/positions/latest")
+
+    assert first.status_code == 200
+    assert second.status_code == 200
+    assert first.json()["run_id"] == second.json()["run_id"]
+    assert first.json()["build_status"] == "live"
+    assert second.json()["build_status"] == "fresh_cache"
+    assert call_count["count"] == 1
+
+
+def test_portfolio_diagnostics_latest_reuses_short_ttl_cache(monkeypatch) -> None:
+    portfolio_routes._portfolio_diagnostics_cache["expires_at"] = None
+    portfolio_routes._portfolio_diagnostics_cache["payload"] = None
+    monkeypatch.setattr(
+        portfolio_routes.CONTAINER,
+        "latest_portfolio_diagnostics",
+        {"kept_signals": 3, "input_signals": 5, "crowding_flags": [], "overlap_penalty_applied": False},
+    )
+
+    first = client.get("/portfolio/diagnostics/latest")
+    second = client.get("/portfolio/diagnostics/latest")
+
+    assert first.status_code == 200
+    assert second.status_code == 200
+    assert first.json()["build_status"] == "live"
+    assert second.json()["build_status"] == "fresh_cache"

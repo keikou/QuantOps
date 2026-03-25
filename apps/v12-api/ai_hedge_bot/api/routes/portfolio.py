@@ -22,6 +22,10 @@ PORTFOLIO_EQUITY_HISTORY_CACHE_TTL_SECONDS = 5.0
 _equity_history_cache: dict[tuple[int], dict[str, object]] = {}
 PORTFOLIO_METRICS_CACHE_TTL_SECONDS = 5.0
 _portfolio_metrics_cache: dict[str, object] = {'expires_at': None, 'payload': None}
+PORTFOLIO_DIAGNOSTICS_CACHE_TTL_SECONDS = 5.0
+_portfolio_diagnostics_cache: dict[str, object] = {'expires_at': None, 'payload': None}
+PORTFOLIO_POSITIONS_CACHE_TTL_SECONDS = 3.0
+_portfolio_positions_cache: dict[str, object] = {'expires_at': None, 'payload': None}
 
 
 def _build_equity_history_payload(limit: int) -> dict:
@@ -97,6 +101,15 @@ def _build_portfolio_metrics_payload(limit: int = 60) -> dict:
     }
 
 
+def _decorate_cached_payload(payload: dict, *, build_status: str) -> dict:
+    result = dict(payload)
+    source_snapshot_time = result.get('source_snapshot_time') or result.get('as_of')
+    result['source_snapshot_time'] = source_snapshot_time
+    if build_status:
+        result['build_status'] = build_status
+    return result
+
+
 def _load_latest_signals() -> list[dict]:
     rows = CONTAINER.runtime_store.fetchall_dict(
         """
@@ -161,13 +174,21 @@ def prepare_portfolio() -> dict:
 
 @router.get('/diagnostics/latest')
 def portfolio_diagnostics_latest() -> dict:
+    now = datetime.now(timezone.utc)
+    expires_at = _portfolio_diagnostics_cache.get('expires_at')
+    payload = _portfolio_diagnostics_cache.get('payload')
+    if isinstance(expires_at, datetime) and isinstance(payload, dict) and expires_at > now:
+        return _decorate_cached_payload(payload, build_status='fresh_cache')
     diagnostics = CONTAINER.latest_portfolio_diagnostics or {
         'input_signals': 0,
         'kept_signals': 0,
         'crowding_flags': [],
         'overlap_penalty_applied': False,
     }
-    return {'status': 'ok', 'diagnostics': diagnostics}
+    built = {'status': 'ok', 'diagnostics': diagnostics, 'as_of': utc_now_iso(), 'source_snapshot_time': utc_now_iso(), 'build_status': 'live'}
+    _portfolio_diagnostics_cache['expires_at'] = now + timedelta(seconds=PORTFOLIO_DIAGNOSTICS_CACHE_TTL_SECONDS)
+    _portfolio_diagnostics_cache['payload'] = dict(built)
+    return built
 
 
 @router.get('/overview')
@@ -226,8 +247,7 @@ def portfolio_metrics_latest(limit: int = 60) -> dict:
     return built
 
 
-@router.get('/positions/latest')
-def portfolio_positions_latest() -> dict:
+def _build_portfolio_positions_payload() -> dict:
     overview = _repo.latest_portfolio_overview()
     summary = overview.get('summary') or {}
     positions = []
@@ -263,9 +283,24 @@ def portfolio_positions_latest() -> dict:
         'status': 'ok',
         'run_id': (overview.get('snapshot') or {}).get('run_id'),
         'as_of': summary.get('as_of') or (overview.get('snapshot') or {}).get('created_at'),
+        'source_snapshot_time': summary.get('as_of') or (overview.get('snapshot') or {}).get('created_at'),
         'total_equity': float(summary.get('total_equity', 0.0) or 0.0),
         'items': positions,
+        'build_status': 'live',
     }
+
+
+@router.get('/positions/latest')
+def portfolio_positions_latest() -> dict:
+    now = datetime.now(timezone.utc)
+    expires_at = _portfolio_positions_cache.get('expires_at')
+    payload = _portfolio_positions_cache.get('payload')
+    if isinstance(expires_at, datetime) and isinstance(payload, dict) and expires_at > now:
+        return _decorate_cached_payload(payload, build_status='fresh_cache')
+    built = _build_portfolio_positions_payload()
+    _portfolio_positions_cache['expires_at'] = now + timedelta(seconds=PORTFOLIO_POSITIONS_CACHE_TTL_SECONDS)
+    _portfolio_positions_cache['payload'] = dict(built)
+    return built
 
 
 @router.get('/equity-history')
