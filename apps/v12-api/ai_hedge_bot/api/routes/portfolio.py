@@ -22,6 +22,10 @@ PORTFOLIO_EQUITY_HISTORY_CACHE_TTL_SECONDS = 5.0
 _equity_history_cache: dict[tuple[int], dict[str, object]] = {}
 PORTFOLIO_METRICS_CACHE_TTL_SECONDS = 5.0
 _portfolio_metrics_cache: dict[str, object] = {'expires_at': None, 'payload': None}
+PORTFOLIO_OVERVIEW_CACHE_TTL_SECONDS = 3.0
+_portfolio_overview_cache: dict[str, object] = {'expires_at': None, 'payload': None}
+PORTFOLIO_OVERVIEW_SUMMARY_CACHE_TTL_SECONDS = 3.0
+_portfolio_overview_summary_cache: dict[str, object] = {'expires_at': None, 'payload': None}
 PORTFOLIO_DIAGNOSTICS_CACHE_TTL_SECONDS = 5.0
 _portfolio_diagnostics_cache: dict[str, object] = {'expires_at': None, 'payload': None}
 PORTFOLIO_POSITIONS_CACHE_TTL_SECONDS = 3.0
@@ -193,9 +197,14 @@ def portfolio_diagnostics_latest() -> dict:
 
 @router.get('/overview')
 def portfolio_overview() -> dict:
+    now = datetime.now(timezone.utc)
+    expires_at = _portfolio_overview_cache.get('expires_at')
+    payload = _portfolio_overview_cache.get('payload')
+    if isinstance(expires_at, datetime) and isinstance(payload, dict) and expires_at > now:
+        return _decorate_cached_payload(payload, build_status='fresh_cache')
     payload = _repo.latest_portfolio_overview()
     summary = payload.get('summary') or {}
-    return {
+    built = {
         'status': 'ok',
         'total_equity': float(summary.get('total_equity', 0.0) or 0.0),
         'cash_balance': float(summary.get('cash_balance', 0.0) or 0.0),
@@ -214,22 +223,37 @@ def portfolio_overview() -> dict:
         'stale_positions': int(summary.get('stale_positions', 0) or 0),
         'positions': payload.get('positions', []),
         'snapshot': payload.get('snapshot'),
+        'source_snapshot_time': summary.get('as_of') or (payload.get('snapshot') or {}).get('created_at'),
         'as_of': summary.get('as_of') or (payload.get('snapshot') or {}).get('created_at'),
+        'build_status': 'live',
     }
+    _portfolio_overview_cache['expires_at'] = now + timedelta(seconds=PORTFOLIO_OVERVIEW_CACHE_TTL_SECONDS)
+    _portfolio_overview_cache['payload'] = dict(built)
+    return built
 
 
 @router.get('/overview-summary/latest')
 def portfolio_overview_summary_latest() -> dict:
+    now = datetime.now(timezone.utc)
+    expires_at = _portfolio_overview_summary_cache.get('expires_at')
+    payload = _portfolio_overview_summary_cache.get('payload')
+    if isinstance(expires_at, datetime) and isinstance(payload, dict) and expires_at > now:
+        return _decorate_cached_payload(payload, build_status='fresh_cache')
     payload = _repo.latest_portfolio_overview_summary()
     summary = payload.get('summary') or {}
     snapshot = payload.get('snapshot') or {}
-    return {
+    built = {
         'status': 'ok',
         'summary': summary,
         'snapshot': snapshot,
         'positions': [],
+        'source_snapshot_time': summary.get('as_of') or snapshot.get('created_at'),
         'as_of': summary.get('as_of') or snapshot.get('created_at'),
+        'build_status': 'live',
     }
+    _portfolio_overview_summary_cache['expires_at'] = now + timedelta(seconds=PORTFOLIO_OVERVIEW_SUMMARY_CACHE_TTL_SECONDS)
+    _portfolio_overview_summary_cache['payload'] = dict(built)
+    return built
 
 
 @router.get('/metrics/latest')

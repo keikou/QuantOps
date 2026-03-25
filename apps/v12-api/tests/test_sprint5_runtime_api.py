@@ -390,3 +390,52 @@ def test_portfolio_diagnostics_latest_reuses_short_ttl_cache(monkeypatch) -> Non
     assert second.status_code == 200
     assert first.json()["build_status"] == "live"
     assert second.json()["build_status"] == "fresh_cache"
+
+
+def test_portfolio_overview_summary_latest_reuses_short_ttl_cache(monkeypatch) -> None:
+    portfolio_routes._portfolio_overview_summary_cache["expires_at"] = None
+    portfolio_routes._portfolio_overview_summary_cache["payload"] = None
+    call_count = {"count": 0}
+
+    def fake_overview_summary() -> dict:
+        call_count["count"] += 1
+        return {
+            "summary": {"total_equity": 1000.0, "as_of": "2026-03-24T00:00:00+00:00"},
+            "snapshot": {"run_id": f"run-{call_count['count']}", "created_at": "2026-03-24T00:00:00+00:00"},
+        }
+
+    monkeypatch.setattr(portfolio_routes._repo, "latest_portfolio_overview_summary", fake_overview_summary)
+
+    first = client.get("/portfolio/overview-summary/latest")
+    second = client.get("/portfolio/overview-summary/latest")
+
+    assert first.status_code == 200
+    assert second.status_code == 200
+    assert first.json()["build_status"] == "live"
+    assert second.json()["build_status"] == "fresh_cache"
+    assert call_count["count"] == 1
+
+
+def test_portfolio_overview_reuses_short_ttl_cache(monkeypatch) -> None:
+    portfolio_routes._portfolio_overview_cache["expires_at"] = None
+    portfolio_routes._portfolio_overview_cache["payload"] = None
+    call_count = {"count": 0}
+
+    def fake_overview() -> dict:
+        call_count["count"] += 1
+        return {
+            "summary": {"total_equity": 1000.0, "as_of": "2026-03-24T00:00:00+00:00"},
+            "snapshot": {"run_id": f"run-{call_count['count']}", "created_at": "2026-03-24T00:00:00+00:00"},
+            "positions": [],
+        }
+
+    monkeypatch.setattr(portfolio_routes._repo, "latest_portfolio_overview", fake_overview)
+
+    first = client.get("/portfolio/overview")
+    second = client.get("/portfolio/overview")
+
+    assert first.status_code == 200
+    assert second.status_code == 200
+    assert first.json()["build_status"] == "live"
+    assert second.json()["build_status"] == "fresh_cache"
+    assert call_count["count"] == 1
