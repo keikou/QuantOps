@@ -166,14 +166,14 @@ $v12Log = Join-Path $logDir "v12.log"
 $quantopsLog = Join-Path $logDir "quantops.log"
 $frontendLog = Join-Path $logDir "frontend-dev.log"
 
-$started = @(
-  Start-LoggedCmd -Name "V12 API" -Command "start_v12_api.cmd > `"$v12Log`" 2>&1"
-  Start-LoggedCmd -Name "QuantOps API" -Command "start_quantops_api.cmd > `"$quantopsLog`" 2>&1"
-  Start-LoggedCmd -Name "QuantOps Frontend (dev)" -Command "start_frontend.cmd > `"$frontendLog`" 2>&1"
-)
-
+$started = @()
+$started += Start-LoggedCmd -Name "V12 API" -Command "start_v12_api.cmd > `"$v12Log`" 2>&1"
 Wait-ForHttpOk -Name "V12 Health" -Url "http://127.0.0.1:8000/system/health"
+
+$started += Start-LoggedCmd -Name "QuantOps API" -Command "start_quantops_api.cmd > `"$quantopsLog`" 2>&1"
 Wait-ForHttpOk -Name "QuantOps Health" -Url "http://127.0.0.1:8010/api/v1/health"
+
+$started += Start-LoggedCmd -Name "QuantOps Frontend (dev)" -Command "start_frontend.cmd > `"$frontendLog`" 2>&1"
 Wait-ForHttpOk -Name "Frontend Home" -Url "http://127.0.0.1:3000/"
 
 $started | Select-Object Id, ProcessName | ConvertTo-Json | Set-Content -Path $statePath -Encoding UTF8

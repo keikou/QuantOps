@@ -18,6 +18,11 @@ from app.db.init_db import init_db
 GUI_FAST_PATH_WARMUP_DELAY_SECONDS = 3.0
 GUI_FAST_PATH_WARMUP_MAX_WAIT_SECONDS = 15.0
 GUI_FAST_PATH_WARMUP_POLL_SECONDS = 0.5
+GUI_FAST_PATH_WARMUP_READY_PATHS = (
+    "/system/health",
+    "/runtime/status",
+    "/portfolio/overview-summary/latest",
+)
 
 
 def configure_runtime_logging() -> None:
@@ -39,8 +44,13 @@ async def _warm_gui_fast_paths() -> None:
         async with httpx.AsyncClient(base_url=settings.v12_base_url.rstrip("/"), timeout=2.0) as client:
             while True:
                 try:
-                    response = await client.get("/system/health")
-                    if response.status_code < 500:
+                    ready = True
+                    for path in GUI_FAST_PATH_WARMUP_READY_PATHS:
+                        response = await client.get(path)
+                        if response.status_code >= 500:
+                            ready = False
+                            break
+                    if ready:
                         break
                 except Exception:
                     pass
