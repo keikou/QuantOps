@@ -199,26 +199,38 @@ class MonitoringService:
             return 'idle', last.isoformat(), round(heartbeat_age or 0.0, 3)
         return 'dead', last.isoformat(), round(max([x for x in [execution_age, planner_age, heartbeat_age] if x is not None] or [0.0]), 3)
 
-    async def refresh(self) -> dict:
-        (
-            health,
-            execution,
-            runtime,
-            planner,
-            execution_state,
-            block_reasons,
-            risk,
-            risk_snapshot,
-        ) = await asyncio.gather(
-            self._call_client_dict('get_system_health'),
-            self._call_client_dict('get_execution_quality'),
-            self._call_client_dict('get_runtime_status'),
-            self._call_client_dict('get_execution_planner_latest'),
-            self._call_client_dict('get_execution_state_latest'),
-            self._call_client_dict('get_execution_block_reasons_latest'),
-            self._call_client_dict('get_risk_budget'),
-            self._call_client_dict('get_sprint5c_risk_latest'),
-        )
+    async def refresh(self, *, summary_only: bool = False) -> dict:
+        if summary_only:
+            health, execution, runtime, risk_snapshot = await asyncio.gather(
+                self._call_client_dict('get_system_health'),
+                self._call_client_dict('get_execution_quality'),
+                self._call_client_dict('get_runtime_status'),
+                self._call_client_dict('get_sprint5c_risk_latest'),
+            )
+            planner: dict = {}
+            execution_state: dict = {}
+            block_reasons: dict = {}
+            risk: dict = {}
+        else:
+            (
+                health,
+                execution,
+                runtime,
+                planner,
+                execution_state,
+                block_reasons,
+                risk,
+                risk_snapshot,
+            ) = await asyncio.gather(
+                self._call_client_dict('get_system_health'),
+                self._call_client_dict('get_execution_quality'),
+                self._call_client_dict('get_runtime_status'),
+                self._call_client_dict('get_execution_planner_latest'),
+                self._call_client_dict('get_execution_state_latest'),
+                self._call_client_dict('get_execution_block_reasons_latest'),
+                self._call_client_dict('get_risk_budget'),
+                self._call_client_dict('get_sprint5c_risk_latest'),
+            )
 
         db_path = getattr(getattr(self.repository, 'factory', None), 'db_path', None)
         disk, db_writable = self._disk_status(Path(db_path).parent if db_path else '.')
