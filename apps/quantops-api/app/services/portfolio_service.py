@@ -714,4 +714,84 @@ class PortfolioService:
                     }
                 )
             positions.append(item)
-        return positions
+        if include_debug_fields:
+            return positions
+
+        equity_denom = self._safe_float(payload.get('total_equity') or payload.get('portfolio_value'))
+        aggregated: dict[str, dict] = {}
+        for item in positions:
+            symbol = str(item.get('symbol') or 'unknown')
+            side_sign = -1.0 if item.get('side') == 'short' else 1.0
+            qty = self._safe_float(item.get('quantity'))
+            notional = self._safe_float(item.get('notional'))
+            pnl = self._safe_float(item.get('pnl'))
+            mark_price = self._safe_float(item.get('mark_price'))
+            avg_price = self._safe_float(item.get('avg_price'))
+            strategy_id = str(item.get('strategy_id') or '')
+            alpha_family = str(item.get('alpha_family') or '')
+            signed_qty = side_sign * qty
+            signed_notional = side_sign * notional
+            signed_avg_value = signed_qty * avg_price
+
+            bucket = aggregated.setdefault(
+                symbol,
+                {
+                    'symbol': symbol,
+                    'signed_qty': 0.0,
+                    'signed_notional': 0.0,
+                    'pnl': 0.0,
+                    'signed_avg_value': 0.0,
+                    'mark_price': mark_price,
+                    'total_abs_qty': 0.0,
+                    'strategy_ids': set(),
+                    'alpha_families': set(),
+                },
+            )
+            bucket['signed_qty'] += signed_qty
+            bucket['signed_notional'] += signed_notional
+            bucket['pnl'] += pnl
+            bucket['signed_avg_value'] += signed_avg_value
+            bucket['mark_price'] = mark_price or bucket['mark_price']
+            bucket['total_abs_qty'] += abs(qty)
+            if strategy_id:
+                bucket['strategy_ids'].add(strategy_id)
+            if alpha_family:
+                bucket['alpha_families'].add(alpha_family)
+
+        reduced: list[dict] = []
+        for symbol, bucket in aggregated.items():
+            signed_qty = self._safe_float(bucket['signed_qty'])
+            signed_notional = self._safe_float(bucket['signed_notional'])
+            mark_price = self._safe_float(bucket['mark_price'])
+            if abs(signed_qty) > 1e-12:
+                avg_price = bucket['signed_avg_value'] / signed_qty
+            else:
+                avg_price = 0.0
+            side = 'short' if signed_qty < 0 or signed_notional < 0 else 'long'
+            notional = abs(signed_notional)
+            if equity_denom > 1e-12:
+                weight = signed_notional / equity_denom
+            else:
+                weight = sum(
+                    self._safe_float(row.get('weight'))
+                    for row in positions
+                    if str(row.get('symbol') or 'unknown') == symbol
+                )
+            strategy_ids = sorted(bucket['strategy_ids'])
+            alpha_families = sorted(bucket['alpha_families'])
+            reduced.append(
+                {
+                    'symbol': symbol,
+                    'side': side,
+                    'weight': round(weight, 6),
+                    'notional': round(notional, 2),
+                    'pnl': round(self._safe_float(bucket['pnl']), 6),
+                    'quantity': round(abs(signed_qty), 6),
+                    'avg_price': round(avg_price, 6),
+                    'mark_price': round(mark_price, 6),
+                    'strategy_id': strategy_ids[0] if len(strategy_ids) == 1 else ('multiple' if strategy_ids else ''),
+                    'alpha_family': alpha_families[0] if len(alpha_families) == 1 else ('multiple' if alpha_families else ''),
+                }
+            )
+        reduced.sort(key=lambda row: (-abs(self._safe_float(row.get('notional'))), str(row.get('symbol') or '')))
+        return reduced

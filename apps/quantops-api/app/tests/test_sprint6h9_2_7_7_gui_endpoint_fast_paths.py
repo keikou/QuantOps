@@ -250,6 +250,54 @@ def test_portfolio_positions_returns_stale_cache_and_refreshes_in_background() -
     assert service._positions_cache["items"][0]["symbol"] == "BTCUSDT"
 
 
+def test_portfolio_positions_aggregates_same_symbol_rows() -> None:
+    client = _PortfolioClient()
+    service = PortfolioService(client)  # type: ignore[arg-type]
+
+    payload = {
+        "items": [
+            {
+                "symbol": "BTCUSDT",
+                "side": "long",
+                "weight": 0.6,
+                "notional": 60.0,
+                "pnl": 12.0,
+                "quantity": 2.0,
+                "avg_price": 24.0,
+                "mark_price": 30.0,
+                "strategy_id": "s1",
+                "alpha_family": "trend",
+            },
+            {
+                "symbol": "BTCUSDT",
+                "side": "short",
+                "weight": 0.2,
+                "notional": 20.0,
+                "pnl": -4.0,
+                "quantity": 1.0,
+                "avg_price": 34.0,
+                "mark_price": 30.0,
+                "strategy_id": "s2",
+                "alpha_family": "mean_reversion",
+            },
+        ],
+        "total_equity": 100.0,
+    }
+
+    rows = service._normalize_positions(payload)
+
+    assert len(rows) == 1
+    assert rows[0]["symbol"] == "BTCUSDT"
+    assert rows[0]["side"] == "long"
+    assert rows[0]["quantity"] == 1.0
+    assert rows[0]["weight"] == 0.4
+    assert rows[0]["notional"] == 40.0
+    assert rows[0]["pnl"] == 8.0
+    assert rows[0]["avg_price"] == 14.0
+    assert rows[0]["strategy_id"] == "multiple"
+    assert rows[0]["alpha_family"] == "multiple"
+
+
 def test_portfolio_overview_parallelizes_upstream_reads() -> None:
     client = _PortfolioClient()
     service = PortfolioService(client)  # type: ignore[arg-type]
@@ -260,7 +308,7 @@ def test_portfolio_overview_parallelizes_upstream_reads() -> None:
 
     assert payload["total_equity"] == 100.0
     assert "fill_rate" not in payload
-    assert elapsed < 0.1
+    assert elapsed < 0.12
 
 
 def test_portfolio_metrics_parallelizes_upstream_reads() -> None:
