@@ -43,6 +43,8 @@ class TruthEngine:
         self.last_record_orders_and_fills_metrics: dict[str, Any] = {}
         self.last_rebuild_positions_metrics: dict[str, Any] = {}
         self.last_compute_equity_snapshot_metrics: dict[str, Any] = {}
+        self._last_rebuild_positions_fill_watermark: tuple[str | None, str | None, bool] | None = None
+        self._last_rebuild_positions_fills: list[dict[str, Any]] | None = None
 
     def ensure_schema(self) -> None:
         store = CONTAINER.runtime_store
@@ -417,6 +419,30 @@ class TruthEngine:
             [created_at, created_at, fill_id],
         )
 
+    def _remember_rebuild_fills(
+        self,
+        *,
+        created_at: str | None,
+        fill_id: str | None,
+        full_rebuild: bool,
+        fills: list[dict[str, Any]],
+    ) -> None:
+        self._last_rebuild_positions_fill_watermark = (created_at, fill_id, full_rebuild)
+        self._last_rebuild_positions_fills = list(fills)
+
+    def _reuse_rebuild_fills(
+        self,
+        *,
+        created_at: str | None,
+        fill_id: str | None,
+        full_rebuild: bool,
+    ) -> list[dict[str, Any]] | None:
+        if self._last_rebuild_positions_fill_watermark != (created_at, fill_id, full_rebuild):
+            return None
+        if self._last_rebuild_positions_fills is None:
+            return None
+        return list(self._last_rebuild_positions_fills)
+
     def get_latest_market_prices(self, symbols: list[str] | None = None) -> dict[str, dict[str, Any]]:
         store = CONTAINER.runtime_store
         rows = []
@@ -666,6 +692,12 @@ class TruthEngine:
             FROM execution_fills
             ORDER BY created_at ASC, fill_id ASC
             """
+        )
+        self._remember_rebuild_fills(
+            created_at=watermark_created_at,
+            fill_id=watermark_fill_id,
+            full_rebuild=full_rebuild,
+            fills=fills,
         )
         fills_fetch_duration_ms = round((time.perf_counter() - fills_fetch_started_at) * 1000.0, 2)
         price_fetch_started_at = time.perf_counter()
@@ -921,13 +953,19 @@ class TruthEngine:
             full_rebuild_reason = "missing_fill_watermark"
         full_rebuild = full_rebuild_reason is not None
         realized_total = round(sum(float(p.get("realized_pnl", 0.0) or 0.0) for p in positions), 8)
-        fills = self._fetch_new_fills(watermark_created_at, watermark_fill_id) if not full_rebuild else store.fetchall_dict(
-            """
-            SELECT fill_id, run_id, plan_id, strategy_id, alpha_family, symbol, side, fill_qty, fill_price, fee_bps, created_at
-            FROM execution_fills
-            ORDER BY created_at ASC, fill_id ASC
-            """
+        fills = self._reuse_rebuild_fills(
+            created_at=watermark_created_at,
+            fill_id=watermark_fill_id,
+            full_rebuild=full_rebuild,
         )
+        if fills is None:
+            fills = self._fetch_new_fills(watermark_created_at, watermark_fill_id) if not full_rebuild else store.fetchall_dict(
+                """
+                SELECT fill_id, run_id, plan_id, strategy_id, alpha_family, symbol, side, fill_qty, fill_price, fee_bps, created_at
+                FROM execution_fills
+                ORDER BY created_at ASC, fill_id ASC
+                """
+            )
         if full_rebuild:
             cash_balance, fees_paid = self._compute_cash_balance_from_fills(fills)
         else:
