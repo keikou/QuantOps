@@ -153,7 +153,7 @@ def test_sprint6h9_position_snapshots_use_active_version() -> None:
     positions_v2 = truth.rebuild_positions(second_as_of)
     metrics_v2 = dict(truth.last_rebuild_positions_metrics)
     assert positions_v2 == []
-    assert metrics_v1['snapshot_version'] != metrics_v2['snapshot_version']
+    assert metrics_v1['snapshot_version'] == metrics_v2['snapshot_version']
     assert metrics_v2['rebuild_mode'] == 'incremental'
     assert metrics_v2['new_fills_applied'] == 1
     assert metrics_v2['full_rebuild_reason'] is None
@@ -162,7 +162,7 @@ def test_sprint6h9_position_snapshots_use_active_version() -> None:
         "SELECT version_id FROM position_snapshot_versions WHERE build_status = 'active' ORDER BY activated_at DESC LIMIT 1"
     )
     assert active is not None
-    assert active['version_id'] == metrics_v2['snapshot_version']
+    assert active['version_id'] == metrics_v1['snapshot_version']
 
     overview = client.get('/portfolio/overview').json()
     assert overview['status'] == 'ok'

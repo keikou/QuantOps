@@ -709,10 +709,13 @@ class TruthEngine:
                 "history_rows_written": 0,
             }
             return valued
-        snapshot_version = new_cycle_id()
+        active_version = self._active_position_snapshot_version()
+        incremental_inplace = not full_rebuild and bool(fills) and bool(active_version)
+        snapshot_version = str(active_version) if incremental_inplace else new_cycle_id()
         version_insert_duration_ms = 0.0
         row_materialize_started_at = time.perf_counter()
         latest_rows = []
+        affected_latest_rows = []
         history_rows = []
         valued = []
         for state_key, state in states.items():
@@ -748,6 +751,8 @@ class TruthEngine:
                 "updated_at": as_of,
             }
             latest_rows.append(row)
+            if state_key in affected_keys:
+                affected_latest_rows.append(row)
             if full_rebuild or state_key in affected_keys:
                 history_rows.append({"snapshot_time": as_of, **{k: v for k, v in row.items() if k != "updated_at"}})
             valued.append(row)
@@ -758,61 +763,92 @@ class TruthEngine:
         cleanup_duration_ms = 0.0
         transaction_started_at = time.perf_counter()
         with store._session() as conn:
-            version_insert_started_at = time.perf_counter()
-            store.append(
-                "position_snapshot_versions",
-                {
-                    "version_id": snapshot_version,
-                    "build_status": "building",
-                    "snapshot_time": as_of,
-                    "row_count": 0,
-                    "fills_scanned": len(fills),
-                    "build_duration_ms": 0.0,
-                    "created_at": as_of,
-                    "activated_at": None,
-                },
-                conn=conn,
-            )
-            version_insert_duration_ms = round((time.perf_counter() - version_insert_started_at) * 1000.0, 2)
+            if not incremental_inplace:
+                version_insert_started_at = time.perf_counter()
+                store.append(
+                    "position_snapshot_versions",
+                    {
+                        "version_id": snapshot_version,
+                        "build_status": "building",
+                        "snapshot_time": as_of,
+                        "row_count": 0,
+                        "fills_scanned": len(fills),
+                        "build_duration_ms": 0.0,
+                        "created_at": as_of,
+                        "activated_at": None,
+                    },
+                    conn=conn,
+                )
+                version_insert_duration_ms = round((time.perf_counter() - version_insert_started_at) * 1000.0, 2)
             row_write_started_at = time.perf_counter()
-            if latest_rows:
+            if incremental_inplace:
+                for key in affected_keys:
+                    store.execute(
+                        """
+                        DELETE FROM position_snapshots_latest
+                        WHERE snapshot_version = ? AND symbol = ? AND strategy_id = ? AND alpha_family = ?
+                        """,
+                        [snapshot_version, key[0], key[1], key[2]],
+                        conn=conn,
+                    )
+                if affected_latest_rows:
+                    store.append("position_snapshots_latest", affected_latest_rows, conn=conn)
+                if history_rows:
+                    store.append("position_snapshots_history", history_rows, conn=conn)
+            elif latest_rows:
                 store.append("position_snapshots_latest", latest_rows, conn=conn)
                 if history_rows:
                     store.append("position_snapshots_history", history_rows, conn=conn)
             row_write_duration_ms = round((time.perf_counter() - row_write_started_at) * 1000.0, 2)
             activation_started_at = time.perf_counter()
-            store.execute(
-                """
-                UPDATE position_snapshot_versions
-                SET build_status = 'superseded'
-                WHERE build_status = 'active'
-                """,
-                conn=conn,
-            )
-            store.execute(
-                """
-                UPDATE position_snapshot_versions
-                SET build_status = 'active',
-                    row_count = ?,
-                    fills_scanned = ?,
-                    build_duration_ms = ?,
-                    activated_at = ?
-                WHERE version_id = ?
-                """,
-                [len(latest_rows), len(fills), build_duration_ms, as_of, snapshot_version],
-                conn=conn,
-            )
+            if incremental_inplace:
+                store.execute(
+                    """
+                    UPDATE position_snapshot_versions
+                    SET snapshot_time = ?,
+                        row_count = ?,
+                        fills_scanned = ?,
+                        build_duration_ms = ?,
+                        activated_at = ?
+                    WHERE version_id = ?
+                    """,
+                    [as_of, len(latest_rows), len(fills), build_duration_ms, as_of, snapshot_version],
+                    conn=conn,
+                )
+            else:
+                store.execute(
+                    """
+                    UPDATE position_snapshot_versions
+                    SET build_status = 'superseded'
+                    WHERE build_status = 'active'
+                    """,
+                    conn=conn,
+                )
+                store.execute(
+                    """
+                    UPDATE position_snapshot_versions
+                    SET build_status = 'active',
+                        row_count = ?,
+                        fills_scanned = ?,
+                        build_duration_ms = ?,
+                        activated_at = ?
+                    WHERE version_id = ?
+                    """,
+                    [len(latest_rows), len(fills), build_duration_ms, as_of, snapshot_version],
+                    conn=conn,
+                )
             self._set_fill_watermark("positions_last_fill", fills[-1] if fills else None, as_of, conn=conn)
-            cleanup_started_at = time.perf_counter()
-            store.execute(
-                """
-                DELETE FROM position_snapshots_latest
-                WHERE (snapshot_version IS NULL OR snapshot_version <> ?)
-                """,
-                [snapshot_version],
-                conn=conn,
-            )
-            cleanup_duration_ms = round((time.perf_counter() - cleanup_started_at) * 1000.0, 2)
+            if not incremental_inplace:
+                cleanup_started_at = time.perf_counter()
+                store.execute(
+                    """
+                    DELETE FROM position_snapshots_latest
+                    WHERE (snapshot_version IS NULL OR snapshot_version <> ?)
+                    """,
+                    [snapshot_version],
+                    conn=conn,
+                )
+                cleanup_duration_ms = round((time.perf_counter() - cleanup_started_at) * 1000.0, 2)
             try:
                 conn.commit()
             except Exception:
