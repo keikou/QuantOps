@@ -12,12 +12,18 @@ logger = logging.getLogger(__name__)
 
 
 class PortfolioService:
+    OVERVIEW_CACHE_TTL_SECONDS = 5.0
+    OVERVIEW_STALE_MAX_AGE_SECONDS = 60.0
     METRICS_CACHE_TTL_SECONDS = 5.0
     METRICS_STALE_MAX_AGE_SECONDS = 60.0
     METRICS_EQUITY_HISTORY_LIMIT = 60
 
     def __init__(self, v12_client: V12Client) -> None:
         self.v12_client = v12_client
+        self._overview_cache: dict | None = None
+        self._overview_cache_expires_at: datetime | None = None
+        self._overview_cache_updated_at: datetime | None = None
+        self._overview_inflight_task: asyncio.Task | None = None
         self._metrics_cache: dict | None = None
         self._metrics_cache_expires_at: datetime | None = None
         self._metrics_cache_updated_at: datetime | None = None
@@ -87,6 +93,20 @@ class PortfolioService:
         if (now - updated_at).total_seconds() > self.METRICS_STALE_MAX_AGE_SECONDS:
             return None
         return dict(self._metrics_cache)
+
+    def _get_cached_overview(self, *, allow_stale: bool = False) -> dict | None:
+        expires_at = self._overview_cache_expires_at
+        updated_at = self._overview_cache_updated_at
+        if self._overview_cache is None or expires_at is None or updated_at is None:
+            return None
+        now = datetime.now(timezone.utc)
+        if expires_at > now:
+            return dict(self._overview_cache)
+        if not allow_stale:
+            return None
+        if (now - updated_at).total_seconds() > self.OVERVIEW_STALE_MAX_AGE_SECONDS:
+            return None
+        return dict(self._overview_cache)
 
     async def _build_metrics_live(self) -> dict:
         metrics_payload = await self.v12_client.get_portfolio_metrics()
@@ -166,7 +186,7 @@ class PortfolioService:
 
         self._metrics_inflight_task.add_done_callback(_clear_task)
 
-    async def get_overview(self) -> dict:
+    async def _build_overview_live(self) -> dict:
         overview_payload = await self.v12_client.get_portfolio_dashboard()
         overview = overview_payload if isinstance(overview_payload, dict) else {}
         positions_source = overview
@@ -204,7 +224,7 @@ class PortfolioService:
         if positions and long_exposure == 0.0 and short_exposure == 0.0:
             long_exposure = sum(max(0.0, float(item.get('weight', 0.0) or 0.0)) for item in positions)
             short_exposure = sum(abs(min(0.0, float(item.get('weight', 0.0) or 0.0))) for item in positions)
-        return {
+        payload = {
             'portfolio_value': round(total_equity, 2),
             'total_equity': round(total_equity, 2),
             'balance': breakdown['balance'],
@@ -232,8 +252,54 @@ class PortfolioService:
             'positions': positions,
             'quotes_as_of': overview.get('quotes_as_of') or positions_source.get('quotes_as_of'),
             'stale_positions': sum(1 for item in positions if bool(item.get('stale'))),
+            'source_snapshot_time': overview.get('source_snapshot_time') or overview.get('as_of') or positions_source.get('as_of'),
             'as_of': overview.get('as_of') or positions_source.get('as_of') or utc_now_iso(),
+            'build_status': overview.get('build_status') or 'live',
         }
+        self._overview_cache = dict(payload)
+        now = datetime.now(timezone.utc)
+        self._overview_cache_updated_at = now
+        self._overview_cache_expires_at = now + timedelta(seconds=self.OVERVIEW_CACHE_TTL_SECONDS)
+        return payload
+
+    def _schedule_overview_refresh(self) -> None:
+        task = self._overview_inflight_task
+        if task is not None and not task.done():
+            return
+        self._overview_inflight_task = asyncio.create_task(self._build_overview_live())
+
+        def _clear_task(finished: asyncio.Task) -> None:
+            try:
+                finished.exception()
+            except Exception:
+                logger.exception("portfolio_overview_background_refresh_failed")
+            finally:
+                if self._overview_inflight_task is finished:
+                    self._overview_inflight_task = None
+
+        self._overview_inflight_task.add_done_callback(_clear_task)
+
+    async def get_overview(self) -> dict:
+        cached = self._get_cached_overview()
+        if cached is not None:
+            return cached
+
+        stale_cached = self._get_cached_overview(allow_stale=True)
+        if stale_cached is not None:
+            self._schedule_overview_refresh()
+            return stale_cached
+
+        task = self._overview_inflight_task
+        if task is not None and not task.done():
+            return await task
+
+        task = asyncio.create_task(self._build_overview_live())
+        self._overview_inflight_task = task
+        try:
+            return await task
+        finally:
+            if self._overview_inflight_task is task:
+                self._overview_inflight_task = None
 
     async def get_metrics(self) -> dict:
         cached = self._get_cached_metrics()

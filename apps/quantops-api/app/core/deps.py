@@ -66,6 +66,7 @@ def get_dashboard_service() -> DashboardService:
 
 
 @lru_cache(maxsize=1)
+@lru_cache(maxsize=1)
 def get_portfolio_service() -> PortfolioService:
     return PortfolioService(get_v12_client())
 
