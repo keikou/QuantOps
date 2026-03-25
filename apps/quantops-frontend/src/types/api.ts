@@ -392,6 +392,40 @@ export type CommandCenterRuntimeLatest = {
   buildStatus?: string;
   sourceSnapshotTime?: string;
   dataFreshnessSec?: number;
+  stableValue?: {
+    bridgeState?: string;
+    operatorState?: string;
+    plannerStatus?: string;
+    plannedCount?: number;
+    submittedCount?: number;
+    blockedCount?: number;
+    filledCount?: number;
+    latestReasonCode?: string;
+    latestReasonSummary?: string;
+    blockingComponent?: string;
+    degraded?: boolean;
+    operatorMessage?: string;
+    eventChainComplete?: boolean;
+  };
+  liveDelta?: {
+    recentRunsWindow?: number | null;
+    recentIssuesWindow?: number | null;
+  };
+  displayValue?: {
+    bridgeState?: string;
+    operatorState?: string;
+    plannerStatus?: string;
+    plannedCount?: number;
+    submittedCount?: number;
+    blockedCount?: number;
+    filledCount?: number;
+    latestReasonCode?: string;
+    latestReasonSummary?: string;
+    blockingComponent?: string;
+    degraded?: boolean;
+    operatorMessage?: string;
+    eventChainComplete?: boolean;
+  };
   bridgeState: string;
   operatorState: string;
   plannerStatus: string;

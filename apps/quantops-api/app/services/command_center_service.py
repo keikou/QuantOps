@@ -96,6 +96,27 @@ class CommandCenterService:
         result["source_snapshot_time"] = source_snapshot_time
         result["data_freshness_sec"] = self._snapshot_age_sec(source_snapshot_time)
         result["build_status"] = build_status
+        stable_value = {
+            "bridge_state": result.get("bridge_state"),
+            "operator_state": result.get("operator_state"),
+            "planner_status": result.get("planner_status"),
+            "planned_count": result.get("planned_count"),
+            "submitted_count": result.get("submitted_count"),
+            "blocked_count": result.get("blocked_count"),
+            "filled_count": result.get("filled_count"),
+            "latest_reason_code": result.get("latest_reason_code"),
+            "latest_reason_summary": result.get("latest_reason_summary"),
+            "blocking_component": result.get("blocking_component"),
+            "degraded": result.get("degraded"),
+            "operator_message": result.get("operator_message"),
+            "event_chain_complete": result.get("event_chain_complete"),
+        }
+        result["stable_value"] = stable_value
+        result["live_delta"] = {
+            "recent_runs_window": None,
+            "recent_issues_window": None,
+        }
+        result["display_value"] = dict(stable_value)
         result.pop("_cached_at", None)
         return result
 

@@ -499,6 +499,9 @@ export function normalizeExecutionState(input: any) {
 export function normalizeCommandCenterRuntimeLatest(input: any): CommandCenterRuntimeLatest {
   const x = getPayload<any>(input, {});
   const timeline = Array.isArray(x.timeline) ? x.timeline : [];
+  const stableValue = x.stableValue ?? x.stable_value;
+  const liveDelta = x.liveDelta ?? x.live_delta;
+  const displayValue = x.displayValue ?? x.display_value;
   return {
     status: toString(x.status, 'no_data'),
     runId: toString(x.runId ?? x.run_id, ''),
@@ -506,6 +509,40 @@ export function normalizeCommandCenterRuntimeLatest(input: any): CommandCenterRu
     buildStatus: toString(x.buildStatus ?? x.build_status, ''),
     sourceSnapshotTime: toString(x.sourceSnapshotTime ?? x.source_snapshot_time, ''),
     dataFreshnessSec: toNumber(x.dataFreshnessSec ?? x.data_freshness_sec),
+    stableValue: stableValue ? {
+      bridgeState: toString(stableValue.bridgeState ?? stableValue.bridge_state, ''),
+      operatorState: toString(stableValue.operatorState ?? stableValue.operator_state, ''),
+      plannerStatus: toString(stableValue.plannerStatus ?? stableValue.planner_status, ''),
+      plannedCount: toNumber(stableValue.plannedCount ?? stableValue.planned_count),
+      submittedCount: toNumber(stableValue.submittedCount ?? stableValue.submitted_count),
+      blockedCount: toNumber(stableValue.blockedCount ?? stableValue.blocked_count),
+      filledCount: toNumber(stableValue.filledCount ?? stableValue.filled_count),
+      latestReasonCode: toString(stableValue.latestReasonCode ?? stableValue.latest_reason_code, ''),
+      latestReasonSummary: toString(stableValue.latestReasonSummary ?? stableValue.latest_reason_summary, ''),
+      blockingComponent: toString(stableValue.blockingComponent ?? stableValue.blocking_component, ''),
+      degraded: toBool(stableValue.degraded, false),
+      operatorMessage: toString(stableValue.operatorMessage ?? stableValue.operator_message, ''),
+      eventChainComplete: toBool(stableValue.eventChainComplete ?? stableValue.event_chain_complete, false),
+    } : undefined,
+    liveDelta: liveDelta ? {
+      recentRunsWindow: (liveDelta.recentRunsWindow ?? liveDelta.recent_runs_window) ?? null,
+      recentIssuesWindow: (liveDelta.recentIssuesWindow ?? liveDelta.recent_issues_window) ?? null,
+    } : undefined,
+    displayValue: displayValue ? {
+      bridgeState: toString(displayValue.bridgeState ?? displayValue.bridge_state, ''),
+      operatorState: toString(displayValue.operatorState ?? displayValue.operator_state, ''),
+      plannerStatus: toString(displayValue.plannerStatus ?? displayValue.planner_status, ''),
+      plannedCount: toNumber(displayValue.plannedCount ?? displayValue.planned_count),
+      submittedCount: toNumber(displayValue.submittedCount ?? displayValue.submitted_count),
+      blockedCount: toNumber(displayValue.blockedCount ?? displayValue.blocked_count),
+      filledCount: toNumber(displayValue.filledCount ?? displayValue.filled_count),
+      latestReasonCode: toString(displayValue.latestReasonCode ?? displayValue.latest_reason_code, ''),
+      latestReasonSummary: toString(displayValue.latestReasonSummary ?? displayValue.latest_reason_summary, ''),
+      blockingComponent: toString(displayValue.blockingComponent ?? displayValue.blocking_component, ''),
+      degraded: toBool(displayValue.degraded, false),
+      operatorMessage: toString(displayValue.operatorMessage ?? displayValue.operator_message, ''),
+      eventChainComplete: toBool(displayValue.eventChainComplete ?? displayValue.event_chain_complete, false),
+    } : undefined,
     bridgeState: toString(x.bridgeState ?? x.bridge_state, 'no_decision'),
     operatorState: toString(x.operatorState ?? x.operator_state ?? x.bridgeState ?? x.bridge_state, 'no_decision'),
     plannerStatus: toString(x.plannerStatus ?? x.planner_status, 'unknown'),

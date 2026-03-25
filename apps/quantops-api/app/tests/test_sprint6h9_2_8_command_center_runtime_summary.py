@@ -180,6 +180,8 @@ def test_command_center_runtime_latest_exposes_operator_summary_fields() -> None
     assert payload["source_snapshot_time"] == "2026-03-23T00:00:09+00:00"
     assert payload["degraded"] is True
     assert payload["latest_reason_code"] == "ORDER_REJECTED"
+    assert payload["stable_value"]["operator_state"] == "submitted_no_fill"
+    assert payload["display_value"]["latest_reason_code"] == "ORDER_REJECTED"
     assert payload["last_successful_fill_at"] is None
     assert payload["last_successful_portfolio_update_at"] is None
     assert payload["last_cycle_completed_at"] is None
