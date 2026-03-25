@@ -60,7 +60,7 @@ async def _warm_gui_fast_paths() -> None:
                     break
                 await asyncio.sleep(GUI_FAST_PATH_WARMUP_POLL_SECONDS)
         await asyncio.sleep(GUI_RISK_WARMUP_DELAY_SECONDS)
-        await get_risk_service().refresh_snapshot()
+        await get_risk_service().refresh_snapshot(summary_only=True)
         await asyncio.sleep(max(0.0, GUI_MONITORING_WARMUP_DELAY_SECONDS - GUI_RISK_WARMUP_DELAY_SECONDS))
         await get_monitoring_service().refresh()
     except Exception:
