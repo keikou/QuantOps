@@ -656,6 +656,14 @@ class TruthEngine:
             for fill in fills:
                 self._apply_fill_to_position_states(states, fill)
         state_build_duration_ms = round((time.perf_counter() - state_build_started_at) * 1000.0, 2)
+        affected_keys = {
+            _position_state_key(
+                str(fill.get("symbol") or ""),
+                str(fill.get("strategy_id") or "paper_runtime"),
+                str(fill.get("alpha_family") or "runtime"),
+            )
+            for fill in fills
+        }
         if not full_rebuild and not fills:
             valued = []
             for row in active_rows:
@@ -707,7 +715,7 @@ class TruthEngine:
         latest_rows = []
         history_rows = []
         valued = []
-        for _, state in states.items():
+        for state_key, state in states.items():
             symbol = str(state["symbol"])
             signed_qty = float(state["signed_qty"])
             abs_qty = abs(signed_qty)
@@ -740,7 +748,7 @@ class TruthEngine:
                 "updated_at": as_of,
             }
             latest_rows.append(row)
-            if full_rebuild or fills:
+            if full_rebuild or state_key in affected_keys:
                 history_rows.append({"snapshot_time": as_of, **{k: v for k, v in row.items() if k != "updated_at"}})
             valued.append(row)
         row_materialize_duration_ms = round((time.perf_counter() - row_materialize_started_at) * 1000.0, 2)

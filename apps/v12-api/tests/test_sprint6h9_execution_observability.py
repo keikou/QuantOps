@@ -247,3 +247,80 @@ def test_sprint6h9_equity_snapshot_reuses_watermark_when_only_prices_change() ->
     assert truth.last_compute_equity_snapshot_metrics['full_rebuild_reason'] is None
     assert round(equity_v2['market_value'], 2) == 103.00
     assert round(equity_v2['total_equity'] - equity_v1['total_equity'], 2) == 2.00
+
+
+def test_sprint6h9_incremental_history_writes_only_affected_positions() -> None:
+    _reset_runtime_state()
+    truth = TruthEngine()
+    as_of = datetime.now(timezone.utc).isoformat()
+    CONTAINER.runtime_store.append('execution_fills', [
+        {
+            'fill_id': 'fill-hist-1',
+            'run_id': 'run-hist-1',
+            'plan_id': 'plan-hist-1',
+            'strategy_id': 'strategy-a',
+            'alpha_family': 'trend',
+            'symbol': 'BTCUSDT',
+            'side': 'buy',
+            'fill_qty': 1.0,
+            'fill_price': 100.0,
+            'fee_bps': 0.0,
+            'created_at': as_of,
+        },
+        {
+            'fill_id': 'fill-hist-2',
+            'run_id': 'run-hist-1',
+            'plan_id': 'plan-hist-2',
+            'strategy_id': 'strategy-b',
+            'alpha_family': 'trend',
+            'symbol': 'ETHUSDT',
+            'side': 'buy',
+            'fill_qty': 1.0,
+            'fill_price': 50.0,
+            'fee_bps': 0.0,
+            'created_at': as_of,
+        },
+    ])
+    CONTAINER.runtime_store.append('market_prices_latest', [
+        {
+            'symbol': 'BTCUSDT',
+            'mark_price': 101.0,
+            'source': 'test',
+            'price_time': as_of,
+            'quote_age_sec': 0.0,
+            'stale': False,
+            'fallback_reason': None,
+            'updated_at': as_of,
+        },
+        {
+            'symbol': 'ETHUSDT',
+            'mark_price': 51.0,
+            'source': 'test',
+            'price_time': as_of,
+            'quote_age_sec': 0.0,
+            'stale': False,
+            'fallback_reason': None,
+            'updated_at': as_of,
+        },
+    ])
+    truth.rebuild_positions(as_of)
+
+    as_of_2 = (datetime.now(timezone.utc) + timedelta(seconds=1)).isoformat()
+    CONTAINER.runtime_store.append('execution_fills', {
+        'fill_id': 'fill-hist-3',
+        'run_id': 'run-hist-2',
+        'plan_id': 'plan-hist-3',
+        'strategy_id': 'strategy-a',
+        'alpha_family': 'trend',
+        'symbol': 'BTCUSDT',
+        'side': 'buy',
+        'fill_qty': 0.5,
+        'fill_price': 102.0,
+        'fee_bps': 0.0,
+        'created_at': as_of_2,
+    })
+    truth.rebuild_positions(as_of_2)
+
+    assert truth.last_rebuild_positions_metrics['rebuild_mode'] == 'incremental'
+    assert truth.last_rebuild_positions_metrics['fills_scanned'] == 1
+    assert truth.last_rebuild_positions_metrics['history_rows_written'] == 1
