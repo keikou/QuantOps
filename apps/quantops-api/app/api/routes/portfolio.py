@@ -44,7 +44,7 @@ async def portfolio_metrics_debug(request: Request, service: PortfolioService = 
 
 
 @router.get("/positions")
-async def positions(request: Request, service: PortfolioService = Depends(get_portfolio_service)) -> list[dict]:
+async def positions(request: Request, service: PortfolioService = Depends(get_portfolio_service)) -> dict:
     started = time.perf_counter()
     payload = await service.get_positions()
     request.state.handler_duration_ms = round((time.perf_counter() - started) * 1000.0, 2)

@@ -131,7 +131,9 @@ export function normalizePortfolioMetrics(input: any) {
 }
 
 export function normalizePositions(input: any) {
-  return getArray<any>(input).map((p, idx) => ({
+  const payload = getPayload<any>(input, {});
+  const rows = Array.isArray(payload.items) ? payload.items : getArray<any>(input);
+  const items = rows.map((p: any, idx: number) => ({
     symbol: toString(p.symbol ?? p.ticker ?? p.asset, `row-${idx}`),
     side: (p.side === 'short' ? 'short' : 'long') as 'long' | 'short',
     quantity: toNumber(p.quantity ?? p.qty ?? p.size),
@@ -141,6 +143,13 @@ export function normalizePositions(input: any) {
     strategyId: toString(p.strategyId ?? p.strategy_id, ''),
     alphaFamily: toString(p.alphaFamily ?? p.alpha_family, ''),
   }));
+  return {
+    items,
+    asOf: toString(payload.asOf ?? payload.as_of, ''),
+    buildStatus: toString(payload.buildStatus ?? payload.build_status, ''),
+    sourceSnapshotTime: toString(payload.sourceSnapshotTime ?? payload.source_snapshot_time, ''),
+    dataFreshnessSec: toNumber(payload.dataFreshnessSec ?? payload.data_freshness_sec),
+  } satisfies FeedPayload<any>;
 }
 
 export function normalizeRisk(input: any) {
@@ -300,15 +309,22 @@ export function normalizeAuditLogs(input: any) {
 }
 
 export function normalizeEquityHistory(input: any) {
-  const items = getArray<any>(input).length ? getArray<any>(input) : getArray<any>(getPayload<any>(input, {}).items);
   const payload = getPayload<any>(input, {});
-  const source = items.length ? items : Array.isArray(payload.items) ? payload.items : [];
-  return source.map((row: any, idx: number) => ({
+  const directItems = getArray<any>(input);
+  const source = directItems.length ? directItems : Array.isArray(payload.items) ? payload.items : [];
+  const items = source.map((row: any, idx: number) => ({
     name: toString(row.name ?? row.label ?? row.as_of ?? row.asOf, `pt-${idx}`),
     value: toNumber(row.value ?? row.equity ?? row.total_equity ?? row.totalEquity),
     pnl: toNumber(row.pnl ?? row.total_pnl ?? row.totalPnl),
     asOf: toString(row.asOf ?? row.as_of ?? row.name, ''),
   }));
+  return {
+    items,
+    asOf: toString(payload.asOf ?? payload.as_of, ''),
+    buildStatus: toString(payload.buildStatus ?? payload.build_status, ''),
+    sourceSnapshotTime: toString(payload.sourceSnapshotTime ?? payload.source_snapshot_time, ''),
+    dataFreshnessSec: toNumber(payload.dataFreshnessSec ?? payload.data_freshness_sec),
+  } satisfies FeedPayload<any>;
 }
 
 export function normalizeExecutionSummary(input: any) {

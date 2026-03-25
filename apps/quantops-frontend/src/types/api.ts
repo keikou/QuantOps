@@ -190,6 +190,9 @@ export type EquityPoint = {
   asOf?: string;
 };
 
+export type PositionFeed = FeedPayload<PositionRow>;
+export type EquityHistoryFeed = FeedPayload<EquityPoint>;
+
 export type FeedPayload<T> = {
   items: T[];
   asOf?: string;

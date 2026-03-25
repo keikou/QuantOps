@@ -34,7 +34,7 @@ import type {
   GovernanceDecision,
   MonitoringSystem,
   OverviewData,
-  EquityPoint,
+  EquityHistoryFeed,
   ExecutionSummary,
   FeedPayload,
   ExecutionFillRow,
@@ -43,7 +43,7 @@ import type {
   ExecutionState,
   PortfolioOverview,
   PortfolioMetrics,
-  PositionRow,
+  PositionFeed,
   RiskSnapshot,
   StrategyRow,
   AuditLogRow,
@@ -117,10 +117,10 @@ export function usePortfolioMetrics(enabled = true) {
 export function usePortfolioPositions() {
   return useQuery({
     queryKey: ['portfolio-positions'],
-    queryFn: async () => envelope<PositionRow[]>(normalizePositions(await apiFetch<any>(endpoints.portfolioPositions))),
+    queryFn: async () => envelope<PositionFeed>(normalizePositions(await apiFetch<any>(endpoints.portfolioPositions))),
     refetchInterval: 20000,
     refetchOnMount: false,
-    placeholderData: (previousData) => previousData ?? envelope<PositionRow[]>([]),
+    placeholderData: (previousData) => previousData ?? envelope<PositionFeed>({ items: [] }),
   });
 }
 export function useRiskSnapshot(enabled = true) {
@@ -169,10 +169,10 @@ export function useSchedulerJobs(enabled = true) {
 export function useEquityHistory(enabled = true) {
   return useQuery({
     queryKey: ['equity-history'],
-    queryFn: async () => envelope<EquityPoint[]>(normalizeEquityHistory(await apiFetch<any>(endpoints.equityHistory))),
+    queryFn: async () => envelope<EquityHistoryFeed>(normalizeEquityHistory(await apiFetch<any>(endpoints.equityHistory))),
     enabled,
     refetchInterval: 30000,
-    placeholderData: (previousData) => previousData ?? envelope<EquityPoint[]>([]),
+    placeholderData: (previousData) => previousData ?? envelope<EquityHistoryFeed>({ items: [] }),
   });
 }
 export function useExecutionSummary() {

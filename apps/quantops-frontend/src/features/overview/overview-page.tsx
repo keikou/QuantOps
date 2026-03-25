@@ -197,7 +197,8 @@ export function OverviewPage() {
   const jobRows = jobs.data?.data ?? [];
   const monitoringData = monitoring.data?.data;
   const portfolioMetrics = portfolioMetricsQuery.data?.data;
-  const chartData = equityHistory.data?.data?.length ? equityHistory.data.data : (data?.pnlSeries ?? []);
+  const equityHistoryFeed = equityHistory.data?.data;
+  const chartData = equityHistoryFeed?.items?.length ? equityHistoryFeed.items : (data?.pnlSeries ?? []);
   const displayedOpenAlerts = data?.openAlerts != null ? Math.max(data.openAlerts, openAlertRows.length) : (openAlertRows.length || '-');
   const executionReason = monitoringData?.executionReason || '-';
   const riskData = risk.data?.data;
@@ -256,6 +257,7 @@ export function OverviewPage() {
         <div className="mt-2 grid gap-2 md:grid-cols-2">
           <div>Overview snapshot: <span className="text-slate-100">{fmtFreshness(data?.buildStatus, data?.sourceSnapshotTime, data?.dataFreshnessSec)}</span></div>
           <div>Metrics snapshot: <span className="text-slate-100">{fmtFreshness(portfolioMetrics?.buildStatus, portfolioMetrics?.sourceSnapshotTime, portfolioMetrics?.dataFreshnessSec)}</span></div>
+          <div>Equity history snapshot: <span className="text-slate-100">{fmtFreshness(equityHistoryFeed?.buildStatus, equityHistoryFeed?.sourceSnapshotTime, equityHistoryFeed?.dataFreshnessSec)}</span></div>
           <div>Position rows: <span className="text-slate-100">{data?.positionRowCount ?? '-'}</span></div>
           <div>Strategy rows: <span className="text-slate-100">{data?.strategyRowCount ?? '-'}</span></div>
         </div>

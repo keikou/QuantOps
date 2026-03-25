@@ -111,6 +111,8 @@ class _PortfolioClient:
                 {"symbol": "ETHUSDT", "weight": 0.2, "side": "short", "pnl": -2.0},
             ],
             "as_of": "2026-03-22T00:00:00+00:00",
+            "source_snapshot_time": "2026-03-22T00:00:00+00:00",
+            "build_status": "live",
         }
 
     async def get_execution_quality(self, *, live: bool = False) -> dict:
@@ -134,7 +136,14 @@ class _PortfolioClient:
     async def get_equity_history(self, *, limit: int | None = None, live: bool = False) -> dict:
         self.equity_history_calls += 1
         await self._sleep()
-        return {"items": [{"value": 100.0}, {"value": 101.0}, {"value": 102.0}], "limit": limit, "live": live}
+        return {
+            "items": [{"value": 100.0}, {"value": 101.0}, {"value": 102.0}],
+            "limit": limit,
+            "live": live,
+            "as_of": "2026-03-22T00:00:00+00:00",
+            "source_snapshot_time": "2026-03-22T00:00:00+00:00",
+            "build_status": "live",
+        }
 
 
 class _CountingDashboardService(DashboardService):
@@ -190,10 +199,11 @@ def test_portfolio_positions_skips_unused_execution_quality_call() -> None:
 
     payload = asyncio.run(service.get_positions())
 
-    assert len(payload) == 2
+    assert len(payload["items"]) == 2
     assert client.execution_quality_calls == 0
-    assert "price_source" not in payload[0]
-    assert "quote_time" not in payload[0]
+    assert payload["build_status"] == "live"
+    assert "price_source" not in payload["items"][0]
+    assert "quote_time" not in payload["items"][0]
     assert client.portfolio_positions_calls == 1
 
 
@@ -201,28 +211,33 @@ def test_portfolio_positions_uses_short_ttl_cache_and_coalesces() -> None:
     client = _PortfolioClient()
     service = PortfolioService(client)  # type: ignore[arg-type]
 
-    async def run_test() -> tuple[list[dict], list[dict], list[dict]]:
+    async def run_test() -> tuple[dict, dict, dict]:
         first, second = await asyncio.gather(service.get_positions(), service.get_positions())
         third = await service.get_positions()
         return first, second, third
 
     first, second, third = asyncio.run(run_test())
 
-    assert len(first) == 2
-    assert second[0]["symbol"] == first[0]["symbol"]
-    assert third[1]["symbol"] == first[1]["symbol"]
+    assert len(first["items"]) == 2
+    assert second["items"][0]["symbol"] == first["items"][0]["symbol"]
+    assert third["items"][1]["symbol"] == first["items"][1]["symbol"]
     assert client.portfolio_positions_calls == 1
 
 
 def test_portfolio_positions_returns_stale_cache_and_refreshes_in_background() -> None:
     client = _PortfolioClient()
     service = PortfolioService(client)  # type: ignore[arg-type]
-    stale_payload = [{"symbol": "STALE", "side": "long", "weight": 0.1, "notional": 1.0, "pnl": 0.0, "quantity": 1.0, "avg_price": 1.0, "mark_price": 1.0, "strategy_id": "s1", "alpha_family": "trend"}]
-    service._positions_cache = list(stale_payload)
+    stale_payload = {
+        "items": [{"symbol": "STALE", "side": "long", "weight": 0.1, "notional": 1.0, "pnl": 0.0, "quantity": 1.0, "avg_price": 1.0, "mark_price": 1.0, "strategy_id": "s1", "alpha_family": "trend"}],
+        "as_of": "2026-03-22T00:00:00+00:00",
+        "source_snapshot_time": "2026-03-22T00:00:00+00:00",
+        "build_status": "stale_cache",
+    }
+    service._positions_cache = dict(stale_payload)
     service._positions_cache_updated_at = datetime.now(timezone.utc)
     service._positions_cache_expires_at = datetime.now(timezone.utc) - timedelta(seconds=1)
 
-    async def run_test() -> list[dict]:
+    async def run_test() -> dict:
         payload = await service.get_positions()
         await asyncio.sleep(0.12)
         return payload
@@ -232,7 +247,7 @@ def test_portfolio_positions_returns_stale_cache_and_refreshes_in_background() -
     assert payload == stale_payload
     assert client.portfolio_positions_calls == 1
     assert service._positions_cache is not None
-    assert service._positions_cache[0]["symbol"] == "BTCUSDT"
+    assert service._positions_cache["items"][0]["symbol"] == "BTCUSDT"
 
 
 def test_portfolio_overview_parallelizes_upstream_reads() -> None:
@@ -346,13 +361,19 @@ def test_analytics_equity_history_uses_short_ttl_cache_and_coalesces() -> None:
     assert len(first["items"]) == 3
     assert len(second["items"]) == 3
     assert len(third["items"]) == 3
+    assert first["build_status"] == "live"
     assert client.equity_history_calls == 1
 
 
 def test_analytics_equity_history_returns_stale_cache_and_refreshes_in_background() -> None:
     client = _PortfolioClient()
     service = AnalyticsService(client, _SchedulerRepository())  # type: ignore[arg-type]
-    stale_payload = {"items": [{"name": "stale", "value": 1.0, "pnl": 0.0, "as_of": "2026-03-22T00:00:00+00:00"}], "as_of": "2026-03-22T00:00:00+00:00"}
+    stale_payload = {
+        "items": [{"name": "stale", "value": 1.0, "pnl": 0.0, "as_of": "2026-03-22T00:00:00+00:00"}],
+        "as_of": "2026-03-22T00:00:00+00:00",
+        "source_snapshot_time": "2026-03-22T00:00:00+00:00",
+        "build_status": "stale_cache",
+    }
     service._equity_history_cache = dict(stale_payload)
     service._equity_history_cache_updated_at = datetime.now(timezone.utc)
     service._equity_history_cache_expires_at = datetime.now(timezone.utc) - timedelta(seconds=1)

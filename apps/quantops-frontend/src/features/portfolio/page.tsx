@@ -75,7 +75,8 @@ export default function PortfolioPage() {
 
   const data = hasOverviewData ? overviewEnvelope!.data : EMPTY_PORTFOLIO;
   const metricsData = metrics.data?.data ?? EMPTY_METRICS;
-  const rows = positions.data?.data ?? [];
+  const positionsFeed = positions.data?.data;
+  const rows = positionsFeed?.items ?? [];
   const overviewStatus = resolveDataStatus({
     status: mapBuildStatus(hasOverviewData ? data.buildStatus : undefined, hasOverviewData),
     isLoading: overview.isLoading,
@@ -88,7 +89,12 @@ export default function PortfolioPage() {
     hasData: Boolean(metrics.data?.data),
     error: metrics.error,
   });
-  const positionsStatus = resolveDataStatus({ isLoading: positions.isLoading, hasData: rows.length > 0, error: positions.error });
+  const positionsStatus = resolveDataStatus({
+    status: mapBuildStatus(positionsFeed?.buildStatus, rows.length > 0),
+    isLoading: positions.isLoading,
+    hasData: rows.length > 0,
+    error: positions.error,
+  });
 
   return (
     <div className="space-y-6">
@@ -116,6 +122,7 @@ export default function PortfolioPage() {
         <div className="mt-2 grid gap-2 md:grid-cols-2">
           <div>Portfolio snapshot: <span className="text-slate-100">{fmtFreshness(data.buildStatus, data.sourceSnapshotTime, data.dataFreshnessSec)}</span></div>
           <div>Metrics snapshot: <span className="text-slate-100">{fmtFreshness(metricsData.buildStatus, metricsData.sourceSnapshotTime, metricsData.dataFreshnessSec)}</span></div>
+          <div>Positions snapshot: <span className="text-slate-100">{fmtFreshness(positionsFeed?.buildStatus, positionsFeed?.sourceSnapshotTime, positionsFeed?.dataFreshnessSec)}</span></div>
         </div>
       </div>
       <div className="text-xs text-slate-400">Equity formula: Total Equity = Used Margin + Free Margin = Balance + Unrealized {data.lastUpdated ? `| as of ${data.lastUpdated}` : ''}</div>

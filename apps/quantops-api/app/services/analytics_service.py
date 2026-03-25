@@ -41,11 +41,22 @@ class AnalyticsService:
         payload = await self.v12_client.get_equity_history()
         items = payload.get('items') or []
         if items:
-            result = {'items': items, 'as_of': payload.get('as_of') or items[-1].get('as_of')}
+            result = {
+                'items': items,
+                'as_of': payload.get('as_of') or items[-1].get('as_of'),
+                'source_snapshot_time': payload.get('source_snapshot_time') or payload.get('as_of') or items[-1].get('as_of'),
+                'build_status': payload.get('build_status') or 'live',
+            }
         else:
             series = self.analytics_repository.pnl_series(limit=200)
             if not series:
-                result = {'items': [], 'base_equity': 100000.0, 'as_of': utc_now_iso()}
+                result = {
+                    'items': [],
+                    'base_equity': 100000.0,
+                    'as_of': utc_now_iso(),
+                    'source_snapshot_time': utc_now_iso(),
+                    'build_status': 'fallback',
+                }
             else:
                 base_equity = 100000.0
                 cumulative = 0.0
@@ -54,7 +65,25 @@ class AnalyticsService:
                     cumulative += float(row.get('total_pnl', 0.0) or 0.0)
                     label = str(row.get('as_of', utc_now_iso()))
                     built_items.append({'name': label, 'value': round(base_equity + cumulative, 6), 'pnl': round(cumulative, 6), 'as_of': label})
-                result = {'items': built_items, 'base_equity': base_equity, 'as_of': built_items[-1]['as_of'] if built_items else utc_now_iso()}
+                as_of = built_items[-1]['as_of'] if built_items else utc_now_iso()
+                result = {
+                    'items': built_items,
+                    'base_equity': base_equity,
+                    'as_of': as_of,
+                    'source_snapshot_time': as_of,
+                    'build_status': 'fallback',
+                }
+        source_snapshot_time = result.get('source_snapshot_time') or result.get('as_of')
+        if source_snapshot_time:
+            try:
+                ts = datetime.fromisoformat(str(source_snapshot_time).replace("Z", "+00:00"))
+                if ts.tzinfo is None:
+                    ts = ts.replace(tzinfo=timezone.utc)
+                else:
+                    ts = ts.astimezone(timezone.utc)
+                result['data_freshness_sec'] = round(max(0.0, (datetime.now(timezone.utc) - ts).total_seconds()), 3)
+            except Exception:
+                pass
         now = datetime.now(timezone.utc)
         self._equity_history_cache = dict(result)
         self._equity_history_cache_updated_at = now

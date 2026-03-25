@@ -26,7 +26,7 @@ class PortfolioService:
         self._overview_cache_expires_at: datetime | None = None
         self._overview_cache_updated_at: datetime | None = None
         self._overview_inflight_task: asyncio.Task | None = None
-        self._positions_cache: list[dict] | None = None
+        self._positions_cache: dict | None = None
         self._positions_cache_expires_at: datetime | None = None
         self._positions_cache_updated_at: datetime | None = None
         self._positions_inflight_task: asyncio.Task | None = None
@@ -114,19 +114,19 @@ class PortfolioService:
             return None
         return dict(self._overview_cache)
 
-    def _get_cached_positions(self, *, allow_stale: bool = False) -> list[dict] | None:
+    def _get_cached_positions(self, *, allow_stale: bool = False) -> dict | None:
         expires_at = self._positions_cache_expires_at
         updated_at = self._positions_cache_updated_at
         if self._positions_cache is None or expires_at is None or updated_at is None:
             return None
         now = datetime.now(timezone.utc)
         if expires_at > now:
-            return list(self._positions_cache)
+            return dict(self._positions_cache)
         if not allow_stale:
             return None
         if (now - updated_at).total_seconds() > self.POSITIONS_STALE_MAX_AGE_SECONDS:
             return None
-        return list(self._positions_cache)
+        return dict(self._positions_cache)
 
     async def _build_metrics_live(self) -> dict:
         metrics_payload = await self.v12_client.get_portfolio_metrics()
@@ -299,14 +299,24 @@ class PortfolioService:
 
         self._overview_inflight_task.add_done_callback(_clear_task)
 
-    async def _build_positions_live(self) -> list[dict]:
+    async def _build_positions_live(self) -> dict:
         payload = await self.v12_client.get_portfolio_positions()
-        positions = self._normalize_positions(payload if isinstance(payload, dict) else {})
-        self._positions_cache = list(positions)
+        payload = payload if isinstance(payload, dict) else {}
+        positions = self._normalize_positions(payload)
+        result = {
+            "items": positions,
+            "as_of": payload.get("as_of") or utc_now_iso(),
+            "source_snapshot_time": payload.get("source_snapshot_time") or payload.get("as_of"),
+            "build_status": payload.get("build_status") or "live",
+        }
+        snapshot_age = self._snapshot_age_sec(result.get("source_snapshot_time"))
+        if snapshot_age is not None:
+            result["data_freshness_sec"] = snapshot_age
+        self._positions_cache = dict(result)
         now = datetime.now(timezone.utc)
         self._positions_cache_updated_at = now
         self._positions_cache_expires_at = now + timedelta(seconds=self.POSITIONS_CACHE_TTL_SECONDS)
-        return positions
+        return result
 
     def _schedule_positions_refresh(self) -> None:
         task = self._positions_inflight_task
@@ -369,7 +379,7 @@ class PortfolioService:
             if self._metrics_inflight_task is task:
                 self._metrics_inflight_task = None
 
-    async def get_positions(self) -> list[dict]:
+    async def get_positions(self) -> dict:
         cached = self._get_cached_positions()
         if cached is not None:
             return cached
