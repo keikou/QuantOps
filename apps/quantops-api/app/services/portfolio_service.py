@@ -59,6 +59,18 @@ class PortfolioService:
             return None
 
     @staticmethod
+    def _parse_iso_timestamp(value: object) -> datetime | None:
+        if not value:
+            return None
+        try:
+            ts = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+            if ts.tzinfo is None:
+                return ts.replace(tzinfo=timezone.utc)
+            return ts.astimezone(timezone.utc)
+        except Exception:
+            return None
+
+    @staticmethod
     def _first_present_key(payload: dict, *keys: str) -> str | None:
         for key in keys:
             if key in payload and payload.get(key) is not None:
@@ -697,6 +709,7 @@ class PortfolioService:
             if side == 'short' and weight > 0:
                 weight = -weight
             notional = float(row.get('notional', row.get('notional_usd', 0.0)) or 0.0)
+            timestamp = row.get('timestamp') or row.get('updated_at') or row.get('created_at') or payload.get('as_of')
             item = {
                 'symbol': row.get('symbol', 'unknown'),
                 'side': side,
@@ -708,6 +721,7 @@ class PortfolioService:
                 'mark_price': round(float(row.get('mark_price', row.get('markPrice', 0.0)) or 0.0), 6),
                 'strategy_id': row.get('strategy_id') or row.get('run_id') or payload.get('run_id'),
                 'alpha_family': row.get('alpha_family') or '',
+                'timestamp': timestamp,
             }
             if include_debug_fields:
                 item.update(
@@ -717,7 +731,7 @@ class PortfolioService:
                         'quote_age_sec': float(row.get('quote_age_sec', 0.0) or 0.0),
                         'stale': bool(row.get('stale', False)),
                         'run_id': row.get('run_id') or payload.get('run_id'),
-                        'timestamp': row.get('timestamp') or row.get('created_at') or payload.get('as_of'),
+                        'timestamp': timestamp,
                     }
                 )
             positions.append(item)
@@ -750,8 +764,10 @@ class PortfolioService:
                     'signed_avg_value': 0.0,
                     'mark_price': mark_price,
                     'total_abs_qty': 0.0,
-                    'strategy_ids': set(),
-                    'alpha_families': set(),
+                    'primary_strategy_id': '',
+                    'primary_alpha_family': '',
+                    'primary_timestamp': None,
+                    'primary_abs_notional': 0.0,
                 },
             )
             bucket['signed_qty'] += signed_qty
@@ -760,10 +776,20 @@ class PortfolioService:
             bucket['signed_avg_value'] += signed_avg_value
             bucket['mark_price'] = mark_price or bucket['mark_price']
             bucket['total_abs_qty'] += abs(qty)
-            if strategy_id:
-                bucket['strategy_ids'].add(strategy_id)
-            if alpha_family:
-                bucket['alpha_families'].add(alpha_family)
+            row_ts = self._parse_iso_timestamp(item.get('timestamp'))
+            abs_notional = abs(notional)
+            primary_ts = bucket.get('primary_timestamp')
+            primary_abs_notional = self._safe_float(bucket.get('primary_abs_notional'))
+            should_replace_primary = False
+            if row_ts is not None:
+                should_replace_primary = primary_ts is None or row_ts >= primary_ts
+            elif primary_ts is None and abs_notional >= primary_abs_notional:
+                should_replace_primary = True
+            if should_replace_primary:
+                bucket['primary_strategy_id'] = strategy_id
+                bucket['primary_alpha_family'] = alpha_family
+                bucket['primary_timestamp'] = row_ts
+                bucket['primary_abs_notional'] = abs_notional
 
         reduced: list[dict] = []
         for symbol, bucket in aggregated.items():
@@ -784,8 +810,6 @@ class PortfolioService:
                     for row in positions
                     if str(row.get('symbol') or 'unknown') == symbol
                 )
-            strategy_ids = sorted(bucket['strategy_ids'])
-            alpha_families = sorted(bucket['alpha_families'])
             reduced.append(
                 {
                     'symbol': symbol,
@@ -796,8 +820,8 @@ class PortfolioService:
                     'quantity': round(abs(signed_qty), 6),
                     'avg_price': round(avg_price, 6),
                     'mark_price': round(mark_price, 6),
-                    'strategy_id': strategy_ids[0] if len(strategy_ids) == 1 else ('multiple' if strategy_ids else ''),
-                    'alpha_family': alpha_families[0] if len(alpha_families) == 1 else ('multiple' if alpha_families else ''),
+                    'strategy_id': str(bucket.get('primary_strategy_id') or ''),
+                    'alpha_family': str(bucket.get('primary_alpha_family') or ''),
                 }
             )
         reduced.sort(key=lambda row: (-abs(self._safe_float(row.get('notional'))), str(row.get('symbol') or '')))

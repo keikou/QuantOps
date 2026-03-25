@@ -267,6 +267,7 @@ def test_portfolio_positions_aggregates_same_symbol_rows() -> None:
                 "mark_price": 30.0,
                 "strategy_id": "s1",
                 "alpha_family": "trend",
+                "timestamp": "2026-03-22T00:00:00+00:00",
             },
             {
                 "symbol": "BTCUSDT",
@@ -279,6 +280,7 @@ def test_portfolio_positions_aggregates_same_symbol_rows() -> None:
                 "mark_price": 30.0,
                 "strategy_id": "s2",
                 "alpha_family": "mean_reversion",
+                "timestamp": "2026-03-22T00:01:00+00:00",
             },
         ],
         "total_equity": 100.0,
@@ -294,8 +296,49 @@ def test_portfolio_positions_aggregates_same_symbol_rows() -> None:
     assert rows[0]["notional"] == 40.0
     assert rows[0]["pnl"] == 8.0
     assert rows[0]["avg_price"] == 14.0
-    assert rows[0]["strategy_id"] == "multiple"
-    assert rows[0]["alpha_family"] == "multiple"
+    assert rows[0]["strategy_id"] == "s2"
+    assert rows[0]["alpha_family"] == "mean_reversion"
+
+
+def test_portfolio_positions_prefers_largest_notional_when_timestamp_missing() -> None:
+    client = _PortfolioClient()
+    service = PortfolioService(client)  # type: ignore[arg-type]
+
+    payload = {
+        "items": [
+            {
+                "symbol": "ETHUSDT",
+                "side": "long",
+                "weight": 0.3,
+                "notional": 30.0,
+                "pnl": 3.0,
+                "quantity": 1.0,
+                "avg_price": 30.0,
+                "mark_price": 31.0,
+                "strategy_id": "small_leg",
+                "alpha_family": "mean_reversion",
+            },
+            {
+                "symbol": "ETHUSDT",
+                "side": "long",
+                "weight": 0.7,
+                "notional": 70.0,
+                "pnl": 7.0,
+                "quantity": 2.0,
+                "avg_price": 35.0,
+                "mark_price": 36.0,
+                "strategy_id": "large_leg",
+                "alpha_family": "trend",
+            },
+        ],
+        "total_equity": 100.0,
+    }
+
+    rows = service._normalize_positions(payload)
+
+    assert len(rows) == 1
+    assert rows[0]["strategy_id"] == "large_leg"
+    assert rows[0]["alpha_family"] == "trend"
 
 
 def test_portfolio_overview_parallelizes_upstream_reads() -> None:
