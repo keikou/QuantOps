@@ -19,6 +19,12 @@ export type OverviewData = {
   freeMargin: number;
   unrealized: number;
   asOf?: string;
+  buildStatus?: string;
+  sourceSnapshotTime?: string;
+  dataFreshnessSec?: number;
+  activeSnapshotVersion?: number;
+  positionRowCount?: number;
+  strategyRowCount?: number;
   dailyPnl: number;
   grossExposure: number;
   netExposure: number;
@@ -32,6 +38,32 @@ export type OverviewData = {
   riskTradingState?: string;
   killSwitch?: string;
   alertState?: string;
+  stableValue?: {
+    totalEquity?: number;
+    balance?: number;
+    usedMargin?: number;
+    freeMargin?: number;
+    grossExposure?: number;
+    netExposure?: number;
+    activeStrategies?: number;
+    openAlerts?: number;
+    runningJobs?: number;
+  };
+  liveDelta?: {
+    alertsWindow?: number | null;
+    jobsWindow?: number | null;
+  };
+  displayValue?: {
+    totalEquity?: number;
+    balance?: number;
+    usedMargin?: number;
+    freeMargin?: number;
+    grossExposure?: number;
+    netExposure?: number;
+    activeStrategies?: number;
+    openAlerts?: number;
+    runningJobs?: number;
+  };
 };
 
 export type PortfolioOverview = {
@@ -44,9 +76,60 @@ export type PortfolioOverview = {
   netExposure: number;
   realizedPnl: number;
   unrealizedPnl: number;
+  buildStatus?: string;
+  sourceSnapshotTime?: string;
+  dataFreshnessSec?: number;
+  lastUpdated: string;
+  stableValue?: {
+    totalEquity?: number;
+    balance?: number;
+    usedMargin?: number;
+    freeMargin?: number;
+    unrealized?: number;
+    grossExposure?: number;
+    netExposure?: number;
+    realizedPnl?: number;
+    unrealizedPnl?: number;
+  };
+  liveDelta?: {
+    positionsWindow?: number | null;
+    metricsWindow?: number | null;
+  };
+  displayValue?: {
+    totalEquity?: number;
+    balance?: number;
+    usedMargin?: number;
+    freeMargin?: number;
+    unrealized?: number;
+    grossExposure?: number;
+    netExposure?: number;
+    realizedPnl?: number;
+    unrealizedPnl?: number;
+  };
+};
+
+export type PortfolioMetrics = {
+  fillRate: number;
   expectedVolatility: number;
   expectedSharpe: number;
+  buildStatus?: string;
+  sourceSnapshotTime?: string;
+  dataFreshnessSec?: number;
   lastUpdated: string;
+  stableValue?: {
+    fillRate?: number;
+    expectedVolatility?: number;
+    expectedSharpe?: number;
+  };
+  liveDelta?: {
+    recentFillsWindow?: number | null;
+    recentEquityPointsWindow?: number | null;
+  };
+  displayValue?: {
+    fillRate?: number;
+    expectedVolatility?: number;
+    expectedSharpe?: number;
+  };
 };
 
 export type PositionRow = {
@@ -161,7 +244,7 @@ export type AuditLogRow = {
 };
 
 export type CommandCenterRealtimeEvent = {
-  event_type: 'hello' | 'heartbeat' | 'pnl_update' | 'execution_event' | 'risk_alert' | 'strategy_status' | 'system_status';
+  event_type: 'hello' | 'heartbeat' | 'pnl_update' | 'execution_event' | 'risk_alert' | 'strategy_status' | 'system_status' | 'runtime_run' | 'runtime_issue';
   as_of: string;
   payload: Record<string, unknown>;
 };
@@ -171,6 +254,17 @@ export type EquityPoint = {
   value: number;
   pnl?: number;
   asOf?: string;
+};
+
+export type PositionFeed = FeedPayload<PositionRow>;
+export type EquityHistoryFeed = FeedPayload<EquityPoint>;
+
+export type FeedPayload<T> = {
+  items: T[];
+  asOf?: string;
+  buildStatus?: string;
+  sourceSnapshotTime?: string;
+  dataFreshnessSec?: number;
 };
 
 export type ExecutionSummary = {
@@ -220,6 +314,9 @@ export type ExecutionPlannerLatest = {
   visiblePlanCount?: number;
   expiredCount: number;
   asOf: string;
+  buildStatus?: string;
+  sourceSnapshotTime?: string;
+  dataFreshnessSec?: number;
   latestActivityAt?: string;
   algoMix: Record<string, number>;
   routeMix: Record<string, number>;
@@ -243,6 +340,9 @@ export type ExecutionState = {
   tradingState: string;
   executionState: string;
   reason?: string;
+  buildStatus?: string;
+  sourceSnapshotTime?: string;
+  dataFreshnessSec?: number;
   plannerAgeSec?: number;
   executionAgeSec?: number;
   lastFillAgeSec?: number;
@@ -253,6 +353,53 @@ export type ExecutionState = {
   submittedOrderCount?: number;
   asOf: string;
   blockReasons?: Array<{ code: string; severity?: string; message?: string }>;
+};
+
+export type ExecutionViewLatest = {
+  planner: ExecutionPlannerLatest;
+  state: ExecutionState;
+  stableValue?: {
+    tradingState?: string;
+    executionState?: string;
+    reason?: string;
+    primaryReason?: string;
+    plannerAgeSec?: number;
+    executionAgeSec?: number;
+    lastFillAgeSec?: number;
+    openOrderCount?: number;
+    submittedOrderCount?: number;
+    activePlanCount?: number;
+    visiblePlanCount?: number;
+    expiredPlanCount?: number;
+    topAlgo?: string;
+    topRoute?: string;
+  };
+  liveDelta?: {
+    recentFillsWindow?: number | null;
+    recentOrdersWindow?: number | null;
+    recentRunsWindow?: number | null;
+    recentIssuesWindow?: number | null;
+  };
+  displayValue?: {
+    tradingState?: string;
+    executionState?: string;
+    reason?: string;
+    primaryReason?: string;
+    plannerAgeSec?: number;
+    executionAgeSec?: number;
+    lastFillAgeSec?: number;
+    openOrderCount?: number;
+    submittedOrderCount?: number;
+    activePlanCount?: number;
+    visiblePlanCount?: number;
+    expiredPlanCount?: number;
+    topAlgo?: string;
+    topRoute?: string;
+  };
+  asOf: string;
+  buildStatus?: string;
+  sourceSnapshotTime?: string;
+  dataFreshnessSec?: number;
 };
 
 export type RuntimeTimelineEvent = {
@@ -308,6 +455,43 @@ export type CommandCenterRuntimeLatest = {
   status: string;
   runId?: string;
   cycleId?: string;
+  buildStatus?: string;
+  sourceSnapshotTime?: string;
+  dataFreshnessSec?: number;
+  stableValue?: {
+    bridgeState?: string;
+    operatorState?: string;
+    plannerStatus?: string;
+    plannedCount?: number;
+    submittedCount?: number;
+    blockedCount?: number;
+    filledCount?: number;
+    latestReasonCode?: string;
+    latestReasonSummary?: string;
+    blockingComponent?: string;
+    degraded?: boolean;
+    operatorMessage?: string;
+    eventChainComplete?: boolean;
+  };
+  liveDelta?: {
+    recentRunsWindow?: number | null;
+    recentIssuesWindow?: number | null;
+  };
+  displayValue?: {
+    bridgeState?: string;
+    operatorState?: string;
+    plannerStatus?: string;
+    plannedCount?: number;
+    submittedCount?: number;
+    blockedCount?: number;
+    filledCount?: number;
+    latestReasonCode?: string;
+    latestReasonSummary?: string;
+    blockingComponent?: string;
+    degraded?: boolean;
+    operatorMessage?: string;
+    eventChainComplete?: boolean;
+  };
   bridgeState: string;
   operatorState: string;
   plannerStatus: string;

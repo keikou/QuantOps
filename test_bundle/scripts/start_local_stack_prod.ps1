@@ -180,14 +180,14 @@ $frontendCommand = if ($SkipFrontendBuild) {
   "start_frontend_prod.cmd > `"$frontendLog`" 2>&1"
 }
 
-$started = @(
-  Start-LoggedCmd -Name "V12 API" -LogPath $v12Log -Command "start_v12_api.cmd > `"$v12Log`" 2>&1"
-  Start-LoggedCmd -Name "QuantOps API" -LogPath $quantopsLog -Command $quantopsCommand
-  Start-LoggedCmd -Name "QuantOps Frontend (build + start)" -LogPath $frontendLog -Command $frontendCommand
-)
-
+$started = @()
+$started += Start-LoggedCmd -Name "V12 API" -LogPath $v12Log -Command "start_v12_api.cmd > `"$v12Log`" 2>&1"
 Wait-ForHttpOk -Name "V12 Health" -Url "http://127.0.0.1:8000/system/health"
+
+$started += Start-LoggedCmd -Name "QuantOps API" -LogPath $quantopsLog -Command $quantopsCommand
 Wait-ForHttpOk -Name "QuantOps Health" -Url "http://127.0.0.1:8010/api/v1/health"
+
+$started += Start-LoggedCmd -Name "QuantOps Frontend (build + start)" -LogPath $frontendLog -Command $frontendCommand
 Wait-ForHttpOk -Name "Frontend Home" -Url "http://127.0.0.1:3000/"
 
 $started | Select-Object Id, ProcessName | ConvertTo-Json | Set-Content -Path $statePath -Encoding UTF8

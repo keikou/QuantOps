@@ -22,6 +22,12 @@ class DashboardOverviewResponse(BaseModel):
     latest_run_id: str | None = None
     latest_execution_timestamp: str | None = None
     as_of: str
+    source_snapshot_time: str | None = None
+    data_freshness_sec: float | None = None
+    build_status: str | None = None
+    active_snapshot_version: int | None = None
+    position_row_count: int | None = None
+    strategy_row_count: int | None = None
 
 
 class SystemHealthResponse(BaseModel):

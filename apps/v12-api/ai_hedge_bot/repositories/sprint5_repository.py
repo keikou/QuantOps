@@ -12,6 +12,75 @@ class Sprint5Repository:
     def __post_init__(self) -> None:
         self.store = CONTAINER.runtime_store
 
+    def _active_position_snapshot_version(self) -> str | None:
+        row = self.store.fetchone_dict(
+            """
+            SELECT version_id
+            FROM position_snapshot_versions
+            WHERE build_status = 'active'
+            ORDER BY activated_at DESC, created_at DESC
+            LIMIT 1
+            """
+        )
+        version_id = str((row or {}).get('version_id') or '')
+        if not version_id:
+            return None
+        count_row = self.store.fetchone_dict(
+            "SELECT COUNT(*) AS cnt FROM position_snapshots_latest WHERE snapshot_version = ?",
+            [version_id],
+        ) or {'cnt': 0}
+        active_rows = int(count_row.get('cnt', 0) or 0)
+        if active_rows > 0:
+            return version_id
+        row_counts = self.store.fetchone_dict(
+            """
+            SELECT
+                COUNT(*) AS total_rows,
+                COUNT(snapshot_version) AS versioned_rows
+            FROM position_snapshots_latest
+            """
+        ) or {'total_rows': 0, 'versioned_rows': 0}
+        total_rows = int(row_counts.get('total_rows', 0) or 0)
+        versioned_rows = int(row_counts.get('versioned_rows', 0) or 0)
+        if total_rows == 0:
+            return version_id
+        return None if versioned_rows == 0 else version_id
+
+    def _latest_market_price_map(self) -> dict[str, dict[str, Any]]:
+        rows = self.store.fetchall_dict(
+            """
+            SELECT symbol, mark_price, source, price_time, quote_age_sec, stale
+            FROM market_prices_latest
+            """
+        )
+        return {str(row.get('symbol') or ''): row for row in rows}
+
+    def _revalue_positions(self, rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        price_by_symbol = self._latest_market_price_map()
+        valued: list[dict[str, Any]] = []
+        for row in rows:
+            symbol = str(row.get('symbol') or '')
+            signed_qty = float(row.get('signed_qty', 0.0) or 0.0)
+            avg_entry_price = float(row.get('avg_entry_price', 0.0) or 0.0)
+            price_meta = price_by_symbol.get(symbol) or {}
+            mark_price = float(price_meta.get('mark_price', row.get('mark_price', avg_entry_price)) or avg_entry_price)
+            market_value = round(signed_qty * mark_price, 8)
+            unrealized_pnl = round((mark_price - avg_entry_price) * signed_qty, 8)
+            valued.append(
+                {
+                    **row,
+                    'mark_price': round(mark_price, 8),
+                    'market_value': market_value,
+                    'unrealized_pnl': unrealized_pnl,
+                    'exposure_notional': round(abs(market_value), 8),
+                    'price_source': price_meta.get('source', row.get('price_source')),
+                    'quote_time': price_meta.get('price_time', row.get('quote_time')),
+                    'quote_age_sec': float(price_meta.get('quote_age_sec', row.get('quote_age_sec', 0.0)) or 0.0),
+                    'stale': bool(price_meta.get('stale', row.get('stale', False))),
+                }
+            )
+        return valued
+
     def create_alpha_signal_snapshot(self, row: dict[str, Any]) -> None:
         self.store.append('alpha_signal_snapshots', row)
 
@@ -88,15 +157,30 @@ class Sprint5Repository:
 
     def latest_portfolio_overview(self) -> dict[str, Any]:
         equity = self.latest_equity_snapshot()
-        latest_positions = self.store.fetchall_dict(
-            """
-            SELECT symbol, strategy_id, alpha_family, signed_qty, abs_qty, side, avg_entry_price,
-                   mark_price, market_value, unrealized_pnl, realized_pnl, exposure_notional,
-                   price_source, quote_time, quote_age_sec, stale, updated_at
-            FROM position_snapshots_latest
-            ORDER BY exposure_notional DESC, symbol ASC
-            """
-        )
+        active_version = self._active_position_snapshot_version()
+        if active_version:
+            latest_positions = self.store.fetchall_dict(
+                """
+                SELECT symbol, strategy_id, alpha_family, signed_qty, abs_qty, side, avg_entry_price,
+                       mark_price, market_value, unrealized_pnl, realized_pnl, exposure_notional,
+                       price_source, quote_time, quote_age_sec, stale, updated_at
+                FROM position_snapshots_latest
+                WHERE snapshot_version = ?
+                ORDER BY exposure_notional DESC, symbol ASC
+                """,
+                [active_version],
+            )
+        else:
+            latest_positions = self.store.fetchall_dict(
+                """
+                SELECT symbol, strategy_id, alpha_family, signed_qty, abs_qty, side, avg_entry_price,
+                       mark_price, market_value, unrealized_pnl, realized_pnl, exposure_notional,
+                       price_source, quote_time, quote_age_sec, stale, updated_at
+                FROM position_snapshots_latest
+                ORDER BY exposure_notional DESC, symbol ASC
+                """
+            )
+        latest_positions = self._revalue_positions(latest_positions)
         if equity or latest_positions:
             latest_run = self.store.fetchone_dict(
                 """
@@ -180,6 +264,72 @@ class Sprint5Repository:
             'positions': positions,
         }
 
+    def latest_portfolio_overview_summary(self) -> dict[str, Any]:
+        equity = self.latest_equity_snapshot() or {}
+        active_version = self._active_position_snapshot_version()
+        if active_version:
+            latest_positions = self.store.fetchall_dict(
+                """
+                SELECT symbol, strategy_id, alpha_family, exposure_notional, quote_time, stale
+                FROM position_snapshots_latest
+                WHERE snapshot_version = ?
+                ORDER BY exposure_notional DESC, symbol ASC
+                """,
+                [active_version],
+            )
+        else:
+            latest_positions = self.store.fetchall_dict(
+                """
+                SELECT symbol, strategy_id, alpha_family, exposure_notional, quote_time, stale
+                FROM position_snapshots_latest
+                ORDER BY exposure_notional DESC, symbol ASC
+                """
+            )
+        latest_positions = self._revalue_positions(latest_positions)
+        latest_run = self.store.fetchone_dict(
+            """
+            SELECT run_id, created_at
+            FROM execution_fills
+            ORDER BY created_at DESC
+            LIMIT 1
+            """
+        ) or {}
+        summary = {
+            'total_equity': float(equity.get('total_equity', 0.0) or 0.0),
+            'cash_balance': float(equity.get('cash_balance', 0.0) or 0.0),
+            'free_cash': float(equity.get('free_cash', equity.get('cash_balance', 0.0)) or 0.0),
+            'used_margin': float(equity.get('used_margin', 0.0) or 0.0),
+            'collateral_equity': float(equity.get('collateral_equity', float(equity.get('free_cash', 0.0) or 0.0) + float(equity.get('used_margin', 0.0) or 0.0)) or 0.0),
+            'available_margin': float(equity.get('available_margin', 0.0) or 0.0),
+            'margin_utilization': float(equity.get('margin_utilization', 0.0) or 0.0),
+            'gross_exposure': float(equity.get('gross_exposure', 0.0) or 0.0),
+            'net_exposure': float(equity.get('net_exposure', 0.0) or 0.0),
+            'long_exposure': float(equity.get('long_exposure', 0.0) or 0.0),
+            'short_exposure': float(equity.get('short_exposure', 0.0) or 0.0),
+            'realized_pnl': float(equity.get('realized_pnl', 0.0) or 0.0),
+            'unrealized_pnl': float(equity.get('unrealized_pnl', 0.0) or 0.0),
+            'fees_paid': float(equity.get('fees_paid', 0.0) or 0.0),
+            'drawdown': float(equity.get('drawdown', 0.0) or 0.0),
+            'as_of': equity.get('snapshot_time'),
+            'quotes_as_of': max((row.get('quote_time') for row in latest_positions if row.get('quote_time')), default=None),
+            'stale_positions': sum(1 for row in latest_positions if row.get('stale')),
+            'position_row_count': len(latest_positions),
+            'strategy_row_count': len({str(row.get('strategy_id') or '') for row in latest_positions}),
+            'active_snapshot_version': active_version,
+            'source_snapshot_time': equity.get('snapshot_time'),
+        }
+        return {
+            'status': 'ok',
+            'summary': summary,
+            'snapshot': {
+                'created_at': equity.get('snapshot_time') or latest_run.get('created_at'),
+                'run_id': latest_run.get('run_id'),
+                'target_count': len(latest_positions),
+                'active_snapshot_version': active_version,
+            },
+            'positions': [],
+        }
+
     def latest_execution_quality(self) -> dict[str, Any]:
         quality = self.store.fetchone_dict(
             """
@@ -228,5 +378,51 @@ class Sprint5Repository:
         payload['status'] = 'ok'
         payload['latest_fills'] = fills
         payload['latest_plans'] = plans
+        payload['as_of'] = quality.get('created_at')
+        return payload
+
+    def latest_execution_quality_summary(self) -> dict[str, Any]:
+        latest = dict(getattr(CONTAINER, 'latest_execution_quality', {}) or {})
+        if latest and (latest.get('run_id') or latest.get('created_at')):
+            latest.setdefault('status', 'ok')
+            latest.setdefault('as_of', latest.get('created_at'))
+            return {
+                'status': str(latest.get('status', 'ok') or 'ok'),
+                'snapshot_id': latest.get('snapshot_id'),
+                'created_at': latest.get('created_at'),
+                'as_of': latest.get('as_of') or latest.get('created_at'),
+                'run_id': latest.get('run_id'),
+                'cycle_id': latest.get('cycle_id'),
+                'mode': latest.get('mode'),
+                'order_count': int(latest.get('order_count', 0) or 0),
+                'fill_count': int(latest.get('fill_count', 0) or 0),
+                'fill_rate': float(latest.get('fill_rate', 0.0) or 0.0),
+                'avg_slippage_bps': float(latest.get('avg_slippage_bps', 0.0) or 0.0),
+                'latency_ms_p50': float(latest.get('latency_ms_p50', 0.0) or 0.0),
+                'latency_ms_p95': float(latest.get('latency_ms_p95', 0.0) or 0.0),
+            }
+
+        quality = self.store.fetchone_dict(
+            """
+            SELECT snapshot_id, created_at, run_id, cycle_id, mode, order_count, fill_count, fill_rate,
+                   avg_slippage_bps, latency_ms_p50, latency_ms_p95
+            FROM execution_quality_snapshots
+            ORDER BY created_at DESC
+            LIMIT 1
+            """
+        )
+        if not quality:
+            return {
+                'status': 'ok',
+                'order_count': 0,
+                'fill_count': 0,
+                'fill_rate': 0.0,
+                'avg_slippage_bps': 0.0,
+                'latency_ms_p50': 0.0,
+                'latency_ms_p95': 0.0,
+                'as_of': None,
+            }
+        payload = dict(quality)
+        payload['status'] = 'ok'
         payload['as_of'] = quality.get('created_at')
         return payload

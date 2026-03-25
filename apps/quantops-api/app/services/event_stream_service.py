@@ -19,6 +19,8 @@ class EventStreamService:
     async def _build_snapshot(self) -> dict[str, dict[str, Any]]:
         overview = await self.command_center_service.get_overview()
         execution = await self.command_center_service.get_execution_latest()
+        runtime_runs = await self.command_center_service.get_runtime_runs(limit=1, window_minutes=5)
+        runtime_issues = await self.command_center_service.get_runtime_issues(limit=25, window_minutes=5)
         risk = await self.command_center_service.get_risk_summary()
         strategies = await self.command_center_service.get_strategies()
         system = await self.command_center_service.get_system_summary()
@@ -34,6 +36,7 @@ class EventStreamService:
 
         alert_items = alerts.get("items") or []
         latest_alert = alert_items[0] if alert_items else None
+        latest_run = runtime_runs.get("items", [None])[0] if isinstance(runtime_runs.get("items"), list) and runtime_runs.get("items") else None
 
         return {
             "pnl_update": {
@@ -87,6 +90,20 @@ class EventStreamService:
                     "open_alerts": int(system.get("open_alerts", 0) or 0),
                     "scheduler_jobs": int(system.get("scheduler_jobs", 0) or 0),
                     "services": system.get("services", {}) or {},
+                },
+            },
+            "runtime_run": {
+                "event_type": "runtime_run",
+                "as_of": (latest_run or {}).get("completed_at") or (latest_run or {}).get("started_at") or utc_now_iso(),
+                "payload": latest_run or {},
+            },
+            "runtime_issue": {
+                "event_type": "runtime_issue",
+                "as_of": runtime_issues.get("as_of") or utc_now_iso(),
+                "payload": {
+                    "items": runtime_issues.get("items", []),
+                    "count": int(runtime_issues.get("count", 0) or 0),
+                    "window_minutes": int(runtime_issues.get("window_minutes", 5) or 5),
                 },
             },
         }

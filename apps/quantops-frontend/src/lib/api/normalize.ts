@@ -1,4 +1,4 @@
-import type { CommandCenterRuntimeDebug, CommandCenterRuntimeLatest, CommandCenterRuntimeRunSummary, DataSourceStatus, DataStatus, MonitoringSystem, RiskSnapshot, UserRole } from '@/types/api';
+import type { CommandCenterRuntimeDebug, CommandCenterRuntimeLatest, CommandCenterRuntimeRunSummary, DataSourceStatus, DataStatus, FeedPayload, MonitoringSystem, RiskSnapshot, UserRole } from '@/types/api';
 
 export function getPayload<T>(input: any, fallback: T): T {
   if (input == null) return fallback;
@@ -81,6 +81,12 @@ export function normalizeOverview(input: any) {
     freeMargin: toNumber(x.freeMargin ?? x.free_margin ?? x.freeCash ?? x.free_cash ?? x.available_margin),
     unrealized: toNumber(x.unrealized ?? x.unrealizedPnl ?? x.unrealized_pnl),
     asOf: toString(x.asOf ?? x.as_of),
+    buildStatus: toString(x.buildStatus ?? x.build_status, ''),
+    sourceSnapshotTime: toString(x.sourceSnapshotTime ?? x.source_snapshot_time, ''),
+    dataFreshnessSec: toNumber(x.dataFreshnessSec ?? x.data_freshness_sec),
+    activeSnapshotVersion: toNumber(x.activeSnapshotVersion ?? x.active_snapshot_version),
+    positionRowCount: toNumber(x.positionRowCount ?? x.position_row_count),
+    strategyRowCount: toNumber(x.strategyRowCount ?? x.strategy_row_count),
     dailyPnl: toNumber(x.dailyPnl ?? x.daily_pnl ?? x.pnl ?? x.daily_return),
     grossExposure: toNumber(x.grossExposure ?? x.gross_exposure),
     netExposure: toNumber(x.netExposure ?? x.net_exposure),
@@ -89,6 +95,32 @@ export function normalizeOverview(input: any) {
     runningJobs: toNumber(x.runningJobs ?? x.running_jobs ?? jobs.length),
     pnlSeries: Array.isArray(x.pnlSeries) ? x.pnlSeries : Array.isArray(x.pnl_series) ? x.pnl_series : [],
     leverage: toNumber(x.leverage),
+    stableValue: x.stableValue || x.stable_value ? {
+      totalEquity: toNumber((x.stableValue ?? x.stable_value)?.totalEquity ?? (x.stableValue ?? x.stable_value)?.total_equity),
+      balance: toNumber((x.stableValue ?? x.stable_value)?.balance),
+      usedMargin: toNumber((x.stableValue ?? x.stable_value)?.usedMargin ?? (x.stableValue ?? x.stable_value)?.used_margin),
+      freeMargin: toNumber((x.stableValue ?? x.stable_value)?.freeMargin ?? (x.stableValue ?? x.stable_value)?.free_margin),
+      grossExposure: toNumber((x.stableValue ?? x.stable_value)?.grossExposure ?? (x.stableValue ?? x.stable_value)?.gross_exposure),
+      netExposure: toNumber((x.stableValue ?? x.stable_value)?.netExposure ?? (x.stableValue ?? x.stable_value)?.net_exposure),
+      activeStrategies: toNumber((x.stableValue ?? x.stable_value)?.activeStrategies ?? (x.stableValue ?? x.stable_value)?.active_strategies),
+      openAlerts: toNumber((x.stableValue ?? x.stable_value)?.openAlerts ?? (x.stableValue ?? x.stable_value)?.open_alerts),
+      runningJobs: toNumber((x.stableValue ?? x.stable_value)?.runningJobs ?? (x.stableValue ?? x.stable_value)?.running_jobs),
+    } : undefined,
+    liveDelta: x.liveDelta || x.live_delta ? {
+      alertsWindow: ((x.liveDelta ?? x.live_delta)?.alertsWindow ?? (x.liveDelta ?? x.live_delta)?.alerts_window) ?? null,
+      jobsWindow: ((x.liveDelta ?? x.live_delta)?.jobsWindow ?? (x.liveDelta ?? x.live_delta)?.jobs_window) ?? null,
+    } : undefined,
+    displayValue: x.displayValue || x.display_value ? {
+      totalEquity: toNumber((x.displayValue ?? x.display_value)?.totalEquity ?? (x.displayValue ?? x.display_value)?.total_equity),
+      balance: toNumber((x.displayValue ?? x.display_value)?.balance),
+      usedMargin: toNumber((x.displayValue ?? x.display_value)?.usedMargin ?? (x.displayValue ?? x.display_value)?.used_margin),
+      freeMargin: toNumber((x.displayValue ?? x.display_value)?.freeMargin ?? (x.displayValue ?? x.display_value)?.free_margin),
+      grossExposure: toNumber((x.displayValue ?? x.display_value)?.grossExposure ?? (x.displayValue ?? x.display_value)?.gross_exposure),
+      netExposure: toNumber((x.displayValue ?? x.display_value)?.netExposure ?? (x.displayValue ?? x.display_value)?.net_exposure),
+      activeStrategies: toNumber((x.displayValue ?? x.display_value)?.activeStrategies ?? (x.displayValue ?? x.display_value)?.active_strategies),
+      openAlerts: toNumber((x.displayValue ?? x.display_value)?.openAlerts ?? (x.displayValue ?? x.display_value)?.open_alerts),
+      runningJobs: toNumber((x.displayValue ?? x.display_value)?.runningJobs ?? (x.displayValue ?? x.display_value)?.running_jobs),
+    } : undefined,
   };
 }
 
@@ -104,14 +136,70 @@ export function normalizePortfolioOverview(input: any) {
     netExposure: toNumber(x.netExposure ?? x.net_exposure),
     realizedPnl: toNumber(x.realizedPnl ?? x.realized_pnl ?? x.realized),
     unrealizedPnl: toNumber(x.unrealizedPnl ?? x.unrealized_pnl ?? x.unrealized),
+    buildStatus: toString(x.buildStatus ?? x.build_status, ''),
+    sourceSnapshotTime: toString(x.sourceSnapshotTime ?? x.source_snapshot_time, ''),
+    dataFreshnessSec: toNumber(x.dataFreshnessSec ?? x.data_freshness_sec),
+    lastUpdated: toString(x.lastUpdated ?? x.last_updated ?? x.asOf ?? x.as_of),
+    stableValue: x.stableValue || x.stable_value ? {
+      totalEquity: toNumber((x.stableValue ?? x.stable_value)?.totalEquity ?? (x.stableValue ?? x.stable_value)?.total_equity),
+      balance: toNumber((x.stableValue ?? x.stable_value)?.balance),
+      usedMargin: toNumber((x.stableValue ?? x.stable_value)?.usedMargin ?? (x.stableValue ?? x.stable_value)?.used_margin),
+      freeMargin: toNumber((x.stableValue ?? x.stable_value)?.freeMargin ?? (x.stableValue ?? x.stable_value)?.free_margin),
+      unrealized: toNumber((x.stableValue ?? x.stable_value)?.unrealized),
+      grossExposure: toNumber((x.stableValue ?? x.stable_value)?.grossExposure ?? (x.stableValue ?? x.stable_value)?.gross_exposure),
+      netExposure: toNumber((x.stableValue ?? x.stable_value)?.netExposure ?? (x.stableValue ?? x.stable_value)?.net_exposure),
+      realizedPnl: toNumber((x.stableValue ?? x.stable_value)?.realizedPnl ?? (x.stableValue ?? x.stable_value)?.realized_pnl),
+      unrealizedPnl: toNumber((x.stableValue ?? x.stable_value)?.unrealizedPnl ?? (x.stableValue ?? x.stable_value)?.unrealized_pnl),
+    } : undefined,
+    liveDelta: x.liveDelta || x.live_delta ? {
+      positionsWindow: ((x.liveDelta ?? x.live_delta)?.positionsWindow ?? (x.liveDelta ?? x.live_delta)?.positions_window) ?? null,
+      metricsWindow: ((x.liveDelta ?? x.live_delta)?.metricsWindow ?? (x.liveDelta ?? x.live_delta)?.metrics_window) ?? null,
+    } : undefined,
+    displayValue: x.displayValue || x.display_value ? {
+      totalEquity: toNumber((x.displayValue ?? x.display_value)?.totalEquity ?? (x.displayValue ?? x.display_value)?.total_equity),
+      balance: toNumber((x.displayValue ?? x.display_value)?.balance),
+      usedMargin: toNumber((x.displayValue ?? x.display_value)?.usedMargin ?? (x.displayValue ?? x.display_value)?.used_margin),
+      freeMargin: toNumber((x.displayValue ?? x.display_value)?.freeMargin ?? (x.displayValue ?? x.display_value)?.free_margin),
+      unrealized: toNumber((x.displayValue ?? x.display_value)?.unrealized),
+      grossExposure: toNumber((x.displayValue ?? x.display_value)?.grossExposure ?? (x.displayValue ?? x.display_value)?.gross_exposure),
+      netExposure: toNumber((x.displayValue ?? x.display_value)?.netExposure ?? (x.displayValue ?? x.display_value)?.net_exposure),
+      realizedPnl: toNumber((x.displayValue ?? x.display_value)?.realizedPnl ?? (x.displayValue ?? x.display_value)?.realized_pnl),
+      unrealizedPnl: toNumber((x.displayValue ?? x.display_value)?.unrealizedPnl ?? (x.displayValue ?? x.display_value)?.unrealized_pnl),
+    } : undefined,
+  };
+}
+
+export function normalizePortfolioMetrics(input: any) {
+  const x = getPayload<any>(input, {});
+  return {
+    fillRate: toNumber(x.fillRate ?? x.fill_rate),
     expectedVolatility: toNumber(x.expectedVolatility ?? x.expected_volatility ?? x.volatility),
     expectedSharpe: toNumber(x.expectedSharpe ?? x.expected_sharpe ?? x.sharpe),
+    buildStatus: toString(x.buildStatus ?? x.build_status, ''),
+    sourceSnapshotTime: toString(x.sourceSnapshotTime ?? x.source_snapshot_time, ''),
+    dataFreshnessSec: toNumber(x.dataFreshnessSec ?? x.data_freshness_sec),
     lastUpdated: toString(x.lastUpdated ?? x.last_updated ?? x.asOf ?? x.as_of),
+    stableValue: x.stableValue || x.stable_value ? {
+      fillRate: toNumber((x.stableValue ?? x.stable_value)?.fillRate ?? (x.stableValue ?? x.stable_value)?.fill_rate),
+      expectedVolatility: toNumber((x.stableValue ?? x.stable_value)?.expectedVolatility ?? (x.stableValue ?? x.stable_value)?.expected_volatility),
+      expectedSharpe: toNumber((x.stableValue ?? x.stable_value)?.expectedSharpe ?? (x.stableValue ?? x.stable_value)?.expected_sharpe),
+    } : undefined,
+    liveDelta: x.liveDelta || x.live_delta ? {
+      recentFillsWindow: ((x.liveDelta ?? x.live_delta)?.recentFillsWindow ?? (x.liveDelta ?? x.live_delta)?.recent_fills_window) ?? null,
+      recentEquityPointsWindow: ((x.liveDelta ?? x.live_delta)?.recentEquityPointsWindow ?? (x.liveDelta ?? x.live_delta)?.recent_equity_points_window) ?? null,
+    } : undefined,
+    displayValue: x.displayValue || x.display_value ? {
+      fillRate: toNumber((x.displayValue ?? x.display_value)?.fillRate ?? (x.displayValue ?? x.display_value)?.fill_rate),
+      expectedVolatility: toNumber((x.displayValue ?? x.display_value)?.expectedVolatility ?? (x.displayValue ?? x.display_value)?.expected_volatility),
+      expectedSharpe: toNumber((x.displayValue ?? x.display_value)?.expectedSharpe ?? (x.displayValue ?? x.display_value)?.expected_sharpe),
+    } : undefined,
   };
 }
 
 export function normalizePositions(input: any) {
-  return getArray<any>(input).map((p, idx) => ({
+  const payload = getPayload<any>(input, {});
+  const rows = Array.isArray(payload.items) ? payload.items : getArray<any>(input);
+  const items = rows.map((p: any, idx: number) => ({
     symbol: toString(p.symbol ?? p.ticker ?? p.asset, `row-${idx}`),
     side: (p.side === 'short' ? 'short' : 'long') as 'long' | 'short',
     quantity: toNumber(p.quantity ?? p.qty ?? p.size),
@@ -121,6 +209,13 @@ export function normalizePositions(input: any) {
     strategyId: toString(p.strategyId ?? p.strategy_id, ''),
     alphaFamily: toString(p.alphaFamily ?? p.alpha_family, ''),
   }));
+  return {
+    items,
+    asOf: toString(payload.asOf ?? payload.as_of, ''),
+    buildStatus: toString(payload.buildStatus ?? payload.build_status, ''),
+    sourceSnapshotTime: toString(payload.sourceSnapshotTime ?? payload.source_snapshot_time, ''),
+    dataFreshnessSec: toNumber(payload.dataFreshnessSec ?? payload.data_freshness_sec),
+  } satisfies FeedPayload<any>;
 }
 
 export function normalizeRisk(input: any) {
@@ -280,15 +375,22 @@ export function normalizeAuditLogs(input: any) {
 }
 
 export function normalizeEquityHistory(input: any) {
-  const items = getArray<any>(input).length ? getArray<any>(input) : getArray<any>(getPayload<any>(input, {}).items);
   const payload = getPayload<any>(input, {});
-  const source = items.length ? items : Array.isArray(payload.items) ? payload.items : [];
-  return source.map((row: any, idx: number) => ({
+  const directItems = getArray<any>(input);
+  const source = directItems.length ? directItems : Array.isArray(payload.items) ? payload.items : [];
+  const items = source.map((row: any, idx: number) => ({
     name: toString(row.name ?? row.label ?? row.as_of ?? row.asOf, `pt-${idx}`),
     value: toNumber(row.value ?? row.equity ?? row.total_equity ?? row.totalEquity),
     pnl: toNumber(row.pnl ?? row.total_pnl ?? row.totalPnl),
     asOf: toString(row.asOf ?? row.as_of ?? row.name, ''),
   }));
+  return {
+    items,
+    asOf: toString(payload.asOf ?? payload.as_of, ''),
+    buildStatus: toString(payload.buildStatus ?? payload.build_status, ''),
+    sourceSnapshotTime: toString(payload.sourceSnapshotTime ?? payload.source_snapshot_time, ''),
+    dataFreshnessSec: toNumber(payload.dataFreshnessSec ?? payload.data_freshness_sec),
+  } satisfies FeedPayload<any>;
 }
 
 export function normalizeExecutionSummary(input: any) {
@@ -312,6 +414,9 @@ export function normalizeExecutionPlannerLatest(input: any) {
     planCount: toNumber(x.planCount ?? x.plan_count),
     expiredCount: toNumber(x.expiredCount ?? x.expired_count),
     asOf: toString(x.asOf ?? x.as_of),
+    buildStatus: toString(x.buildStatus ?? x.build_status, ''),
+    sourceSnapshotTime: toString(x.sourceSnapshotTime ?? x.source_snapshot_time, ''),
+    dataFreshnessSec: toNumber(x.dataFreshnessSec ?? x.data_freshness_sec),
     algoMix: x.algoMix ?? x.algo_mix ?? {},
     routeMix: x.routeMix ?? x.route_mix ?? {},
     items: rows.map((r: any, idx: number) => ({
@@ -337,10 +442,60 @@ export function normalizeExecutionPlannerLatest(input: any) {
   };
 }
 
+export function normalizeExecutionViewLatest(input: any) {
+  const x = getPayload<any>(input, {});
+  return {
+    planner: normalizeExecutionPlannerLatest(x.planner ?? {}),
+    state: normalizeExecutionState(x.state ?? {}),
+    stableValue: x.stableValue || x.stable_value ? {
+      tradingState: toString((x.stableValue ?? x.stable_value)?.tradingState ?? (x.stableValue ?? x.stable_value)?.trading_state, ''),
+      executionState: toString((x.stableValue ?? x.stable_value)?.executionState ?? (x.stableValue ?? x.stable_value)?.execution_state, ''),
+      reason: toString((x.stableValue ?? x.stable_value)?.reason, ''),
+      primaryReason: toString((x.stableValue ?? x.stable_value)?.primaryReason ?? (x.stableValue ?? x.stable_value)?.primary_reason, ''),
+      plannerAgeSec: toNumber((x.stableValue ?? x.stable_value)?.plannerAgeSec ?? (x.stableValue ?? x.stable_value)?.planner_age_sec),
+      executionAgeSec: toNumber((x.stableValue ?? x.stable_value)?.executionAgeSec ?? (x.stableValue ?? x.stable_value)?.execution_age_sec),
+      lastFillAgeSec: toNumber((x.stableValue ?? x.stable_value)?.lastFillAgeSec ?? (x.stableValue ?? x.stable_value)?.last_fill_age_sec),
+      openOrderCount: toNumber((x.stableValue ?? x.stable_value)?.openOrderCount ?? (x.stableValue ?? x.stable_value)?.open_order_count),
+      submittedOrderCount: toNumber((x.stableValue ?? x.stable_value)?.submittedOrderCount ?? (x.stableValue ?? x.stable_value)?.submitted_order_count),
+      activePlanCount: toNumber((x.stableValue ?? x.stable_value)?.activePlanCount ?? (x.stableValue ?? x.stable_value)?.active_plan_count),
+      visiblePlanCount: toNumber((x.stableValue ?? x.stable_value)?.visiblePlanCount ?? (x.stableValue ?? x.stable_value)?.visible_plan_count),
+      expiredPlanCount: toNumber((x.stableValue ?? x.stable_value)?.expiredPlanCount ?? (x.stableValue ?? x.stable_value)?.expired_plan_count),
+      topAlgo: toString((x.stableValue ?? x.stable_value)?.topAlgo ?? (x.stableValue ?? x.stable_value)?.top_algo, ''),
+      topRoute: toString((x.stableValue ?? x.stable_value)?.topRoute ?? (x.stableValue ?? x.stable_value)?.top_route, ''),
+    } : undefined,
+    liveDelta: x.liveDelta || x.live_delta ? {
+      recentFillsWindow: ((x.liveDelta ?? x.live_delta)?.recentFillsWindow ?? (x.liveDelta ?? x.live_delta)?.recent_fills_window) ?? null,
+      recentOrdersWindow: ((x.liveDelta ?? x.live_delta)?.recentOrdersWindow ?? (x.liveDelta ?? x.live_delta)?.recent_orders_window) ?? null,
+      recentRunsWindow: ((x.liveDelta ?? x.live_delta)?.recentRunsWindow ?? (x.liveDelta ?? x.live_delta)?.recent_runs_window) ?? null,
+      recentIssuesWindow: ((x.liveDelta ?? x.live_delta)?.recentIssuesWindow ?? (x.liveDelta ?? x.live_delta)?.recent_issues_window) ?? null,
+    } : undefined,
+    displayValue: x.displayValue || x.display_value ? {
+      tradingState: toString((x.displayValue ?? x.display_value)?.tradingState ?? (x.displayValue ?? x.display_value)?.trading_state, ''),
+      executionState: toString((x.displayValue ?? x.display_value)?.executionState ?? (x.displayValue ?? x.display_value)?.execution_state, ''),
+      reason: toString((x.displayValue ?? x.display_value)?.reason, ''),
+      primaryReason: toString((x.displayValue ?? x.display_value)?.primaryReason ?? (x.displayValue ?? x.display_value)?.primary_reason, ''),
+      plannerAgeSec: toNumber((x.displayValue ?? x.display_value)?.plannerAgeSec ?? (x.displayValue ?? x.display_value)?.planner_age_sec),
+      executionAgeSec: toNumber((x.displayValue ?? x.display_value)?.executionAgeSec ?? (x.displayValue ?? x.display_value)?.execution_age_sec),
+      lastFillAgeSec: toNumber((x.displayValue ?? x.display_value)?.lastFillAgeSec ?? (x.displayValue ?? x.display_value)?.last_fill_age_sec),
+      openOrderCount: toNumber((x.displayValue ?? x.display_value)?.openOrderCount ?? (x.displayValue ?? x.display_value)?.open_order_count),
+      submittedOrderCount: toNumber((x.displayValue ?? x.display_value)?.submittedOrderCount ?? (x.displayValue ?? x.display_value)?.submitted_order_count),
+      activePlanCount: toNumber((x.displayValue ?? x.display_value)?.activePlanCount ?? (x.displayValue ?? x.display_value)?.active_plan_count),
+      visiblePlanCount: toNumber((x.displayValue ?? x.display_value)?.visiblePlanCount ?? (x.displayValue ?? x.display_value)?.visible_plan_count),
+      expiredPlanCount: toNumber((x.displayValue ?? x.display_value)?.expiredPlanCount ?? (x.displayValue ?? x.display_value)?.expired_plan_count),
+      topAlgo: toString((x.displayValue ?? x.display_value)?.topAlgo ?? (x.displayValue ?? x.display_value)?.top_algo, ''),
+      topRoute: toString((x.displayValue ?? x.display_value)?.topRoute ?? (x.displayValue ?? x.display_value)?.top_route, ''),
+    } : undefined,
+    asOf: toString(x.asOf ?? x.as_of),
+    buildStatus: toString(x.buildStatus ?? x.build_status, ''),
+    sourceSnapshotTime: toString(x.sourceSnapshotTime ?? x.source_snapshot_time, ''),
+    dataFreshnessSec: toNumber(x.dataFreshnessSec ?? x.data_freshness_sec),
+  };
+}
+
 export function normalizeExecutionFills(input: any) {
   const payload = getPayload<any>(input, {});
   const rows = Array.isArray(payload.items) ? payload.items : getArray<any>(input);
-  return rows.map((r: any, idx: number) => ({
+  const items = rows.map((r: any, idx: number) => ({
     fillId: toString(r.fillId ?? r.fill_id, `fill-${idx}`),
     symbol: toString(r.symbol, `fill-${idx}`),
     side: toString(r.side, ''),
@@ -351,12 +506,19 @@ export function normalizeExecutionFills(input: any) {
     feeBps: toNumber(r.feeBps ?? r.fee_bps),
     status: toString(r.status, ''),
   }));
+  return {
+    items,
+    asOf: toString(payload.asOf ?? payload.as_of, ''),
+    buildStatus: toString(payload.buildStatus ?? payload.build_status, ''),
+    sourceSnapshotTime: toString(payload.sourceSnapshotTime ?? payload.source_snapshot_time, ''),
+    dataFreshnessSec: toNumber(payload.dataFreshnessSec ?? payload.data_freshness_sec),
+  } satisfies FeedPayload<any>;
 }
 
 export function normalizeExecutionOrders(input: any) {
   const payload = getPayload<any>(input, {});
   const rows = Array.isArray(payload.items) ? payload.items : getArray<any>(input);
-  return rows.map((r: any, idx: number) => ({
+  const items = rows.map((r: any, idx: number) => ({
     orderId: toString(r.orderId ?? r.order_id, `order-${idx}`),
     planId: toString(r.planId ?? r.plan_id, ''),
     symbol: toString(r.symbol, `order-${idx}`),
@@ -368,6 +530,13 @@ export function normalizeExecutionOrders(input: any) {
     status: toString(r.status, ''),
     submitTime: toString(r.submitTime ?? r.submit_time ?? r.createdAt ?? r.created_at, ''),
   }));
+  return {
+    items,
+    asOf: toString(payload.asOf ?? payload.as_of, ''),
+    buildStatus: toString(payload.buildStatus ?? payload.build_status, ''),
+    sourceSnapshotTime: toString(payload.sourceSnapshotTime ?? payload.source_snapshot_time, ''),
+    dataFreshnessSec: toNumber(payload.dataFreshnessSec ?? payload.data_freshness_sec),
+  } satisfies FeedPayload<any>;
 }
 
 export function normalizeExecutionState(input: any) {
@@ -377,6 +546,9 @@ export function normalizeExecutionState(input: any) {
     tradingState: toString(x.tradingState ?? x.trading_state, 'unknown'),
     executionState: toString(x.executionState ?? x.execution_state, 'unknown'),
     reason: toString(x.reason, ''),
+    buildStatus: toString(x.buildStatus ?? x.build_status, ''),
+    sourceSnapshotTime: toString(x.sourceSnapshotTime ?? x.source_snapshot_time, ''),
+    dataFreshnessSec: toNumber(x.dataFreshnessSec ?? x.data_freshness_sec),
     plannerAgeSec: toNumber(x.plannerAgeSec ?? x.planner_age_sec),
     executionAgeSec: toNumber(x.executionAgeSec ?? x.execution_age_sec),
     lastFillAgeSec: toNumber(x.lastFillAgeSec ?? x.last_fill_age_sec),
@@ -393,10 +565,50 @@ export function normalizeExecutionState(input: any) {
 export function normalizeCommandCenterRuntimeLatest(input: any): CommandCenterRuntimeLatest {
   const x = getPayload<any>(input, {});
   const timeline = Array.isArray(x.timeline) ? x.timeline : [];
+  const stableValue = x.stableValue ?? x.stable_value;
+  const liveDelta = x.liveDelta ?? x.live_delta;
+  const displayValue = x.displayValue ?? x.display_value;
   return {
     status: toString(x.status, 'no_data'),
     runId: toString(x.runId ?? x.run_id, ''),
     cycleId: toString(x.cycleId ?? x.cycle_id, ''),
+    buildStatus: toString(x.buildStatus ?? x.build_status, ''),
+    sourceSnapshotTime: toString(x.sourceSnapshotTime ?? x.source_snapshot_time, ''),
+    dataFreshnessSec: toNumber(x.dataFreshnessSec ?? x.data_freshness_sec),
+    stableValue: stableValue ? {
+      bridgeState: toString(stableValue.bridgeState ?? stableValue.bridge_state, ''),
+      operatorState: toString(stableValue.operatorState ?? stableValue.operator_state, ''),
+      plannerStatus: toString(stableValue.plannerStatus ?? stableValue.planner_status, ''),
+      plannedCount: toNumber(stableValue.plannedCount ?? stableValue.planned_count),
+      submittedCount: toNumber(stableValue.submittedCount ?? stableValue.submitted_count),
+      blockedCount: toNumber(stableValue.blockedCount ?? stableValue.blocked_count),
+      filledCount: toNumber(stableValue.filledCount ?? stableValue.filled_count),
+      latestReasonCode: toString(stableValue.latestReasonCode ?? stableValue.latest_reason_code, ''),
+      latestReasonSummary: toString(stableValue.latestReasonSummary ?? stableValue.latest_reason_summary, ''),
+      blockingComponent: toString(stableValue.blockingComponent ?? stableValue.blocking_component, ''),
+      degraded: toBool(stableValue.degraded, false),
+      operatorMessage: toString(stableValue.operatorMessage ?? stableValue.operator_message, ''),
+      eventChainComplete: toBool(stableValue.eventChainComplete ?? stableValue.event_chain_complete, false),
+    } : undefined,
+    liveDelta: liveDelta ? {
+      recentRunsWindow: (liveDelta.recentRunsWindow ?? liveDelta.recent_runs_window) ?? null,
+      recentIssuesWindow: (liveDelta.recentIssuesWindow ?? liveDelta.recent_issues_window) ?? null,
+    } : undefined,
+    displayValue: displayValue ? {
+      bridgeState: toString(displayValue.bridgeState ?? displayValue.bridge_state, ''),
+      operatorState: toString(displayValue.operatorState ?? displayValue.operator_state, ''),
+      plannerStatus: toString(displayValue.plannerStatus ?? displayValue.planner_status, ''),
+      plannedCount: toNumber(displayValue.plannedCount ?? displayValue.planned_count),
+      submittedCount: toNumber(displayValue.submittedCount ?? displayValue.submitted_count),
+      blockedCount: toNumber(displayValue.blockedCount ?? displayValue.blocked_count),
+      filledCount: toNumber(displayValue.filledCount ?? displayValue.filled_count),
+      latestReasonCode: toString(displayValue.latestReasonCode ?? displayValue.latest_reason_code, ''),
+      latestReasonSummary: toString(displayValue.latestReasonSummary ?? displayValue.latest_reason_summary, ''),
+      blockingComponent: toString(displayValue.blockingComponent ?? displayValue.blocking_component, ''),
+      degraded: toBool(displayValue.degraded, false),
+      operatorMessage: toString(displayValue.operatorMessage ?? displayValue.operator_message, ''),
+      eventChainComplete: toBool(displayValue.eventChainComplete ?? displayValue.event_chain_complete, false),
+    } : undefined,
     bridgeState: toString(x.bridgeState ?? x.bridge_state, 'no_decision'),
     operatorState: toString(x.operatorState ?? x.operator_state ?? x.bridgeState ?? x.bridge_state, 'no_decision'),
     plannerStatus: toString(x.plannerStatus ?? x.planner_status, 'unknown'),
@@ -430,10 +642,10 @@ export function normalizeCommandCenterRuntimeLatest(input: any): CommandCenterRu
   };
 }
 
-export function normalizeCommandCenterRuntimeRuns(input: any): CommandCenterRuntimeRunSummary[] {
+export function normalizeCommandCenterRuntimeRuns(input: any): FeedPayload<CommandCenterRuntimeRunSummary> {
   const payload = getPayload<any>(input, {});
   const rows = Array.isArray(payload.items) ? payload.items : getArray<any>(input);
-  return rows.map((row: any) => ({
+  const items = rows.map((row: any) => ({
     runId: toString(row.runId ?? row.run_id, ''),
     cycleId: toString(row.cycleId ?? row.cycle_id, ''),
     status: toString(row.status, 'unknown'),
@@ -471,12 +683,19 @@ export function normalizeCommandCenterRuntimeRuns(input: any): CommandCenterRunt
         }
       : undefined,
   }));
+  return {
+    items,
+    asOf: toString(payload.asOf ?? payload.as_of, ''),
+    buildStatus: toString(payload.buildStatus ?? payload.build_status, ''),
+    sourceSnapshotTime: toString(payload.sourceSnapshotTime ?? payload.source_snapshot_time, ''),
+    dataFreshnessSec: toNumber(payload.dataFreshnessSec ?? payload.data_freshness_sec),
+  };
 }
 
-export function normalizeRuntimeIssueBuckets(input: any) {
+export function normalizeRuntimeIssueBuckets(input: any): FeedPayload<any> {
   const payload = getPayload<any>(input, {});
   const rows = Array.isArray(payload.items) ? payload.items : getArray<any>(input);
-  return rows.map((row: any) => ({
+  const items = rows.map((row: any) => ({
     code: toString(row.code, ''),
     count: toNumber(row.count),
     distinctRunCount: toNumber(row.distinctRunCount ?? row.distinct_run_count),
@@ -493,6 +712,13 @@ export function normalizeRuntimeIssueBuckets(input: any) {
     windowStart: toString(row.windowStart ?? row.window_start, ''),
     windowEnd: toString(row.windowEnd ?? row.window_end, ''),
   }));
+  return {
+    items,
+    asOf: toString(payload.asOf ?? payload.as_of, ''),
+    buildStatus: toString(payload.buildStatus ?? payload.build_status, ''),
+    sourceSnapshotTime: toString(payload.sourceSnapshotTime ?? payload.source_snapshot_time, ''),
+    dataFreshnessSec: toNumber(payload.dataFreshnessSec ?? payload.data_freshness_sec),
+  };
 }
 
 export function normalizeCommandCenterRuntimeDebug(input: any): CommandCenterRuntimeDebug {

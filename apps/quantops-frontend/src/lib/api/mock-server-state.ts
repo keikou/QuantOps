@@ -7,6 +7,7 @@ import type {
   JobRow,
   MonitoringSystem,
   OverviewData,
+  PortfolioMetrics,
   PortfolioOverview,
   PositionRow,
   RiskSnapshot,
@@ -37,14 +38,22 @@ const state = {
   } as OverviewData,
   portfolioOverview: {
     totalEquity: 1052340,
+    balance: 996800,
+    usedMargin: 42100,
+    freeMargin: 1010240,
+    unrealized: 43440,
     grossExposure: 1.82,
     netExposure: 0.34,
     realizedPnl: 12034,
     unrealizedPnl: 4201,
+    lastUpdated: nowIso(),
+  } as PortfolioOverview,
+  portfolioMetrics: {
+    fillRate: 0.97,
     expectedVolatility: 0.18,
     expectedSharpe: 1.92,
     lastUpdated: nowIso(),
-  } as PortfolioOverview,
+  } as PortfolioMetrics,
   positions: [
     { symbol: 'BTCUSDT', side: 'long', quantity: 1.2, avgPrice: 43000, markPrice: 44120, pnl: 1340, strategyId: 'momentum', alphaFamily: 'momentum' },
     { symbol: 'ETHUSDT', side: 'short', quantity: 5, avgPrice: 3200, markPrice: 3150, pnl: 250, strategyId: 'meanrev', alphaFamily: 'mean_reversion' },
@@ -118,6 +127,7 @@ export function getMockResponse(path: string): ApiEnvelope<unknown> | undefined 
   if (path === '/api/v1/auth/me') return wrap(state.currentUser);
   if (path === '/api/v1/dashboard/overview') return wrap(state.overview);
   if (path === '/api/v1/portfolio/overview') return wrap({ ...state.portfolioOverview, lastUpdated: nowIso() });
+  if (path === '/api/v1/portfolio/metrics') return wrap({ ...state.portfolioMetrics, lastUpdated: nowIso() });
   if (path === '/api/v1/portfolio/positions') return wrap(state.positions);
   if (path === '/api/v1/risk/snapshot') return wrap(state.risk);
   if (path === '/api/v1/monitoring/system') return wrap(state.monitoring);

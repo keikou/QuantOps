@@ -18,6 +18,19 @@ class _RuntimeRunsV12Client:
                     "duration_ms": 4000,
                     "triggered_by": "smoke",
                     "created_at": "2026-03-23T01:00:00+00:00",
+                    "bridge_state": "planned_blocked",
+                    "planned_count": 1,
+                    "submitted_count": 0,
+                    "blocked_count": 1,
+                    "filled_count": 0,
+                    "event_chain_complete": True,
+                    "latest_reason_code": "NO_POSITION_DELTA",
+                    "latest_reason_summary": "Planner produced no actionable delta.",
+                    "blocking_component": "execution_planner",
+                    "degraded_flags": [],
+                    "operator_message": "No trade was needed.",
+                    "last_transition_at": "2026-03-23T01:00:04+00:00",
+                    "planner_status": "blocked",
                 },
                 {
                     "run_id": "run-blocked-mid",
@@ -27,136 +40,89 @@ class _RuntimeRunsV12Client:
                     "duration_ms": 4000,
                     "triggered_by": "smoke",
                     "created_at": "2026-03-23T00:57:00+00:00",
+                    "bridge_state": "planned_blocked",
+                    "planned_count": 1,
+                    "submitted_count": 0,
+                    "blocked_count": 1,
+                    "filled_count": 0,
+                    "event_chain_complete": True,
+                    "latest_reason_code": "NO_POSITION_DELTA",
+                    "latest_reason_summary": "Planner produced no actionable delta.",
+                    "blocking_component": "execution_planner",
+                    "degraded_flags": [],
+                    "operator_message": "No trade was needed.",
+                    "last_transition_at": "2026-03-23T00:57:04+00:00",
+                    "planner_status": "blocked",
                 },
                 {
                     "run_id": "run-filled",
+                    "started_at": "2026-03-23T00:56:00+00:00",
+                    "finished_at": "2026-03-23T00:56:03+00:00",
+                    "status": "ok",
+                    "duration_ms": 3000,
+                    "triggered_by": "smoke",
+                    "created_at": "2026-03-23T00:56:00+00:00",
+                    "bridge_state": "filled",
+                    "planned_count": 2,
+                    "submitted_count": 2,
+                    "blocked_count": 0,
+                    "filled_count": 2,
+                    "event_chain_complete": True,
+                    "latest_reason_code": "",
+                    "latest_reason_summary": "",
+                    "blocking_component": "",
+                    "degraded_flags": ["stale_market_data"],
+                    "operator_message": "Orders filled successfully.",
+                    "last_transition_at": "2026-03-23T00:56:03+00:00",
+                    "last_successful_fill_at": "2026-03-23T00:56:02+00:00",
+                    "planner_status": "generated",
+                },
+                {
+                    "run_id": "run-blocked-old",
+                    "started_at": "2026-03-23T00:55:00+00:00",
+                    "finished_at": "2026-03-23T00:55:04+00:00",
+                    "status": "ok",
+                    "duration_ms": 4000,
+                    "triggered_by": "smoke",
+                    "created_at": "2026-03-23T00:55:00+00:00",
+                    "bridge_state": "planned_blocked",
+                    "planned_count": 1,
+                    "submitted_count": 0,
+                    "blocked_count": 1,
+                    "filled_count": 0,
+                    "event_chain_complete": True,
+                    "latest_reason_code": "NO_POSITION_DELTA",
+                    "latest_reason_summary": "Planner produced no actionable delta.",
+                    "blocking_component": "execution_planner",
+                    "degraded_flags": [],
+                    "operator_message": "No trade was needed.",
+                    "last_transition_at": "2026-03-23T00:55:04+00:00",
+                    "planner_status": "blocked",
+                },
+                {
+                    "run_id": "run-too-old",
                     "started_at": "2026-03-23T00:50:00+00:00",
                     "finished_at": "2026-03-23T00:50:03+00:00",
                     "status": "ok",
                     "duration_ms": 3000,
                     "triggered_by": "smoke",
                     "created_at": "2026-03-23T00:50:00+00:00",
-                },
-                {
-                    "run_id": "run-blocked-old",
-                    "started_at": "2026-03-23T00:40:00+00:00",
-                    "finished_at": "2026-03-23T00:40:04+00:00",
-                    "status": "ok",
-                    "duration_ms": 4000,
-                    "triggered_by": "smoke",
-                    "created_at": "2026-03-23T00:40:00+00:00",
-                },
-            ][:limit]
-        }
-
-    async def get_execution_bridge_by_run(self, run_id: str) -> dict:
-        if run_id.startswith("run-blocked"):
-            return {
-                "run_id": run_id,
-                "cycle_id": "cycle-blocked",
-                "bridge_state": "planned_blocked",
-                "planned_count": 1,
-                "submitted_count": 0,
-                "blocked_count": 1,
-                "filled_count": 0,
-                "event_chain_complete": True,
-                "latest_reason_code": "NO_POSITION_DELTA",
-                "latest_reason_summary": "Planner produced no actionable delta.",
-                "blocking_component": "execution_planner",
-                "degraded_flags": [],
-                "operator_message": "No trade was needed.",
-                "last_transition_at": "2026-03-23T01:00:04+00:00",
-            }
-        return {
-            "run_id": run_id,
-            "cycle_id": "cycle-filled",
-            "bridge_state": "filled",
-            "planned_count": 2,
-            "submitted_count": 2,
-            "blocked_count": 0,
-            "filled_count": 2,
-            "event_chain_complete": True,
-            "latest_reason_code": "",
-            "latest_reason_summary": "",
-            "blocking_component": "",
-            "degraded_flags": ["stale_market_data"],
-            "operator_message": "Orders filled successfully.",
-            "last_transition_at": "2026-03-23T00:50:03+00:00",
-        }
-
-    async def get_execution_plans_by_run(self, run_id: str) -> dict:
-        if run_id.startswith("run-blocked"):
-            return {
-                "run_id": run_id,
-                "cycle_id": "cycle-blocked",
-                "planner_status": "blocked",
-                "generated_at": "2026-03-23T01:00:02+00:00",
-                "items": [],
-            }
-        return {
-            "run_id": run_id,
-            "cycle_id": "cycle-filled",
-            "planner_status": "generated",
-            "generated_at": "2026-03-23T00:50:01+00:00",
-            "items": [{"symbol": "BTCUSDT"}],
-        }
-
-    async def get_runtime_events_by_run(self, run_id: str, limit: int = 25) -> dict:
-        if run_id.startswith("run-blocked"):
-            return {
-                "items": [
-                    {
-                        "run_id": run_id,
-                        "event_type": "cycle_completed",
-                        "status": "ok",
-                        "severity": "info",
-                        "summary": "Cycle completed.",
-                        "timestamp": "2026-03-23T01:00:04+00:00",
-                    }
-                ][:limit]
-            }
-        return {
-            "items": [
-                {
-                    "run_id": run_id,
-                    "event_type": "fill_recorded",
-                    "status": "ok",
-                    "severity": "info",
-                    "summary": "Fill recorded.",
-                    "timestamp": "2026-03-23T00:50:02+00:00",
-                },
-                {
-                    "run_id": run_id,
-                    "event_type": "portfolio_updated",
-                    "status": "ok",
-                    "severity": "info",
-                    "summary": "Portfolio updated.",
-                    "timestamp": "2026-03-23T00:50:02.500000+00:00",
-                },
-                {
-                    "run_id": run_id,
-                    "event_type": "cycle_completed",
-                    "status": "ok",
-                    "severity": "info",
-                    "summary": "Cycle completed.",
-                    "timestamp": "2026-03-23T00:50:03+00:00",
+                    "bridge_state": "filled",
+                    "planned_count": 1,
+                    "submitted_count": 1,
+                    "blocked_count": 0,
+                    "filled_count": 1,
+                    "event_chain_complete": True,
+                    "latest_reason_code": "",
+                    "latest_reason_summary": "",
+                    "blocking_component": "",
+                    "degraded_flags": [],
+                    "operator_message": "Outside default window.",
+                    "last_transition_at": "2026-03-23T00:50:03+00:00",
+                    "planner_status": "generated",
                 },
             ][:limit]
         }
-
-    async def get_runtime_reasons_by_run(self, run_id: str, limit: int = 10) -> dict:
-        if run_id.startswith("run-blocked"):
-            return {
-                "items": [
-                    {
-                        "run_id": run_id,
-                        "reason_code": "NO_POSITION_DELTA",
-                        "summary": "Planner produced no actionable delta.",
-                        "details": {"blocking_component": "execution_planner"},
-                    }
-                ][:limit]
-            }
-        return {"items": []}
 
 
 def _build_service() -> CommandCenterService:
@@ -177,11 +143,18 @@ def _build_service() -> CommandCenterService:
     )
 
 
-def test_runtime_runs_returns_recent_rows_with_consistent_semantics() -> None:
+def test_runtime_runs_defaults_to_recent_five_minute_window() -> None:
     payload = asyncio.run(_build_service().get_runtime_runs(limit=10))
 
     assert payload["count"] == 4
     assert [item["run_id"] for item in payload["items"]] == ["run-blocked-new", "run-blocked-mid", "run-filled", "run-blocked-old"]
+    assert payload["filters"]["window_minutes"] == 5
+
+
+def test_runtime_runs_returns_recent_rows_with_consistent_semantics() -> None:
+    payload = asyncio.run(_build_service().get_runtime_runs(limit=10, window_minutes=30))
+
+    assert payload["count"] == 5
 
     first = payload["items"][0]
     assert first["operator_state"] == "blocked"
@@ -191,26 +164,19 @@ def test_runtime_runs_returns_recent_rows_with_consistent_semantics() -> None:
     assert first["event_chain_complete"] is True
     assert first["detail_path"] == "/execution/runs/run-blocked-new"
 
-    second = payload["items"][1]
-    assert second["operator_state"] == "blocked"
-    assert second["diagnosis"]["primary_code"] == "execution_bridge_missing"
-    assert second["diagnosis_code"] == "execution_bridge_missing"
-
     third = payload["items"][2]
     assert third["operator_state"] == "filled"
     assert third["filled_count"] == 2
     assert third["degraded"] is True
     assert third["diagnosis"]["primary_code"] == "successful_chain"
-    assert third["last_successful_fill_at"] == "2026-03-23T00:50:02+00:00"
-
-    fourth = payload["items"][3]
-    assert fourth["diagnosis"]["primary_code"] == "execution_bridge_missing"
+    assert third["last_successful_fill_at"] == "2026-03-23T00:56:02+00:00"
 
 
 def test_runtime_runs_filter_by_diagnosis_code() -> None:
     payload = asyncio.run(
         _build_service().get_runtime_runs(
             limit=10,
+            window_minutes=30,
             issue_code="execution_bridge_missing",
         )
     )
@@ -224,6 +190,7 @@ def test_runtime_runs_filters_on_operator_state_and_reason_code() -> None:
     payload = asyncio.run(
         _build_service().get_runtime_runs(
             limit=10,
+            window_minutes=30,
             operator_state="blocked",
             reason_code="NO_POSITION_DELTA",
         )
@@ -247,6 +214,7 @@ def test_runtime_runs_filters_on_blocking_component_and_artifact_availability(tm
         payload = asyncio.run(
             _build_service().get_runtime_runs(
                 limit=10,
+                window_minutes=30,
                 blocking_component="execution_planner",
                 artifact_available=True,
             )
@@ -262,7 +230,7 @@ def test_runtime_runs_filters_on_blocking_component_and_artifact_availability(tm
 
 
 def test_runtime_issues_rollup_marks_repeating_and_trend() -> None:
-    payload = asyncio.run(_build_service().get_runtime_issues(limit=10))
+    payload = asyncio.run(_build_service().get_runtime_issues(limit=10, window_minutes=30))
 
     assert payload["count"] == 2
     assert payload["items"][0]["code"] == "execution_bridge_missing"
@@ -270,18 +238,34 @@ def test_runtime_issues_rollup_marks_repeating_and_trend() -> None:
     assert payload["items"][0]["distinct_run_count"] == 3
     assert payload["items"][0]["recurrence_status"] == "persistent"
     assert payload["items"][0]["trend"] == "up"
-    assert payload["items"][0]["window_run_count"] == 4
+    assert payload["items"][0]["window_run_count"] == 5
     assert payload["items"][0]["example_run_id"] == "run-blocked-new"
 
     assert payload["items"][1]["code"] == "successful_chain"
-    assert payload["items"][1]["recurrence_status"] == "isolated"
+    assert payload["items"][1]["recurrence_status"] == "repeating"
 
 
 def test_runtime_issues_rollup_window_metadata_present() -> None:
-    payload = asyncio.run(_build_service().get_runtime_issues(limit=10))
+    payload = asyncio.run(_build_service().get_runtime_issues(limit=10, window_minutes=30))
 
     first = payload["items"][0]
-    assert first["first_seen_at"] == "2026-03-23T00:40:04+00:00"
+    assert first["first_seen_at"] == "2026-03-23T00:55:04+00:00"
     assert first["last_seen_at"] == "2026-03-23T01:00:04+00:00"
-    assert first["window_start"] == "2026-03-23T00:40:00+00:00"
+    assert first["window_start"] == "2026-03-23T00:50:00+00:00"
     assert first["window_end"] == "2026-03-23T01:00:04+00:00"
+
+
+def test_runtime_feed_cache_uses_cached_at_not_source_snapshot_age() -> None:
+    service = _build_service()
+
+    async def _main():
+        first = await service.get_runtime_runs(limit=10, window_minutes=30)
+        second = await service.get_runtime_runs(limit=10, window_minutes=30)
+        first_issues = await service.get_runtime_issues(limit=10, window_minutes=30)
+        second_issues = await service.get_runtime_issues(limit=10, window_minutes=30)
+        assert first["build_status"] == "live"
+        assert second["build_status"] == "fresh_cache"
+        assert first_issues["build_status"] == "live"
+        assert second_issues["build_status"] == "fresh_cache"
+
+    asyncio.run(_main())

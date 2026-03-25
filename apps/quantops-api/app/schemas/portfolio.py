@@ -43,9 +43,15 @@ class PortfolioOverviewResponse(BaseModel):
     short_exposure: float
     leverage: float
     expected_volatility: float | None = None
-    expected_sharpe: float | None = None
     weights: dict[str, float]
     positions: list[PositionItem]
     quotes_as_of: str | None = None
     stale_positions: int | None = None
+    as_of: str
+
+
+class PortfolioMetricsResponse(BaseModel):
+    fill_rate: float
+    expected_sharpe: float | None = None
+    expected_volatility: float | None = None
     as_of: str

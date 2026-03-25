@@ -61,3 +61,12 @@ def test_snapshot_save_restore_and_execution_quality() -> None:
     assert quality_body['status'] == 'ok'
     assert quality_body['mode'] == 'shadow'
     assert quality_body['fill_rate'] is not None
+
+    quality_summary = client.get('/execution/quality/latest_summary')
+    assert quality_summary.status_code == 200
+    quality_summary_body = quality_summary.json()
+    assert quality_summary_body['status'] == 'ok'
+    assert quality_summary_body['mode'] == 'shadow'
+    assert quality_summary_body['fill_rate'] is not None
+    assert 'latest_fills' not in quality_summary_body
+    assert 'latest_plans' not in quality_summary_body

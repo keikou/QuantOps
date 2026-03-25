@@ -105,7 +105,10 @@ class V12Client:
         return await self._request_first("GET", ["/dashboard/global"])
 
     async def get_portfolio_dashboard(self) -> dict[str, Any]:
-        return await self._request_first("GET", ["/portfolio/overview", "/dashboard/portfolio"])
+        return await self._request_first("GET", ["/portfolio/overview-summary/latest", "/portfolio/overview", "/dashboard/portfolio"])
+
+    async def get_portfolio_metrics(self) -> dict[str, Any]:
+        return await self._request_first("GET", ["/portfolio/metrics/latest"])
 
     async def get_portfolio_analytics(self) -> dict[str, Any]:
         return await self._request_first("GET", ["/portfolio/diagnostics/latest", "/portfolio/overview"])
@@ -199,11 +202,16 @@ class V12Client:
     async def get_execution_quality_latest(self) -> dict[str, Any]:
         return await self._request_first("GET", ["/execution/quality/latest"])
 
-    async def get_execution_quality(self) -> dict[str, Any]:
-        return await self._request_first("GET", ["/execution/quality/latest"])
+    async def get_execution_quality(self, *, live: bool = False) -> dict[str, Any]:
+        if live:
+            return await self._request_first("GET", ["/execution/quality/latest"])
+        return await self._request_first("GET", ["/execution/quality/latest_summary", "/execution/quality/latest"])
 
     async def get_execution_planner_latest(self) -> dict[str, Any]:
         return await self._request_first("GET", ["/execution/planner/latest", "/execution/plans?limit=20"])
+
+    async def get_execution_view_latest(self) -> dict[str, Any]:
+        return await self._request_first("GET", ["/execution/view/latest"])
 
     async def get_execution_plans_latest(self) -> dict[str, Any]:
         return await self._request_first("GET", ["/execution/plans/latest"])
@@ -307,8 +315,11 @@ class V12Client:
         return await self._request_first("POST", ["/runtime/run-with-mode"], json={"mode": mode})
 
 
-    async def get_equity_history(self) -> dict[str, Any]:
-        return await self._request_first("GET", ["/portfolio/equity-history"])
+    async def get_equity_history(self, *, limit: int | None = None, live: bool = False) -> dict[str, Any]:
+        suffix = f"?limit={int(limit)}" if limit is not None else ""
+        if live:
+            return await self._request_first("GET", [f"/portfolio/equity-history/live{suffix}", f"/portfolio/equity-history{suffix}", "/portfolio/equity-history/live", "/portfolio/equity-history"])
+        return await self._request_first("GET", [f"/portfolio/equity-history{suffix}", "/portfolio/equity-history"])
 
     async def get_shadow_summary(self) -> dict[str, Any]:
         return await self._request_first("GET", ["/analytics/shadow-summary"])
@@ -370,7 +381,7 @@ class V12Client:
                 "global": {"status": "ok", "alerts": []},
                 "as_of": utc_now_iso(),
             }
-        if path == "/execution/quality/latest":
+        if path in {"/execution/quality/latest", "/execution/quality/latest_summary"}:
             return {
                 "status": "ok",
                 "run_id": "mock",
@@ -393,6 +404,40 @@ class V12Client:
                 "active_plan_count": 0,
                 "open_order_count": 0,
                 "as_of": utc_now_iso(),
+            }
+        if path == "/execution/view/latest":
+            now = utc_now_iso()
+            return {
+                "status": "ok",
+                "as_of": now,
+                "source_snapshot_time": now,
+                "build_status": "live",
+                "planner": {
+                    "status": "ok",
+                    "trading_state": "running",
+                    "plan_count": 0,
+                    "visible_plan_count": 0,
+                    "expired_count": 0,
+                    "algo_mix": {},
+                    "route_mix": {},
+                    "items": [],
+                    "as_of": now,
+                    "source_snapshot_time": now,
+                    "data_freshness_sec": 0.0,
+                    "build_status": "live",
+                },
+                "state": {
+                    "status": "ok",
+                    "trading_state": "running",
+                    "execution_state": "idle",
+                    "block_reasons": [],
+                    "active_plan_count": 0,
+                    "open_order_count": 0,
+                    "as_of": now,
+                    "source_snapshot_time": now,
+                    "data_freshness_sec": 0.0,
+                    "build_status": "live",
+                },
             }
         if path == "/execution/block-reasons/latest":
             return {"status": "ok", "items": [], "as_of": utc_now_iso()}

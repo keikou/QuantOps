@@ -1,13 +1,32 @@
 import json
+from datetime import datetime, timezone
+
+from app.clients.v12_client import utc_now_iso
 
 
 class AlertService:
+    ALERTS_CACHE_TTL_SECONDS = 5.0
 
     def __init__(self, repository, audit_repository, risk_repository, monitoring_repository=None):
         self.repository = repository
         self.audit_repository = audit_repository
         self.risk_repository = risk_repository
         self.monitoring_repository = monitoring_repository
+        self._alerts_cache = None
+
+    @staticmethod
+    def _snapshot_age_sec(value):
+        if not value:
+            return None
+        try:
+            ts = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+            if ts.tzinfo is None:
+                ts = ts.replace(tzinfo=timezone.utc)
+            else:
+                ts = ts.astimezone(timezone.utc)
+            return max(0.0, (datetime.now(timezone.utc) - ts).total_seconds())
+        except Exception:
+            return None
 
     def _create_once(self, payload: dict, created: list) -> None:
         existing = self.repository.find_open_by_type(payload['alert_type'])
@@ -205,18 +224,28 @@ class AlertService:
         return {'ok': True, 'created': created}
 
     def list_alerts(self):
+        cached = self._alerts_cache
+        cache_age = self._snapshot_age_sec((cached or {}).get("_cached_at")) if isinstance(cached, dict) else None
+        if cache_age is not None and cache_age <= self.ALERTS_CACHE_TTL_SECONDS:
+            result = dict(cached)
+            result["build_status"] = "fresh_cache"
+            result.pop("_cached_at", None)
+            return result
 
         items = self.repository.list_alerts()
         open_items = [item for item in items if str(item.get('status', 'open') or 'open').lower() == 'open']
         critical_open = [item for item in open_items if str(item.get('severity', '') or '').lower() == 'critical']
-
-        return {
+        payload = {
             'count': len(open_items),
             'open_count': len(open_items),
             'total_count': len(items),
             'critical_count': len(critical_open),
             'items': items,
+            'as_of': utc_now_iso(),
+            'build_status': 'live',
         }
+        self._alerts_cache = {**payload, "_cached_at": utc_now_iso()}
+        return payload
 
     def acknowledge(self, alert_id: str):
         return self.repository.acknowledge(alert_id)

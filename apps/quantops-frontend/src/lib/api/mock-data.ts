@@ -1,4 +1,4 @@
-import type { AlertRow, ApiEnvelope, JobRow, MonitoringSystem, OverviewData, PortfolioOverview, PositionRow, RiskSnapshot } from '@/types/api';
+import type { AlertRow, ApiEnvelope, JobRow, MonitoringSystem, OverviewData, PortfolioMetrics, PortfolioOverview, PositionRow, RiskSnapshot } from '@/types/api';
 
 export const mockOverview: ApiEnvelope<OverviewData> = {
   source: 'mock',
@@ -36,6 +36,14 @@ export const mockPortfolioOverview: ApiEnvelope<PortfolioOverview> = {
     netExposure: 0.34,
     realizedPnl: 12034,
     unrealizedPnl: 4201,
+    lastUpdated: new Date().toISOString(),
+  },
+};
+
+export const mockPortfolioMetrics: ApiEnvelope<PortfolioMetrics> = {
+  source: 'mock',
+  data: {
+    fillRate: 0.97,
     expectedVolatility: 0.18,
     expectedSharpe: 1.92,
     lastUpdated: new Date().toISOString(),

@@ -116,12 +116,6 @@ export function createCommandCenterEventStream(
       };
 
       socket.onclose = (event) => {
-        console.warn('[QuantOps WS] close:', {
-          code: event.code,
-          reason: event.reason,
-          wasClean: event.wasClean,
-        });
-
         if (activeSocket === socket) {
           activeSocket = null;
         }
@@ -129,6 +123,14 @@ export function createCommandCenterEventStream(
         if (manuallyClosed) {
           onStatus?.('disconnected');
           return;
+        }
+
+        if (!(event.wasClean && (event.code === 1000 || event.code === 1001))) {
+          console.warn('[QuantOps WS] close:', {
+            code: event.code,
+            reason: event.reason,
+            wasClean: event.wasClean,
+          });
         }
 
         onStatus?.('connecting');

@@ -96,8 +96,8 @@ class RiskService:
         marked['is_stale'] = is_stale
         return marked
 
-    async def _build_and_store_snapshot(self) -> dict:
-        return self._store_snapshot(await self.build_snapshot())
+    async def _build_and_store_snapshot(self, *, summary_only: bool = False) -> dict:
+        return self._store_snapshot(await self.build_snapshot(summary_only=summary_only))
 
     def _schedule_background_refresh(self) -> None:
         task = self._background_refresh_task
@@ -106,20 +106,32 @@ class RiskService:
         self._background_refresh_task = asyncio.create_task(self._build_and_store_snapshot())
         self._background_refresh_task.add_done_callback(lambda finished: finished.exception())
 
-    async def build_snapshot(self) -> dict:
-        (
-            risk_budget,
-            execution,
-            diagnostics,
-            positions_payload,
-            portfolio_overview,
-        ) = await asyncio.gather(
-            self.v12_client.get_risk_budget(),
-            self.v12_client.get_execution_quality(),
-            self.v12_client.get_portfolio_diagnostics(),
-            self.v12_client.get_portfolio_positions(),
-            self.v12_client.get_portfolio_dashboard(),
-        )
+    async def build_snapshot(self, *, summary_only: bool = False) -> dict:
+        risk_budget_task = self.v12_client.get_risk_budget()
+        execution_task = self.v12_client.get_execution_quality()
+        portfolio_overview_task = self.v12_client.get_portfolio_dashboard()
+        if summary_only:
+            risk_budget, execution, portfolio_overview = await asyncio.gather(
+                risk_budget_task,
+                execution_task,
+                portfolio_overview_task,
+            )
+            diagnostics: dict = {}
+            positions_payload: dict = {}
+        else:
+            (
+                risk_budget,
+                execution,
+                diagnostics,
+                positions_payload,
+                portfolio_overview,
+            ) = await asyncio.gather(
+                risk_budget_task,
+                execution_task,
+                self.v12_client.get_portfolio_diagnostics(),
+                self.v12_client.get_portfolio_positions(),
+                portfolio_overview_task,
+            )
 
         risk = risk_budget.get('risk', {})
         global_risk = risk_budget.get('global', {})
@@ -127,6 +139,7 @@ class RiskService:
         max_usage = max([float(item.get('budget_usage', 0.0) or 0.0) for item in per_strategy] or [0.0])
         drawdown = max(0.0, round(max_usage - 1.0, 6))
         items = positions_payload.get('items') or positions_payload.get('positions') or []
+        latest_snapshot = self.risk_repository.latest_snapshot() if summary_only else None
 
         weights: list[float] = []
         for row in items:
@@ -136,16 +149,32 @@ class RiskService:
                 weight = -weight
             weights.append(weight)
 
-        gross = round(sum(abs(w) for w in weights), 6)
-        net = round(sum(weights), 6)
-        concentration = max([abs(float(w)) for w in weights] or [0.0])
         summary = portfolio_overview.get("summary") if isinstance(portfolio_overview.get("summary"), dict) else portfolio_overview
+        gross = (
+            round(sum(abs(w) for w in weights), 6)
+            if weights
+            else round(float(summary.get("gross_exposure", (latest_snapshot or {}).get("gross_exposure", 0.0)) or 0.0), 6)
+        )
+        net = (
+            round(sum(weights), 6)
+            if weights
+            else round(float(summary.get("net_exposure", (latest_snapshot or {}).get("net_exposure", 0.0)) or 0.0), 6)
+        )
+        concentration = (
+            max([abs(float(w)) for w in weights] or [0.0])
+            if weights
+            else float((latest_snapshot or {}).get('concentration', 0.0) or 0.0)
+        )
         margin_utilization = float(summary.get("margin_utilization", gross) or gross)
         collateral_equity = float(summary.get("collateral_equity", 0.0) or 0.0)
         available_margin = float(summary.get("available_margin", 0.0) or 0.0)
         fill_rate = execution.get('fill_rate')
         slippage = execution.get('avg_slippage_bps')
-        kept_signals = (diagnostics.get('diagnostics') or diagnostics.get('latest') or {}).get('kept_signals', 0)
+        kept_signals = (
+            (diagnostics.get('diagnostics') or diagnostics.get('latest') or {}).get('kept_signals', 0)
+            if not summary_only
+            else int((((latest_snapshot or {}).get('risk_limit') or {}).get('kept_signals', 0) or 0))
+        )
         var_95 = round(gross * 0.08, 6)
         risk_limit = {
             "gross_exposure": 1.0,
@@ -183,7 +212,7 @@ class RiskService:
             'trading_state': trading_state,
             'alert_state': alert_state,
             'alert': alert_state,
-            'as_of': positions_payload.get('as_of') or risk_budget.get('as_of') or execution.get('as_of') or utc_now_iso(),
+            'as_of': positions_payload.get('as_of') or summary.get('as_of') or portfolio_overview.get('as_of') or risk_budget.get('as_of') or execution.get('as_of') or utc_now_iso(),
         }
 
     async def get_snapshot(self) -> dict:
@@ -196,9 +225,9 @@ class RiskService:
         self._schedule_background_refresh()
         return self._mark_snapshot(latest, data_status='stale', data_source='cache', status_reason='stale_snapshot', is_stale=True)
 
-    async def refresh_snapshot(self) -> dict:
+    async def refresh_snapshot(self, *, summary_only: bool = False) -> dict:
         try:
-            return await self._build_and_store_snapshot()
+            return await self._build_and_store_snapshot(summary_only=summary_only)
         except Exception:
             latest = self.risk_repository.latest_snapshot()
             if latest is not None:

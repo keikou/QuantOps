@@ -29,6 +29,7 @@ from app.services.scheduler_service import SchedulerService
 from app.services.command_center_service import CommandCenterService
 from app.services.event_stream_service import EventStreamService
 from app.services.notification_service import NotificationService
+from app.services.execution_service import ExecutionService
 
 
 @lru_cache(maxsize=1)
@@ -59,10 +60,13 @@ def get_analytics_repository() -> AnalyticsRepository:
     return AnalyticsRepository(get_db_factory())
 
 
+@lru_cache(maxsize=1)
 def get_dashboard_service() -> DashboardService:
     return DashboardService(get_v12_client(), get_scheduler_repository(), get_alert_service())
 
 
+@lru_cache(maxsize=1)
+@lru_cache(maxsize=1)
 def get_portfolio_service() -> PortfolioService:
     return PortfolioService(get_v12_client())
 
@@ -71,6 +75,7 @@ def get_scheduler_service() -> SchedulerService:
     return SchedulerService(get_scheduler_repository(), get_audit_repository(), get_risk_repository())
 
 
+@lru_cache(maxsize=1)
 def get_analytics_service() -> AnalyticsService:
     return AnalyticsService(get_v12_client(), get_analytics_repository())
 
@@ -79,6 +84,7 @@ def get_control_service() -> ControlService:
     return ControlService(get_v12_client(), get_audit_repository(), get_analytics_repository(), get_risk_repository())
 
 
+@lru_cache(maxsize=1)
 def get_risk_service() -> RiskService:
     return RiskService(get_v12_client(), get_risk_repository())
 
@@ -98,9 +104,11 @@ def get_approval_repository() -> ApprovalRepository:
 def get_incident_repository() -> IncidentRepository:
     return IncidentRepository(get_db_factory())
 
+@lru_cache(maxsize=1)
 def get_monitoring_service() -> MonitoringService:
     return MonitoringService(get_v12_client(), get_monitoring_repository())
 
+@lru_cache(maxsize=1)
 def get_alert_service() -> AlertService:
     return AlertService(get_alert_repository(), get_audit_repository(), get_risk_repository(), get_monitoring_repository())
 
@@ -121,6 +129,11 @@ def get_admin_service() -> AdminService:
 def get_notification_service() -> NotificationService:
     return NotificationService(get_audit_repository())
 
+@lru_cache(maxsize=1)
+def get_execution_service() -> ExecutionService:
+    return ExecutionService(get_v12_client())
+
+@lru_cache(maxsize=1)
 def get_command_center_service() -> CommandCenterService:
     return CommandCenterService(
         get_v12_client(),

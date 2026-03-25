@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import time
 
+from app.core.deps import get_risk_service
 from app.services.risk_service import RiskService
 
 
@@ -24,6 +25,10 @@ class _RiskRepository:
 
 
 class _ConcurrentV12Client:
+    def __init__(self) -> None:
+        self.diagnostics_calls = 0
+        self.positions_calls = 0
+
     async def _sleep(self) -> None:
         await asyncio.sleep(0.05)
 
@@ -36,10 +41,12 @@ class _ConcurrentV12Client:
         return {"fill_rate": 1.0, "avg_slippage_bps": 1.2, "as_of": "2026-03-22T00:00:00+00:00"}
 
     async def get_portfolio_diagnostics(self) -> dict:
+        self.diagnostics_calls += 1
         await self._sleep()
         return {"diagnostics": {"kept_signals": 3}}
 
     async def get_portfolio_positions(self) -> dict:
+        self.positions_calls += 1
         await self._sleep()
         return {"items": [{"weight": 0.4}, {"weight": -0.2}], "as_of": "2026-03-22T00:00:00+00:00"}
 
@@ -98,3 +105,38 @@ def test_build_snapshot_parallelizes_upstream_calls() -> None:
     assert "data_source" not in payload
     assert "is_stale" not in payload
     assert elapsed < 0.15
+
+
+def test_get_risk_service_is_shared_singleton() -> None:
+    first = get_risk_service()
+    second = get_risk_service()
+
+    assert first is second
+
+
+def test_refresh_snapshot_summary_only_skips_positions_and_diagnostics() -> None:
+    repo = _RiskRepository(
+        latest={
+            "gross_exposure": 0.5,
+            "net_exposure": 0.1,
+            "leverage": 0.5,
+            "drawdown": 0.0,
+            "var_95": 0.04,
+            "concentration": 0.2,
+            "risk_limit": {"kept_signals": 7},
+            "alert_state": "ok",
+            "trading_state": "running",
+            "as_of": "2026-03-22T00:00:00+00:00",
+        }
+    )
+    client = _ConcurrentV12Client()
+    service = RiskService(client, repo)  # type: ignore[arg-type]
+
+    payload = asyncio.run(service.refresh_snapshot(summary_only=True))
+
+    assert payload["gross_exposure"] == 0.5
+    assert payload["net_exposure"] == 0.1
+    assert payload["risk_limit"]["kept_signals"] == 7
+    assert payload["concentration"] == 0.2
+    assert client.positions_calls == 0
+    assert client.diagnostics_calls == 0

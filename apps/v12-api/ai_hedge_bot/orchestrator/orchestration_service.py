@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from time import perf_counter
 from statistics import median
 
 from ai_hedge_bot.app.container import CONTAINER
@@ -30,6 +31,7 @@ class OrchestrationService:
     def __init__(self) -> None:
         self._run_logger = JsonlLogger(CONTAINER.runtime_dir / 'logs' / 'orchestrator_runs.jsonl')
         self._cycle_logger = JsonlLogger(CONTAINER.runtime_dir / 'logs' / 'orchestrator_cycles.jsonl')
+        self._writer_logger = JsonlLogger(CONTAINER.runtime_dir / 'logs' / 'writer_cycles.jsonl')
         self._order_logger = JsonlLogger(CONTAINER.runtime_dir / 'logs' / 'shadow_orders.jsonl')
         self._fill_logger = JsonlLogger(CONTAINER.runtime_dir / 'logs' / 'shadow_fills.jsonl')
         self._pnl_logger = JsonlLogger(CONTAINER.runtime_dir / 'logs' / 'shadow_pnl_snapshots.jsonl')
@@ -94,6 +96,7 @@ class OrchestrationService:
         )
 
     def run(self, mode: str, run_id: str | None = None, cycle_id: str | None = None) -> dict:
+        run_started_at = perf_counter()
         self._truth.ensure_initial_capital()
         state_row = CONTAINER.runtime_store.fetchone_dict(
             "SELECT trading_state, note, CAST(created_at AS VARCHAR) AS as_of FROM runtime_control_state ORDER BY created_at DESC LIMIT 1"
@@ -142,9 +145,18 @@ class OrchestrationService:
         prices = self._truth.synthesize_prices(portfolio_summary['decisions'], result['timestamp'], mode)
         self._truth.upsert_market_prices(prices, result['timestamp'])
         quality = self._record_execution_runtime(result, mode, portfolio_summary['decisions'], prices)
+        record_started_at = perf_counter()
         self._truth.record_orders_and_fills(quality.get('latest_fills', []), result['timestamp'])
+        order_fill_metrics = dict(self._truth.last_record_orders_and_fills_metrics)
+        record_duration_ms = round((perf_counter() - record_started_at) * 1000.0, 2)
+        rebuild_started_at = perf_counter()
         positions = self._truth.rebuild_positions(result['timestamp'])
+        position_metrics = dict(self._truth.last_rebuild_positions_metrics)
+        rebuild_duration_ms = round((perf_counter() - rebuild_started_at) * 1000.0, 2)
+        equity_started_at = perf_counter()
         equity = self._truth.compute_equity_snapshot(positions, result['timestamp'])
+        equity_metrics = dict(self._truth.last_compute_equity_snapshot_metrics)
+        equity_duration_ms = round((perf_counter() - equity_started_at) * 1000.0, 2)
         result['details'].update({
             'signal_count': signal_summary['signal_count'],
             'target_count': portfolio_summary['target_count'],
@@ -153,6 +165,37 @@ class OrchestrationService:
             'total_equity': equity.get('total_equity', 0.0),
             'cash_balance': equity.get('cash_balance', 0.0),
         })
+        writer_metrics = {
+            'run_id': result['run_id'],
+            'cycle_id': result['cycle_id'],
+            'mode': mode,
+            'as_of': result['timestamp'],
+            'record_orders_and_fills_ms': record_duration_ms,
+            'rebuild_positions_ms': rebuild_duration_ms,
+            'compute_equity_snapshot_ms': equity_duration_ms,
+            'cycle_duration_ms': round((perf_counter() - run_started_at) * 1000.0, 2),
+            'fills_scanned_positions': position_metrics.get('fills_scanned', 0),
+            'fills_scanned_equity': equity_metrics.get('fills_scanned', 0),
+            'position_rows': position_metrics.get('position_rows', 0),
+            'orders_written': order_fill_metrics.get('order_rows', 0),
+            'fills_written': order_fill_metrics.get('fill_rows', 0),
+            'cash_ledger_rows': order_fill_metrics.get('ledger_rows', 0),
+            'position_snapshot_version': position_metrics.get('snapshot_version'),
+            'position_build_duration_ms': position_metrics.get('build_duration_ms', 0.0),
+            'position_full_rebuild_reason': position_metrics.get('full_rebuild_reason'),
+            'position_fills_fetch_duration_ms': position_metrics.get('fills_fetch_duration_ms', 0.0),
+            'position_price_fetch_duration_ms': position_metrics.get('price_fetch_duration_ms', 0.0),
+            'position_state_build_duration_ms': position_metrics.get('state_build_duration_ms', 0.0),
+            'position_version_insert_duration_ms': position_metrics.get('version_insert_duration_ms', 0.0),
+            'position_row_materialize_duration_ms': position_metrics.get('row_materialize_duration_ms', 0.0),
+            'position_row_write_duration_ms': position_metrics.get('row_write_duration_ms', 0.0),
+            'position_activation_duration_ms': position_metrics.get('activation_duration_ms', 0.0),
+            'position_cleanup_duration_ms': position_metrics.get('cleanup_duration_ms', 0.0),
+            'position_history_rows_written': position_metrics.get('history_rows_written', 0),
+            'equity_build_duration_ms': equity_metrics.get('build_duration_ms', 0.0),
+            'equity_full_rebuild_reason': equity_metrics.get('full_rebuild_reason'),
+        }
+        result['details']['writer_metrics'] = writer_metrics
         CONTAINER.latest_orchestrator_run = result
         created_at = result['timestamp']
         run_row = {
@@ -173,6 +216,7 @@ class OrchestrationService:
         CONTAINER.runtime_store.append('orchestrator_cycles', cycle_row)
         self._run_logger.append(run_row)
         self._cycle_logger.append(cycle_row)
+        self._writer_logger.append(writer_metrics)
         CONTAINER.latest_execution_quality = quality
         return result
 
@@ -447,11 +491,20 @@ class OrchestrationService:
         latencies = []
         total_slippage = 0.0
         price_map = {str(item['symbol']): item for item in (market_prices or [])}
+        active_snapshot_version = self._active_position_snapshot_version()
+        position_rows = (
+            CONTAINER.runtime_store.fetchall_dict(
+                "SELECT symbol, SUM(signed_qty) AS signed_qty FROM position_snapshots_latest WHERE snapshot_version = ? GROUP BY symbol",
+                [active_snapshot_version],
+            )
+            if active_snapshot_version
+            else CONTAINER.runtime_store.fetchall_dict(
+                "SELECT symbol, SUM(signed_qty) AS signed_qty FROM position_snapshots_latest GROUP BY symbol"
+            )
+        )
         current_positions = {
             str(row['symbol']): float(row.get('signed_qty', 0.0) or 0.0)
-            for row in CONTAINER.runtime_store.fetchall_dict(
-                "SELECT symbol, signed_qty FROM position_snapshots_latest"
-            )
+            for row in position_rows
         }
         latest_equity_row = CONTAINER.runtime_store.fetchone_dict(
             "SELECT total_equity, available_margin FROM equity_snapshots ORDER BY snapshot_time DESC LIMIT 1"
@@ -926,3 +979,36 @@ class OrchestrationService:
             'latency_ms_p95': latency_p95,
             'latest_fills': fills,
         }
+    def _active_position_snapshot_version(self) -> str | None:
+        row = CONTAINER.runtime_store.fetchone_dict(
+            """
+            SELECT version_id
+            FROM position_snapshot_versions
+            WHERE build_status = 'active'
+            ORDER BY activated_at DESC, created_at DESC
+            LIMIT 1
+            """
+        )
+        version_id = str((row or {}).get('version_id') or '')
+        if not version_id:
+            return None
+        count_row = CONTAINER.runtime_store.fetchone_dict(
+            "SELECT COUNT(*) AS cnt FROM position_snapshots_latest WHERE snapshot_version = ?",
+            [version_id],
+        ) or {'cnt': 0}
+        active_rows = int(count_row.get('cnt', 0) or 0)
+        if active_rows > 0:
+            return version_id
+        row_counts = CONTAINER.runtime_store.fetchone_dict(
+            """
+            SELECT
+                COUNT(*) AS total_rows,
+                COUNT(snapshot_version) AS versioned_rows
+            FROM position_snapshots_latest
+            """
+        ) or {'total_rows': 0, 'versioned_rows': 0}
+        total_rows = int(row_counts.get('total_rows', 0) or 0)
+        versioned_rows = int(row_counts.get('versioned_rows', 0) or 0)
+        if total_rows == 0:
+            return version_id
+        return None if versioned_rows == 0 else version_id

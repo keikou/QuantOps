@@ -1,6 +1,7 @@
 export const endpoints = {
   overview: '/api/v1/dashboard/overview',
   portfolioOverview: '/api/v1/portfolio/overview',
+  portfolioMetrics: '/api/v1/portfolio/metrics',
   portfolioPositions: '/api/v1/portfolio/positions',
   riskSnapshot: '/api/v1/risk/snapshot',
   monitoringSystem: '/api/v1/monitoring/system',
@@ -15,6 +16,7 @@ export const endpoints = {
   commandCenterRuntimeDebugByRun: (runId: string) => `/api/v1/command-center/debug/runtime?run_id=${encodeURIComponent(runId)}`,
   executionLatest: '/api/v1/execution/fills',
   executionPlannerLatest: '/api/v1/execution/planner/latest',
+  executionViewLatest: '/api/v1/execution/view/latest',
   executionOrders: '/api/v1/execution/orders',
   executionFills: '/api/v1/execution/fills',
   executionStateLatest: '/api/v1/execution/state/latest',
