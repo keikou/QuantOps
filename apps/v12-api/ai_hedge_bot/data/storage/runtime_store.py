@@ -666,7 +666,13 @@ class RuntimeStore:
             except Exception:
                 pass
 
-    def execute(self, sql: str, params: list[Any] | tuple[Any, ...] | None = None):
+    def execute(self, sql: str, params: list[Any] | tuple[Any, ...] | None = None, conn=None):
+        if conn is not None:
+            cur = conn.execute(sql, params or [])
+            try:
+                return cur.fetchall()
+            except Exception:
+                return []
         with self._session() as conn:
             cur = conn.execute(sql, params or [])
             rows = cur.fetchall()
@@ -676,7 +682,7 @@ class RuntimeStore:
                 pass
             return rows
 
-    def append(self, table: str, rows: list[dict[str, Any]] | dict[str, Any]) -> None:
+    def append(self, table: str, rows: list[dict[str, Any]] | dict[str, Any], conn=None) -> None:
         if isinstance(rows, dict):
             rows = [rows]
         if not rows:
@@ -685,6 +691,9 @@ class RuntimeStore:
         placeholders = ', '.join(['?'] * len(cols))
         sql = f"INSERT INTO {table} ({', '.join(cols)}) VALUES ({placeholders})"
         values = [tuple(row.get(c) for c in cols) for row in rows]
+        if conn is not None:
+            conn.executemany(sql, values)
+            return
         with self._session() as conn:
             conn.executemany(sql, values)
             try:

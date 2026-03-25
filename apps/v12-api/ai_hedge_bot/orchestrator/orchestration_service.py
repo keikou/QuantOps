@@ -182,7 +182,16 @@ class OrchestrationService:
             'cash_ledger_rows': order_fill_metrics.get('ledger_rows', 0),
             'position_snapshot_version': position_metrics.get('snapshot_version'),
             'position_build_duration_ms': position_metrics.get('build_duration_ms', 0.0),
+            'position_full_rebuild_reason': position_metrics.get('full_rebuild_reason'),
+            'position_fills_fetch_duration_ms': position_metrics.get('fills_fetch_duration_ms', 0.0),
+            'position_price_fetch_duration_ms': position_metrics.get('price_fetch_duration_ms', 0.0),
+            'position_state_build_duration_ms': position_metrics.get('state_build_duration_ms', 0.0),
+            'position_version_insert_duration_ms': position_metrics.get('version_insert_duration_ms', 0.0),
+            'position_row_materialize_duration_ms': position_metrics.get('row_materialize_duration_ms', 0.0),
+            'position_row_write_duration_ms': position_metrics.get('row_write_duration_ms', 0.0),
+            'position_activation_duration_ms': position_metrics.get('activation_duration_ms', 0.0),
             'equity_build_duration_ms': equity_metrics.get('build_duration_ms', 0.0),
+            'equity_full_rebuild_reason': equity_metrics.get('full_rebuild_reason'),
         }
         result['details']['writer_metrics'] = writer_metrics
         CONTAINER.latest_orchestrator_run = result

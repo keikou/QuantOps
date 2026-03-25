@@ -301,9 +301,9 @@ class TruthEngine:
         value = (row or {}).get("state_value")
         return str(value) if value is not None else None
 
-    def _set_state_value(self, key: str, value: str, as_of: str) -> None:
+    def _set_state_value(self, key: str, value: str, as_of: str, conn=None) -> None:
         store = CONTAINER.runtime_store
-        store.execute("DELETE FROM truth_engine_state WHERE state_key = ?", [key])
+        store.execute("DELETE FROM truth_engine_state WHERE state_key = ?", [key], conn=conn)
         store.append(
             "truth_engine_state",
             {
@@ -311,6 +311,7 @@ class TruthEngine:
                 "state_value": value,
                 "updated_at": as_of,
             },
+            conn=conn,
         )
 
     def _get_fill_watermark(self, key: str) -> tuple[str | None, str | None]:
@@ -323,14 +324,14 @@ class TruthEngine:
         except Exception:
             return None, None
 
-    def _set_fill_watermark(self, key: str, fill: dict[str, Any] | None, as_of: str) -> None:
+    def _set_fill_watermark(self, key: str, fill: dict[str, Any] | None, as_of: str, conn=None) -> None:
         if not fill:
             return
         created_at = str(fill.get("created_at") or as_of)
         fill_id = str(fill.get("fill_id") or "")
         if not fill_id:
             return
-        self._set_state_value(key, f"{created_at}|{fill_id}", as_of)
+        self._set_state_value(key, f"{created_at}|{fill_id}", as_of, conn=conn)
 
     def _active_position_snapshot_version(self) -> str | None:
         row = CONTAINER.runtime_store.fetchone_dict(
@@ -632,6 +633,7 @@ class TruthEngine:
         elif not watermark_created_at or not watermark_fill_id:
             full_rebuild_reason = "missing_fill_watermark"
         full_rebuild = full_rebuild_reason is not None
+        fills_fetch_started_at = time.perf_counter()
         fills = self._fetch_new_fills(watermark_created_at, watermark_fill_id) if not full_rebuild else store.fetchall_dict(
             """
             SELECT fill_id, run_id, plan_id, strategy_id, alpha_family, symbol, side, fill_qty, fill_price, fee_bps, created_at
@@ -639,30 +641,24 @@ class TruthEngine:
             ORDER BY created_at ASC, fill_id ASC
             """
         )
+        fills_fetch_duration_ms = round((time.perf_counter() - fills_fetch_started_at) * 1000.0, 2)
+        price_fetch_started_at = time.perf_counter()
         price_rows = store.fetchall_dict(
             "SELECT symbol, mark_price, source, price_time, quote_age_sec, stale, fallback_reason FROM market_prices_latest"
         )
+        price_fetch_duration_ms = round((time.perf_counter() - price_fetch_started_at) * 1000.0, 2)
         price_by_symbol = {str(r["symbol"]): r for r in price_rows}
+        state_build_started_at = time.perf_counter()
         if full_rebuild:
             states, _, _ = self._build_position_states_from_fills(fills)
         else:
             states = self._build_position_states_from_snapshot(active_rows)
             for fill in fills:
                 self._apply_fill_to_position_states(states, fill)
+        state_build_duration_ms = round((time.perf_counter() - state_build_started_at) * 1000.0, 2)
         snapshot_version = new_cycle_id()
-        store.append(
-            "position_snapshot_versions",
-            {
-                "version_id": snapshot_version,
-                "build_status": "building",
-                "snapshot_time": as_of,
-                "row_count": 0,
-                "fills_scanned": len(fills),
-                "build_duration_ms": 0.0,
-                "created_at": as_of,
-                "activated_at": None,
-            },
-        )
+        version_insert_duration_ms = 0.0
+        row_materialize_started_at = time.perf_counter()
         latest_rows = []
         history_rows = []
         valued = []
@@ -701,30 +697,61 @@ class TruthEngine:
             latest_rows.append(row)
             history_rows.append({"snapshot_time": as_of, **{k: v for k, v in row.items() if k != "updated_at"}})
             valued.append(row)
-        if latest_rows:
-            store.append("position_snapshots_latest", latest_rows)
-            store.append("position_snapshots_history", history_rows)
+        row_materialize_duration_ms = round((time.perf_counter() - row_materialize_started_at) * 1000.0, 2)
+        row_write_duration_ms = 0.0
         build_duration_ms = round((time.perf_counter() - started_at) * 1000.0, 2)
-        store.execute(
-            """
-            UPDATE position_snapshot_versions
-            SET build_status = 'superseded'
-            WHERE build_status = 'active'
-            """,
-        )
-        store.execute(
-            """
-            UPDATE position_snapshot_versions
-            SET build_status = 'active',
-                row_count = ?,
-                fills_scanned = ?,
-                build_duration_ms = ?,
-                activated_at = ?
-            WHERE version_id = ?
-            """,
-            [len(latest_rows), len(fills), build_duration_ms, as_of, snapshot_version],
-        )
-        self._set_fill_watermark("positions_last_fill", fills[-1] if fills else None, as_of)
+        activation_duration_ms = 0.0
+        transaction_started_at = time.perf_counter()
+        with store._session() as conn:
+            version_insert_started_at = time.perf_counter()
+            store.append(
+                "position_snapshot_versions",
+                {
+                    "version_id": snapshot_version,
+                    "build_status": "building",
+                    "snapshot_time": as_of,
+                    "row_count": 0,
+                    "fills_scanned": len(fills),
+                    "build_duration_ms": 0.0,
+                    "created_at": as_of,
+                    "activated_at": None,
+                },
+                conn=conn,
+            )
+            version_insert_duration_ms = round((time.perf_counter() - version_insert_started_at) * 1000.0, 2)
+            row_write_started_at = time.perf_counter()
+            if latest_rows:
+                store.append("position_snapshots_latest", latest_rows, conn=conn)
+                store.append("position_snapshots_history", history_rows, conn=conn)
+            row_write_duration_ms = round((time.perf_counter() - row_write_started_at) * 1000.0, 2)
+            activation_started_at = time.perf_counter()
+            store.execute(
+                """
+                UPDATE position_snapshot_versions
+                SET build_status = 'superseded'
+                WHERE build_status = 'active'
+                """,
+                conn=conn,
+            )
+            store.execute(
+                """
+                UPDATE position_snapshot_versions
+                SET build_status = 'active',
+                    row_count = ?,
+                    fills_scanned = ?,
+                    build_duration_ms = ?,
+                    activated_at = ?
+                WHERE version_id = ?
+                """,
+                [len(latest_rows), len(fills), build_duration_ms, as_of, snapshot_version],
+                conn=conn,
+            )
+            self._set_fill_watermark("positions_last_fill", fills[-1] if fills else None, as_of, conn=conn)
+            try:
+                conn.commit()
+            except Exception:
+                pass
+            activation_duration_ms = round((time.perf_counter() - activation_started_at) * 1000.0, 2)
         self.last_rebuild_positions_metrics = {
             "snapshot_version": snapshot_version,
             "fills_scanned": len(fills),
@@ -733,6 +760,13 @@ class TruthEngine:
             "build_duration_ms": build_duration_ms,
             "rebuild_mode": "full" if full_rebuild else "incremental",
             "full_rebuild_reason": full_rebuild_reason,
+            "fills_fetch_duration_ms": fills_fetch_duration_ms,
+            "price_fetch_duration_ms": price_fetch_duration_ms,
+            "state_build_duration_ms": state_build_duration_ms,
+            "version_insert_duration_ms": version_insert_duration_ms,
+            "row_materialize_duration_ms": row_materialize_duration_ms,
+            "row_write_duration_ms": row_write_duration_ms,
+            "activation_duration_ms": activation_duration_ms,
         }
         return valued
 
