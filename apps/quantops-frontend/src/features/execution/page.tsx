@@ -269,6 +269,7 @@ export default function Page() {
   const rows = fillsFeed?.items ?? [];
   const orderRows = ordersFeed?.items ?? [];
   const runtimeData = runtime.data?.data;
+  const executionDisplay = executionView.data?.data?.displayValue;
   const plannerItems = plannerData?.items ?? [];
   const plannerRows = plannerItems.length
     ? plannerItems.map((r) => [
@@ -284,9 +285,9 @@ export default function Page() {
       ])
     : [['-', '-', '-', '-', '-', '-', '-', '-', 'no plans']];
 
-  const topAlgo = Object.entries(plannerData?.algoMix || {}).sort((a, b) => Number(b[1]) - Number(a[1]))[0]?.[0] ?? '-';
-  const topRoute = Object.entries(plannerData?.routeMix || {}).sort((a, b) => Number(b[1]) - Number(a[1]))[0]?.[0] ?? '-';
-  const primaryReason = stateData?.blockReasons?.[0]?.message || stateData?.blockReasons?.[0]?.code || stateData?.reason || '-';
+  const topAlgo = executionDisplay?.topAlgo || (Object.entries(plannerData?.algoMix || {}).sort((a, b) => Number(b[1]) - Number(a[1]))[0]?.[0] ?? '-');
+  const topRoute = executionDisplay?.topRoute || (Object.entries(plannerData?.routeMix || {}).sort((a, b) => Number(b[1]) - Number(a[1]))[0]?.[0] ?? '-');
+  const primaryReason = executionDisplay?.primaryReason || stateData?.blockReasons?.[0]?.message || stateData?.blockReasons?.[0]?.code || stateData?.reason || '-';
   const summaryStatus = resolveDataStatus({ isLoading: summary.isLoading, hasData: Boolean(data), error: summary.error });
   const runtimeStatus = resolveDataStatus({
     status: mapBuildStatus(runtimeData?.buildStatus, Boolean(runtimeData)),
@@ -368,21 +369,21 @@ export default function Page() {
         <KpiCard title="Avg Slippage (bps)" value={fmtMetric(data?.avgSlippageBps)} />
         <KpiCard title="Latency P50 (ms)" value={fmtMetric(data?.latencyMsP50)} />
         <KpiCard title="Venue Score" value={fmtMetric(data?.venueScore)} />
-        <KpiCard title="Execution State" value={stateData?.executionState || '-'} />
-        <KpiCard title="Reason" value={stateData?.reason || '-'} />
+        <KpiCard title="Execution State" value={executionDisplay?.executionState || stateData?.executionState || '-'} />
+        <KpiCard title="Reason" value={executionDisplay?.reason || stateData?.reason || '-'} />
       </div>
       <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 text-sm text-slate-300">
         <div className="font-medium text-slate-100">Execution observability</div>
         <div className="mt-2 grid gap-2 md:grid-cols-2">
-          <div>Trading state: <span className="text-slate-100">{stateData?.tradingState || plannerData?.tradingState || '-'}</span></div>
+          <div>Trading state: <span className="text-slate-100">{executionDisplay?.tradingState || stateData?.tradingState || plannerData?.tradingState || '-'}</span></div>
           <div>Primary reason: <span className="text-slate-100">{primaryReason}</span></div>
           <div>Runtime snapshot: <span className="text-slate-100">{fmtFreshness(runtimeData?.buildStatus, runtimeData?.sourceSnapshotTime, runtimeData?.dataFreshnessSec)}</span></div>
           <div>Planner snapshot: <span className="text-slate-100">{fmtFreshness(plannerData?.buildStatus, plannerData?.sourceSnapshotTime, plannerData?.dataFreshnessSec)}</span></div>
           <div>State snapshot: <span className="text-slate-100">{fmtFreshness(stateData?.buildStatus, stateData?.sourceSnapshotTime, stateData?.dataFreshnessSec)}</span></div>
-          <div>Planner age: <span className="text-slate-100">{fmtSec(stateData?.plannerAgeSec)}</span></div>
-          <div>Last execution age: <span className="text-slate-100">{fmtSec(stateData?.executionAgeSec)}</span></div>
-          <div>Last fill age: <span className="text-slate-100">{fmtSec(stateData?.lastFillAgeSec)}</span></div>
-          <div>Submitted / Open orders: <span className="text-slate-100">{stateData?.submittedOrderCount ?? '-'} / {stateData?.openOrderCount ?? '-'}</span></div>
+          <div>Planner age: <span className="text-slate-100">{fmtSec(executionDisplay?.plannerAgeSec ?? stateData?.plannerAgeSec)}</span></div>
+          <div>Last execution age: <span className="text-slate-100">{fmtSec(executionDisplay?.executionAgeSec ?? stateData?.executionAgeSec)}</span></div>
+          <div>Last fill age: <span className="text-slate-100">{fmtSec(executionDisplay?.lastFillAgeSec ?? stateData?.lastFillAgeSec)}</span></div>
+          <div>Submitted / Open orders: <span className="text-slate-100">{executionDisplay?.submittedOrderCount ?? stateData?.submittedOrderCount ?? '-'} / {executionDisplay?.openOrderCount ?? stateData?.openOrderCount ?? '-'}</span></div>
         </div>
       </div>
       <div className="grid gap-4 xl:grid-cols-2">

@@ -17,6 +17,8 @@ async def _main():
     assert view['status'] == 'ok'
     assert view['planner']['status'] == 'ok'
     assert view['state']['status'] == 'ok'
+    assert view['stable_value']['execution_state'] == view['state']['execution_state']
+    assert view['display_value']['trading_state'] == view['stable_value']['trading_state']
     assert planner['status'] == 'ok'
     assert 'items' in orders
     assert 'items' in fills
@@ -83,6 +85,7 @@ async def _cache_main():
     assert second_view["build_status"] == "fresh_cache"
     assert first_view["planner"]["status"] == "ok"
     assert first_view["state"]["status"] == "ok"
+    assert first_view["display_value"]["execution_state"] == "running"
     assert first_planner["build_status"] == "live"
     assert second_planner["build_status"] == "fresh_cache"
     assert first_state["build_status"] == "live"

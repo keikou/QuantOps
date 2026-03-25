@@ -70,10 +70,14 @@ class ExecutionService:
             as_of = state.get('as_of') or planner.get('as_of') or utc_now_iso()
             source_snapshot_time = state.get('source_snapshot_time') or planner.get('source_snapshot_time') or as_of
             build_status = 'fresh_cache' if planner.get('build_status') == 'fresh_cache' and state.get('build_status') == 'fresh_cache' else 'live'
+            stable_value, live_delta, display_value = self._build_execution_display_contract(planner=planner, state=state)
             return {
                 'status': 'ok',
                 'planner': planner,
                 'state': state,
+                'stable_value': stable_value,
+                'live_delta': live_delta,
+                'display_value': display_value,
                 'as_of': as_of,
                 'source_snapshot_time': source_snapshot_time,
                 'data_freshness_sec': self._snapshot_age_sec(source_snapshot_time),
@@ -105,6 +109,46 @@ class ExecutionService:
     def _latest_fills(self, rows: list[dict], limit: int) -> list[dict]:
         ordered = sorted(rows, key=self._sort_key, reverse=True)
         return ordered[: max(1, limit)]
+
+    @staticmethod
+    def _first_reason_message(state: dict, *, fallback: str = '') -> str:
+        reasons = state.get('block_reasons') or state.get('blockReasons') or []
+        if isinstance(reasons, list) and reasons:
+            first = reasons[0] if isinstance(reasons[0], dict) else {}
+            return str(first.get('message') or first.get('code') or fallback)
+        return fallback
+
+    @staticmethod
+    def _top_mix_key(mix: object) -> str:
+        if not isinstance(mix, dict) or not mix:
+            return ''
+        return str(max(mix.items(), key=lambda item: float(item[1] or 0))[0])
+
+    def _build_execution_display_contract(self, *, planner: dict, state: dict) -> tuple[dict, dict, dict]:
+        stable_value = {
+            'trading_state': state.get('trading_state') or state.get('tradingState') or planner.get('trading_state') or planner.get('tradingState') or 'unknown',
+            'execution_state': state.get('execution_state') or state.get('executionState') or 'unknown',
+            'reason': state.get('reason') or '',
+            'primary_reason': self._first_reason_message(state, fallback=str(state.get('reason') or '')),
+            'planner_age_sec': state.get('planner_age_sec') if 'planner_age_sec' in state else state.get('plannerAgeSec'),
+            'execution_age_sec': state.get('execution_age_sec') if 'execution_age_sec' in state else state.get('executionAgeSec'),
+            'last_fill_age_sec': state.get('last_fill_age_sec') if 'last_fill_age_sec' in state else state.get('lastFillAgeSec'),
+            'open_order_count': state.get('open_order_count') if 'open_order_count' in state else state.get('openOrderCount'),
+            'submitted_order_count': state.get('submitted_order_count') if 'submitted_order_count' in state else state.get('submittedOrderCount'),
+            'active_plan_count': state.get('active_plan_count') if 'active_plan_count' in state else state.get('activePlanCount'),
+            'visible_plan_count': state.get('visible_plan_count') if 'visible_plan_count' in state else state.get('visiblePlanCount', planner.get('visible_plan_count') if 'visible_plan_count' in planner else planner.get('visiblePlanCount')),
+            'expired_plan_count': state.get('expired_plan_count') if 'expired_plan_count' in state else state.get('expiredPlanCount', planner.get('expired_count') if 'expired_count' in planner else planner.get('expiredCount')),
+            'top_algo': self._top_mix_key(planner.get('algo_mix') or planner.get('algoMix')),
+            'top_route': self._top_mix_key(planner.get('route_mix') or planner.get('routeMix')),
+        }
+        live_delta = {
+            'recent_fills_window': None,
+            'recent_orders_window': None,
+            'recent_runs_window': None,
+            'recent_issues_window': None,
+        }
+        display_value = dict(stable_value)
+        return stable_value, live_delta, display_value
 
     @staticmethod
     def _snapshot_age_sec(value: object) -> float | None:

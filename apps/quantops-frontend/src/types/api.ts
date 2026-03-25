@@ -292,6 +292,44 @@ export type ExecutionState = {
 export type ExecutionViewLatest = {
   planner: ExecutionPlannerLatest;
   state: ExecutionState;
+  stableValue?: {
+    tradingState?: string;
+    executionState?: string;
+    reason?: string;
+    primaryReason?: string;
+    plannerAgeSec?: number;
+    executionAgeSec?: number;
+    lastFillAgeSec?: number;
+    openOrderCount?: number;
+    submittedOrderCount?: number;
+    activePlanCount?: number;
+    visiblePlanCount?: number;
+    expiredPlanCount?: number;
+    topAlgo?: string;
+    topRoute?: string;
+  };
+  liveDelta?: {
+    recentFillsWindow?: number | null;
+    recentOrdersWindow?: number | null;
+    recentRunsWindow?: number | null;
+    recentIssuesWindow?: number | null;
+  };
+  displayValue?: {
+    tradingState?: string;
+    executionState?: string;
+    reason?: string;
+    primaryReason?: string;
+    plannerAgeSec?: number;
+    executionAgeSec?: number;
+    lastFillAgeSec?: number;
+    openOrderCount?: number;
+    submittedOrderCount?: number;
+    activePlanCount?: number;
+    visiblePlanCount?: number;
+    expiredPlanCount?: number;
+    topAlgo?: string;
+    topRoute?: string;
+  };
   asOf: string;
   buildStatus?: string;
   sourceSnapshotTime?: string;
