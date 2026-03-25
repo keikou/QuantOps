@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import asyncio
 
+import pytest
+
 from app.repositories.audit_repository import AuditRepository
 from app.repositories.duckdb import DuckDBConnectionFactory
 from app.repositories.runtime_workflow_repository import RuntimeWorkflowRepository
@@ -213,3 +215,63 @@ def test_runtime_issue_acknowledgement_surfaces_in_issue_bucket(tmp_path) -> Non
     assert first["acknowledged"] is True
     assert first["acknowledgement"]["acknowledged_by"] == "bob"
     assert first["acknowledgement"]["note"] == "Known transient issue during smoke runs."
+
+
+def test_runtime_review_requires_note_before_resolve(tmp_path) -> None:
+    service = _build_service(tmp_path)
+    actor = RequestActor(user_id="alice", role="operator")
+
+    asyncio.run(
+        service.review_runtime_run(
+            run_id="run-blocked-new",
+            review_status="investigating",
+            acknowledged=True,
+            operator_note="Investigating before resolve.",
+            actor=actor,
+        )
+    )
+
+    with pytest.raises(Exception) as exc:
+        asyncio.run(
+            service.review_runtime_run(
+                run_id="run-blocked-new",
+                review_status="resolved",
+                acknowledged=True,
+                operator_note="",
+                actor=actor,
+            )
+        )
+
+    assert "operator_note is required" in str(exc.value)
+
+
+def test_runtime_review_rejects_invalid_transition_and_exposes_linked_evidence(tmp_path) -> None:
+    service = _build_service(tmp_path)
+    actor = RequestActor(user_id="alice", role="operator")
+
+    asyncio.run(
+        service.review_runtime_run(
+            run_id="run-blocked-new",
+            review_status="acknowledged",
+            acknowledged=True,
+            operator_note="Acknowledged for follow-up.",
+            actor=actor,
+        )
+    )
+
+    with pytest.raises(Exception) as exc:
+        asyncio.run(
+            service.review_runtime_run(
+                run_id="run-blocked-new",
+                review_status="resolved",
+                acknowledged=True,
+                operator_note="Closing without investigation should fail.",
+                actor=actor,
+            )
+        )
+    assert "invalid review transition" in str(exc.value)
+
+    debug_payload = asyncio.run(service.get_runtime_debug(run_id="run-blocked-new"))
+    assert debug_payload["review"]["allowed_transitions"] == ["new", "investigating", "ignored"]
+    assert debug_payload["linked_evidence"]["execution_issue_path"] == "/execution?issueCode=execution_bridge_missing"
+    assert "issue_code=execution_bridge_missing" in debug_payload["linked_evidence"]["runtime_runs_api_path"]

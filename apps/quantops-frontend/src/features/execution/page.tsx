@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { KpiCard } from '@/components/cards/kpi-card';
@@ -210,6 +210,20 @@ export default function Page() {
   const [issueCodeFilter, setIssueCodeFilter] = useState('');
   const [reasonFilter, setReasonFilter] = useState('');
   const [componentFilter, setComponentFilter] = useState('');
+  useEffect(() => {
+    const applyFiltersFromLocation = () => {
+      const params = new URLSearchParams(window.location.search);
+      const runtimeFilterParam = (params.get('runtimeFilter') || 'all') as RuntimeFilterKey;
+      const allowedRuntimeFilters: RuntimeFilterKey[] = ['all', 'blocked', 'degraded', 'submitted_no_fill', 'failed', 'filled', 'missing_price', 'risk_guard_block', 'incomplete_chain', 'no_artifact'];
+      setRuntimeFilter(allowedRuntimeFilters.includes(runtimeFilterParam) ? runtimeFilterParam : 'all');
+      setIssueCodeFilter(params.get('issueCode') || '');
+      setReasonFilter(params.get('reasonCode') || '');
+      setComponentFilter(params.get('component') || '');
+    };
+    applyFiltersFromLocation();
+    window.addEventListener('popstate', applyFiltersFromLocation);
+    return () => window.removeEventListener('popstate', applyFiltersFromLocation);
+  }, []);
   const summary = useExecutionSummary();
   const summaryReady = Boolean(summary.data?.data) || Boolean(summary.error);
   const runtime = useCommandCenterRuntimeLatest(summaryReady);

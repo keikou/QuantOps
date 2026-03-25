@@ -444,6 +444,8 @@ export type RuntimeReviewState = {
   operatorNote?: string;
   reviewedBy?: string;
   reviewedAt?: string;
+  allowedTransitions?: string[];
+  noteRequiredFor?: string[];
 };
 
 export type RuntimeIssueBucket = {
@@ -633,6 +635,14 @@ export type CommandCenterRuntimeDebug = {
     lastSeenAt?: string;
   };
   review?: RuntimeReviewState;
+  linkedEvidence?: {
+    executionIssuePath?: string;
+    executionReasonPath?: string;
+    executionComponentPath?: string;
+    runtimeIssueApiPath?: string;
+    runtimeRunsApiPath?: string;
+    runtimeDebugApiPath?: string;
+  };
   counts?: Record<string, number>;
   stages: RuntimeStage[];
   timeline: RuntimeTimelineEvent[];

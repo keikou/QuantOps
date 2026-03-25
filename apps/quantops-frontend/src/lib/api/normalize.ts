@@ -659,6 +659,12 @@ function normalizeRuntimeReviewState(input: any) {
     operatorNote: toString(review.operatorNote ?? review.operator_note, ''),
     reviewedBy: toString(review.reviewedBy ?? review.reviewed_by, ''),
     reviewedAt: toString(review.reviewedAt ?? review.reviewed_at, ''),
+    allowedTransitions: Array.isArray(review.allowedTransitions ?? review.allowed_transitions)
+      ? (review.allowedTransitions ?? review.allowed_transitions).map((item: any) => toString(item, '')).filter(Boolean)
+      : [],
+    noteRequiredFor: Array.isArray(review.noteRequiredFor ?? review.note_required_for)
+      ? (review.noteRequiredFor ?? review.note_required_for).map((item: any) => toString(item, '')).filter(Boolean)
+      : [],
   };
 }
 
@@ -841,6 +847,16 @@ export function normalizeCommandCenterRuntimeDebug(input: any): CommandCenterRun
         }
       : undefined,
     review: normalizeRuntimeReviewState(x.review),
+    linkedEvidence: x.linked_evidence
+      ? {
+          executionIssuePath: toString(x.linked_evidence.execution_issue_path, ''),
+          executionReasonPath: toString(x.linked_evidence.execution_reason_path, ''),
+          executionComponentPath: toString(x.linked_evidence.execution_component_path, ''),
+          runtimeIssueApiPath: toString(x.linked_evidence.runtime_issue_api_path, ''),
+          runtimeRunsApiPath: toString(x.linked_evidence.runtime_runs_api_path, ''),
+          runtimeDebugApiPath: toString(x.linked_evidence.runtime_debug_api_path, ''),
+        }
+      : undefined,
     counts: x.counts ?? {},
     stages: stages.map((item: any) => ({
       key: toString(item.key, ''),

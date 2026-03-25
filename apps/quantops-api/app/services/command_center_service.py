@@ -5,6 +5,8 @@ from datetime import datetime, timezone
 import json
 from pathlib import Path
 
+from fastapi import HTTPException, status
+
 from app.clients.v12_client import V12Client, utc_now_iso
 from app.services.dashboard_service import DashboardService
 from app.services.portfolio_service import PortfolioService
@@ -103,6 +105,8 @@ class CommandCenterService:
                     "reviewed_at": str(review.get("reviewed_at") or ""),
                 }
             )
+        review_state["allowed_transitions"] = self._allowed_review_transitions(str(review_state.get("review_status") or "new"))
+        review_state["note_required_for"] = ["resolved"]
         result["review"] = review_state
         result["review_status"] = review_state["review_status"]
         result["acknowledged"] = review_state["acknowledged"]
@@ -874,6 +878,68 @@ class CommandCenterService:
             return bool(acknowledged)
         return review_status != "new"
 
+    @staticmethod
+    def _allowed_review_transitions(current_status: str) -> list[str]:
+        transitions = {
+            "new": ["acknowledged", "investigating", "ignored"],
+            "acknowledged": ["new", "investigating", "ignored"],
+            "investigating": ["acknowledged", "resolved", "ignored"],
+            "resolved": ["investigating"],
+            "ignored": ["new", "acknowledged", "investigating"],
+        }
+        normalized = str(current_status or "new").strip().lower()
+        return transitions.get(normalized, transitions["new"])
+
+    def _validate_review_transition(self, *, current_status: str, target_status: str, operator_note: str) -> None:
+        normalized_current = str(current_status or "new").strip().lower()
+        normalized_target = str(target_status or "new").strip().lower()
+        if normalized_target == normalized_current:
+            if normalized_target == "resolved" and not operator_note.strip():
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="operator_note is required when review_status is resolved",
+                )
+            return
+        if normalized_target not in self._allowed_review_transitions(normalized_current):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"invalid review transition: {normalized_current} -> {normalized_target}",
+            )
+        if normalized_target == "resolved" and not operator_note.strip():
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="operator_note is required when review_status is resolved",
+            )
+
+    @staticmethod
+    def _runtime_linked_evidence(
+        *,
+        run_id: str | None,
+        diagnosis_code: str | None,
+        reason_code: str | None,
+        blocking_component: str | None,
+    ) -> dict:
+        issue_code = str(diagnosis_code or "").strip()
+        reason = str(reason_code or "").strip()
+        component = str(blocking_component or "").strip()
+        return {
+            "execution_issue_path": f"/execution?issueCode={issue_code}" if issue_code else None,
+            "execution_reason_path": f"/execution?reasonCode={reason}" if reason else None,
+            "execution_component_path": f"/execution?component={component}" if component else None,
+            "runtime_issue_api_path": (
+                f"/api/v1/command-center/runtime/issues?limit=25&window_minutes=10080"
+                if issue_code
+                else None
+            ),
+            "runtime_runs_api_path": (
+                f"/api/v1/command-center/runtime/runs?limit=20&window_minutes=10080"
+                + (f"&issue_code={issue_code}" if issue_code else "")
+                + (f"&reason_code={reason}" if reason else "")
+                + (f"&blocking_component={component}" if component else "")
+            ),
+            "runtime_debug_api_path": f"/api/v1/command-center/debug/runtime?run_id={run_id}" if run_id else None,
+        }
+
     async def get_overview(self) -> dict:
         dashboard = await self.dashboard_service.get_overview()
         execution = await self.analytics_service.execution_summary_live()
@@ -1193,6 +1259,12 @@ class CommandCenterService:
             "diagnosis": diagnosis,
             "diagnosis_context": recurrence,
             "review": self._attach_run_review_state({}, review)["review"],
+            "linked_evidence": self._runtime_linked_evidence(
+                run_id=resolved_run_id,
+                diagnosis_code=str(diagnosis.get("primary_code") or ""),
+                reason_code=str(summary.get("latest_reason_code") or ""),
+                blocking_component=str(summary.get("blocking_component") or ""),
+            ),
             "stages": stages,
             "timeline": self._timeline_items(events, limit=25),
             "raw": {
@@ -1349,13 +1421,20 @@ class CommandCenterService:
         allowed_statuses = {"new", "acknowledged", "investigating", "resolved", "ignored"}
         if normalized_status not in allowed_statuses:
             normalized_status = "new"
+        current_review = self._get_run_review_map([run_id]).get(run_id) or self._default_run_review_state()
+        operator_note_text = str(operator_note or "")
+        self._validate_review_transition(
+            current_status=str(current_review.get("review_status") or "new"),
+            target_status=normalized_status,
+            operator_note=operator_note_text,
+        )
         review_state = self._default_run_review_state()
         if self.runtime_workflow_repository is not None:
             review_state = self.runtime_workflow_repository.upsert_run_review(
                 run_id=run_id,
                 review_status=normalized_status,
                 acknowledged=self._resolve_acknowledged(normalized_status, acknowledged),
-                operator_note=str(operator_note or ""),
+                operator_note=operator_note_text,
                 reviewed_by=actor.user_id,
             )
         self.audit_repository.log_operator_action(
@@ -1368,7 +1447,7 @@ class CommandCenterService:
                     "run_id": run_id,
                     "review_status": normalized_status,
                     "acknowledged": review_state.get("acknowledged", False),
-                    "operator_note": str(operator_note or ""),
+                    "operator_note": operator_note_text,
                 }
             ),
             user_id=actor.user_id,

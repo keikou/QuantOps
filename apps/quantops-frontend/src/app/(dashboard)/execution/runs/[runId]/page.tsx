@@ -28,13 +28,25 @@ export default function Page() {
   const runtime = useCommandCenterRuntimeDebug(runId);
   const reviewRuntimeRun = useReviewRuntimeRun();
   const [operatorNote, setOperatorNote] = useState('');
+  const [reviewError, setReviewError] = useState('');
 
   if (runtime.isLoading && !runtime.data) return <LoadingState />;
   if (runtime.error && !runtime.data) return <ErrorState message="Runtime run detail failed" />;
 
   const detail = runtime.data?.data;
+  const linkedEvidence = detail?.linkedEvidence;
   const review = detail?.review;
   const summary = detail?.summary;
+  const allowedTransitions = review?.allowedTransitions ?? ['acknowledged', 'investigating', 'resolved', 'ignored'];
+
+  function submitReview(status: string, acknowledged: boolean, note: string) {
+    if (status === 'resolved' && !note.trim()) {
+      setReviewError('A note is required before marking a run as resolved.');
+      return;
+    }
+    setReviewError('');
+    reviewRuntimeRun.mutate({ runId, reviewStatus: status, operatorNote: note, acknowledged });
+  }
   const runtimeCardData: CommandCenterRuntimeLatest | undefined = detail
     ? {
         status: detail.status,
@@ -142,17 +154,23 @@ export default function Page() {
         </div>
         <textarea
           value={operatorNote}
-          onChange={(event) => setOperatorNote(event.target.value)}
+          onChange={(event) => {
+            setOperatorNote(event.target.value);
+            if (reviewError) setReviewError('');
+          }}
           placeholder="Add operator note"
           className="mt-4 min-h-24 w-full rounded-2xl border border-slate-700 bg-slate-950/70 px-3 py-2 text-sm text-slate-100 outline-none transition focus:border-cyan-500/40"
         />
+        {reviewError ? (
+          <div className="mt-2 text-xs text-amber-300">{reviewError}</div>
+        ) : null}
         <div className="mt-3 flex flex-wrap gap-2">
           {['acknowledged', 'investigating', 'resolved', 'ignored'].map((status) => (
             <button
               key={status}
               type="button"
-              disabled={reviewRuntimeRun.isPending || !runId}
-              onClick={() => reviewRuntimeRun.mutate({ runId, reviewStatus: status, operatorNote, acknowledged: true })}
+              disabled={reviewRuntimeRun.isPending || !runId || !allowedTransitions.includes(status)}
+              onClick={() => submitReview(status, true, operatorNote)}
               className="rounded-full border border-slate-700 bg-slate-800/70 px-3 py-1 text-xs text-slate-100 transition hover:border-cyan-500/40 hover:text-cyan-100 disabled:cursor-not-allowed disabled:opacity-60"
             >
               Mark {status}
@@ -160,12 +178,47 @@ export default function Page() {
           ))}
           <button
             type="button"
-            disabled={reviewRuntimeRun.isPending || !runId}
-            onClick={() => reviewRuntimeRun.mutate({ runId, reviewStatus: 'new', operatorNote: '', acknowledged: false })}
+            disabled={reviewRuntimeRun.isPending || !runId || ((review?.reviewStatus || 'new') !== 'new' && !allowedTransitions.includes('new'))}
+            onClick={() => submitReview('new', false, '')}
             className="rounded-full border border-slate-700 bg-slate-800/70 px-3 py-1 text-xs text-slate-100 transition hover:border-slate-600 hover:text-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
           >
             Reset Review
           </button>
+        </div>
+        <div className="mt-3 text-[11px] text-slate-500">
+          Allowed next states: {allowedTransitions.length ? allowedTransitions.join(', ') : 'none'}
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 text-sm text-slate-300">
+        <div className="font-medium text-slate-100">Linked Evidence</div>
+        <div className="mt-2 text-xs text-slate-500">Jump to related runtime slices without reconstructing filters manually.</div>
+        <div className="mt-4 flex flex-wrap gap-2">
+          {linkedEvidence?.executionIssuePath ? (
+            <a href={linkedEvidence.executionIssuePath} className="rounded-full border border-slate-700 bg-slate-800/70 px-3 py-1 text-xs text-slate-100 transition hover:border-cyan-500/40 hover:text-cyan-100">
+              Related Diagnosis Runs
+            </a>
+          ) : null}
+          {linkedEvidence?.executionComponentPath ? (
+            <a href={linkedEvidence.executionComponentPath} className="rounded-full border border-slate-700 bg-slate-800/70 px-3 py-1 text-xs text-slate-100 transition hover:border-cyan-500/40 hover:text-cyan-100">
+              Same Component
+            </a>
+          ) : null}
+          {linkedEvidence?.executionReasonPath ? (
+            <a href={linkedEvidence.executionReasonPath} className="rounded-full border border-slate-700 bg-slate-800/70 px-3 py-1 text-xs text-slate-100 transition hover:border-cyan-500/40 hover:text-cyan-100">
+              Same Reason Code
+            </a>
+          ) : null}
+          {linkedEvidence?.runtimeRunsApiPath ? (
+            <a href={linkedEvidence.runtimeRunsApiPath} target="_blank" rel="noreferrer" className="rounded-full border border-slate-700 bg-slate-800/70 px-3 py-1 text-xs text-slate-100 transition hover:border-cyan-500/40 hover:text-cyan-100">
+              Filtered Runs API
+            </a>
+          ) : null}
+          {linkedEvidence?.runtimeIssueApiPath ? (
+            <a href={linkedEvidence.runtimeIssueApiPath} target="_blank" rel="noreferrer" className="rounded-full border border-slate-700 bg-slate-800/70 px-3 py-1 text-xs text-slate-100 transition hover:border-cyan-500/40 hover:text-cyan-100">
+              Issue Bucket API
+            </a>
+          ) : null}
         </div>
       </div>
 
