@@ -18,6 +18,7 @@ from app.db.init_db import init_db
 GUI_FAST_PATH_WARMUP_DELAY_SECONDS = 3.0
 GUI_FAST_PATH_WARMUP_MAX_WAIT_SECONDS = 15.0
 GUI_FAST_PATH_WARMUP_POLL_SECONDS = 0.5
+GUI_MONITORING_WARMUP_DELAY_SECONDS = 15.0
 GUI_FAST_PATH_WARMUP_READY_PATHS = (
     "/system/health",
     "/runtime/status",
@@ -57,10 +58,9 @@ async def _warm_gui_fast_paths() -> None:
                 if asyncio.get_running_loop().time() >= deadline:
                     break
                 await asyncio.sleep(GUI_FAST_PATH_WARMUP_POLL_SECONDS)
-        await asyncio.gather(
-            get_monitoring_service().refresh(),
-            get_risk_service().refresh_snapshot(),
-        )
+        await get_risk_service().refresh_snapshot()
+        await asyncio.sleep(GUI_MONITORING_WARMUP_DELAY_SECONDS)
+        await get_monitoring_service().refresh()
     except Exception:
         logging.getLogger("uvicorn.error").exception("startup_warm_gui_fast_paths_failed")
 
