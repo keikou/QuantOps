@@ -757,16 +757,21 @@ class TruthEngine:
             prev_cash = float((previous or {}).get("cash_balance", self.initial_capital) or self.initial_capital)
             prev_fees = float((previous or {}).get("fees_paid", 0.0) or 0.0)
             prev_realized = float((previous or {}).get("realized_pnl", 0.0) or 0.0)
-            delta_cash_balance, delta_fees = self._compute_cash_balance_from_fills(fills)
-            delta_cash = round(delta_cash_balance - self.initial_capital, 8)
-            delta_realized = 0.0
-            delta_states: dict[str, dict[str, Any]] = {}
-            for fill in fills:
-                realized_delta, _ = self._apply_fill_to_position_states(delta_states, fill)
-                delta_realized += realized_delta
-            cash_balance = round(prev_cash + delta_cash, 8)
-            fees_paid = round(prev_fees + delta_fees, 8)
-            realized_total = round(prev_realized + delta_realized, 8)
+            if fills:
+                delta_cash_balance, delta_fees = self._compute_cash_balance_from_fills(fills)
+                delta_cash = round(delta_cash_balance - self.initial_capital, 8)
+                delta_realized = 0.0
+                delta_states: dict[str, dict[str, Any]] = {}
+                for fill in fills:
+                    realized_delta, _ = self._apply_fill_to_position_states(delta_states, fill)
+                    delta_realized += realized_delta
+                cash_balance = round(prev_cash + delta_cash, 8)
+                fees_paid = round(prev_fees + delta_fees, 8)
+                realized_total = round(prev_realized + delta_realized, 8)
+            else:
+                cash_balance = round(prev_cash, 8)
+                fees_paid = round(prev_fees, 8)
+                realized_total = round(prev_realized, 8)
         unrealized = round(sum(float(p.get("unrealized_pnl", 0.0) or 0.0) for p in positions), 8)
         used_margin = round(sum(float(p.get("avg_entry_price", 0.0) or 0.0) * float(p.get("abs_qty", 0.0) or 0.0) for p in positions), 8)
         current_long_notional = round(sum(max(0.0, float(p.get("market_value", 0.0) or 0.0)) for p in positions), 8)
@@ -779,8 +784,8 @@ class TruthEngine:
         equity_denom = max(abs(total_equity), 1e-9)
         gross = round((current_long_notional + current_short_notional) / equity_denom, 8) if positions else 0.0
         net = round(market_value / equity_denom, 8) if positions else 0.0
-        prev_peak = store.fetchone_dict("SELECT MAX(peak_equity) AS peak FROM equity_snapshots")
-        peak = max(float(prev_peak.get("peak") or self.initial_capital) if prev_peak else self.initial_capital, total_equity)
+        prev_peak = float((previous or {}).get("peak_equity", self.initial_capital) or self.initial_capital)
+        peak = max(prev_peak, total_equity)
         drawdown = round((peak - total_equity) / peak, 8) if peak else 0.0
         row = {
             "snapshot_time": as_of,
