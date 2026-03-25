@@ -128,7 +128,7 @@ export default function PortfolioPage() {
       <div className="text-xs text-slate-400">Equity formula: Total Equity = Used Margin + Free Margin = Balance + Unrealized {data.lastUpdated ? `| as of ${data.lastUpdated}` : ''}</div>
       <SimpleTable
         headers={['Symbol', 'Side', 'Qty', 'Avg', 'Mark', 'PnL', 'Primary Alpha Family']}
-        rows={rows.map((p) => [p.symbol, p.side, fmt(p.quantity), fmt(p.avgPrice), fmt(p.markPrice), fmt(p.pnl), p.alphaFamily || '-'])}
+        rows={rows.map((p) => [p.symbol, p.side, fmt(p.quantity), fmt(p.avgPrice), fmt(p.markPrice), fmt(p.pnl), labelize(p.alphaFamily)])}
       />
     </div>
   );
