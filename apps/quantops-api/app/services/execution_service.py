@@ -14,6 +14,10 @@ class ExecutionService:
 
     def __init__(self, v12_client: V12Client) -> None:
         self.v12_client = v12_client
+        self._planner_cache: dict | None = None
+        self._planner_inflight: asyncio.Task | None = None
+        self._state_cache: dict | None = None
+        self._state_inflight: asyncio.Task | None = None
         self._orders_cache: dict[int, dict] = {}
         self._orders_inflight: dict[int, asyncio.Task] = {}
         self._fills_cache: dict[int, dict] = {}
@@ -26,10 +30,17 @@ class ExecutionService:
         return ExecutionService._snapshot_age_sec(payload.get("_cached_at"))
 
     async def get_planner_latest(self) -> dict:
-        payload = await self.v12_client.get_execution_planner_latest()
-        payload.setdefault('status', 'ok')
-        payload.setdefault('as_of', utc_now_iso())
-        return payload
+        async def builder() -> dict:
+            payload = await self.v12_client.get_execution_planner_latest()
+            payload.setdefault('status', 'ok')
+            payload.setdefault('as_of', utc_now_iso())
+            payload.setdefault('build_status', 'live')
+            payload.setdefault('source_snapshot_time', payload.get('as_of'))
+            payload.setdefault('data_freshness_sec', self._snapshot_age_sec(payload.get('source_snapshot_time') or payload.get('as_of')))
+            payload['_cached_at'] = utc_now_iso()
+            return payload
+
+        return await self._coalesced_summary(cache_name='_planner_cache', inflight_name='_planner_inflight', builder=builder)
 
     def _sort_key(self, row: dict) -> tuple[str, str, str]:
         return (
@@ -135,11 +146,49 @@ class ExecutionService:
         return await self._coalesced_feed(cache=self._fills_cache, inflight=self._fills_inflight, limit=limit, builder=builder)
 
     async def get_state_latest(self) -> dict:
-        payload = await self.v12_client.get_execution_state_latest()
-        payload.setdefault('status', 'ok')
-        payload.setdefault('as_of', utc_now_iso())
-        return payload
+        async def builder() -> dict:
+            payload = await self.v12_client.get_execution_state_latest()
+            payload.setdefault('status', 'ok')
+            payload.setdefault('as_of', utc_now_iso())
+            payload.setdefault('build_status', 'live')
+            payload.setdefault('source_snapshot_time', payload.get('as_of'))
+            payload.setdefault('data_freshness_sec', self._snapshot_age_sec(payload.get('source_snapshot_time') or payload.get('as_of')))
+            payload['_cached_at'] = utc_now_iso()
+            return payload
+
+        return await self._coalesced_summary(cache_name='_state_cache', inflight_name='_state_inflight', builder=builder)
 
     async def get_block_reasons_latest(self) -> dict:
         payload = await self.v12_client.get_execution_block_reasons_latest()
         return {'status': payload.get('status', 'ok'), 'items': payload.get('items', payload.get('block_reasons', [])), 'as_of': payload.get('as_of') or utc_now_iso()}
+
+    async def _coalesced_summary(self, *, cache_name: str, inflight_name: str, builder) -> dict:
+        cached = getattr(self, cache_name)
+        cache_age = self._cache_age_sec(cached)
+        if cache_age is not None and cache_age <= self.FEED_CACHE_TTL_SECONDS:
+            result = dict(cached)
+            result['build_status'] = 'fresh_cache'
+            result['data_freshness_sec'] = self._snapshot_age_sec(result.get('source_snapshot_time') or result.get('as_of'))
+            result.pop('_cached_at', None)
+            return result
+
+        existing = getattr(self, inflight_name)
+        if existing is not None and not existing.done():
+            payload = await existing
+            result = dict(payload)
+            result['build_status'] = 'fresh_cache'
+            result['data_freshness_sec'] = self._snapshot_age_sec(result.get('source_snapshot_time') or result.get('as_of'))
+            result.pop('_cached_at', None)
+            return result
+
+        task = asyncio.create_task(builder())
+        setattr(self, inflight_name, task)
+        try:
+            payload = await task
+            setattr(self, cache_name, payload)
+            result = dict(payload)
+            result.pop('_cached_at', None)
+            return result
+        finally:
+            if getattr(self, inflight_name) is task:
+                setattr(self, inflight_name, None)
