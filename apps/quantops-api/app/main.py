@@ -10,7 +10,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.router import api_router
-from app.core.deps import get_monitoring_service, get_risk_service
+from app.core.deps import get_execution_service, get_monitoring_service, get_risk_service
 from app.middleware.request_logging import RequestLoggingMiddleware
 from app.core.config import get_settings
 from app.db.init_db import init_db
@@ -20,6 +20,7 @@ GUI_FAST_PATH_WARMUP_MAX_WAIT_SECONDS = 15.0
 GUI_FAST_PATH_WARMUP_POLL_SECONDS = 0.5
 GUI_RISK_WARMUP_DELAY_SECONDS = 8.0
 GUI_MONITORING_WARMUP_DELAY_SECONDS = 15.0
+GUI_EXECUTION_WARMUP_DELAY_SECONDS = 24.0
 GUI_FAST_PATH_WARMUP_READY_PATHS = (
     "/system/health",
     "/runtime/status",
@@ -63,6 +64,12 @@ async def _warm_gui_fast_paths() -> None:
         await get_risk_service().refresh_snapshot(summary_only=True)
         await asyncio.sleep(max(0.0, GUI_MONITORING_WARMUP_DELAY_SECONDS - GUI_RISK_WARMUP_DELAY_SECONDS))
         await get_monitoring_service().refresh(summary_only=True)
+        await asyncio.sleep(max(0.0, GUI_EXECUTION_WARMUP_DELAY_SECONDS - GUI_MONITORING_WARMUP_DELAY_SECONDS))
+        execution_service = get_execution_service()
+        await asyncio.gather(
+            execution_service.get_planner_latest(),
+            execution_service.get_state_latest(),
+        )
     except Exception:
         logging.getLogger("uvicorn.error").exception("startup_warm_gui_fast_paths_failed")
 
