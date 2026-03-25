@@ -902,10 +902,16 @@ class CommandCenterService:
         return merged
 
     async def _build_runtime_latest_live(self) -> dict:
-        bridge = await self._call_with_timeout(
-            self.v12_client.get_execution_bridge_latest(),
+        status_payload = await self._call_with_timeout(
+            self.v12_client.get_runtime_status(),
             self.RUNTIME_LATEST_PRIMARY_TIMEOUT_SECONDS,
         )
+        bridge = status_payload if status_payload.get("bridge_state") or status_payload.get("run_id") else {}
+        if not bridge:
+            bridge = await self._call_with_timeout(
+                self.v12_client.get_execution_bridge_latest(),
+                self.RUNTIME_LATEST_PRIMARY_TIMEOUT_SECONDS,
+            )
         planner: dict = {}
         summary = self._runtime_summary_from_inputs(
             run_id=bridge.get("run_id"),
@@ -915,9 +921,9 @@ class CommandCenterService:
             reasons=[],
         )
         payload = {
-            "status": str(bridge.get("status") or "ok"),
+            "status": str(status_payload.get("status") or bridge.get("status") or "ok"),
             **summary,
-            "source_snapshot_time": bridge.get("last_transition_at") or utc_now_iso(),
+            "source_snapshot_time": status_payload.get("source_snapshot_time") or bridge.get("last_transition_at") or utc_now_iso(),
             "debug_path": f"/api/v1/command-center/debug/runtime?run_id={bridge.get('run_id')}" if bridge.get("run_id") else "/api/v1/command-center/debug/runtime",
         }
         return self._preserve_runtime_cached_detail(payload, self._runtime_latest_cache)

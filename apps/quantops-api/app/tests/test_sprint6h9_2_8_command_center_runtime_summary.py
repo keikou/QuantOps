@@ -9,7 +9,29 @@ from app.services.command_center_service import CommandCenterService
 class _RuntimeV12Client:
     def __init__(self) -> None:
         self.bridge_calls = 0
+        self.status_calls = 0
         self.plans_calls = 0
+
+    async def get_runtime_status(self) -> dict:
+        self.status_calls += 1
+        return {
+            "status": "ok",
+            "run_id": "run-123",
+            "cycle_id": "cycle-123",
+            "bridge_state": "submitted_no_fill",
+            "planned_count": 2,
+            "submitted_count": 2,
+            "blocked_count": 0,
+            "filled_count": 0,
+            "event_chain_complete": True,
+            "latest_reason_code": "ORDER_REJECTED",
+            "latest_reason_summary": "Orders submitted but no fills were recorded.",
+            "blocking_component": "execution_bridge",
+            "degraded_flags": ["stale_market_data"],
+            "operator_message": "The cycle reached the market but did not fill.",
+            "last_transition_at": "2026-03-23T00:00:09+00:00",
+            "source_snapshot_time": "2026-03-23T00:00:09+00:00",
+        }
 
     async def get_execution_bridge_latest(self) -> dict:
         self.bridge_calls += 1
@@ -279,7 +301,8 @@ def test_command_center_runtime_latest_skips_detail_upstreams_on_summary_path() 
 
     assert payload["run_id"] == "run-123"
     assert payload["planner_status"] == "unknown"
-    assert client.bridge_calls == 1
+    assert client.status_calls == 1
+    assert client.bridge_calls == 0
     assert client.plans_calls == 0
     assert client.events_calls == 0
     assert client.reasons_calls == 0

@@ -228,7 +228,7 @@ def test_execution_bridge_latest_reuses_short_ttl_cache(monkeypatch) -> None:
 
 def test_runtime_status_reuses_short_ttl_cache(monkeypatch) -> None:
     runtime_routes._runtime_status_cache = None
-    call_count = {'runs': 0, 'state': 0, 'query': 0}
+    call_count = {'runs': 0, 'state': 0, 'query': 0, 'bridge': 0}
 
     def fake_list_runs(*, limit: int = 1) -> list[dict]:
         call_count['runs'] += 1
@@ -248,18 +248,44 @@ def test_runtime_status_reuses_short_ttl_cache(monkeypatch) -> None:
             return {'created_at': '2026-03-24T00:00:00+00:00', 'fill_count': 2, 'order_count': 2}
         return None
 
+    def fake_bridge_summary() -> dict:
+        call_count['bridge'] += 1
+        return {
+            'run_id': 'run-1',
+            'cycle_id': 'cycle-1',
+            'bridge_state': 'submitted_no_fill',
+            'planned_count': 2,
+            'submitted_count': 2,
+            'blocked_count': 0,
+            'filled_count': 0,
+            'event_chain_complete': True,
+            'latest_reason_code': 'ORDER_REJECTED',
+            'latest_reason_summary': 'Orders submitted but no fills were recorded.',
+            'blocking_component': 'execution_bridge',
+            'degraded_flags': ['stale_market_data'],
+            'operator_message': 'The cycle reached the market but did not fill.',
+            'last_transition_at': '2026-03-24T00:00:00+00:00',
+            'source_snapshot_time': '2026-03-24T00:00:00+00:00',
+            'build_status': 'live',
+        }
+
     monkeypatch.setattr(runtime_routes._service, 'list_runs', fake_list_runs)
     monkeypatch.setattr(runtime_routes._service, 'get_trading_state', fake_trading_state)
     monkeypatch.setattr(CONTAINER.runtime_store, 'fetchone_dict', fake_fetchone_dict)
+    monkeypatch.setattr(runtime_routes, '_runtime_status_bridge_summary', fake_bridge_summary)
 
     first = client.get('/runtime/status')
     second = client.get('/runtime/status')
 
     assert first.status_code == 200
     assert second.status_code == 200
-    assert first.json() == second.json()
+    assert first.json()['run_id'] == second.json()['run_id']
+    assert first.json()['build_status'] == 'live'
+    assert second.json()['build_status'] == 'fresh_cache'
     assert call_count['runs'] == 1
     assert call_count['state'] == 1
+    assert call_count['bridge'] == 1
+    assert first.json()['bridge_state'] == 'submitted_no_fill'
 
 
 def test_risk_latest_reuses_short_ttl_cache(monkeypatch) -> None:
