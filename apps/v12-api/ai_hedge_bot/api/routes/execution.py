@@ -369,17 +369,45 @@ def execution_quality_latest_summary() -> dict:
 def execution_fills(limit: int = 100) -> dict:
     items = _repo.store.fetchall_dict(
         """
-        SELECT fill_id, created_at, run_id, mode, plan_id, order_id, client_order_id, strategy_id, alpha_family,
-               symbol, side, fill_qty, fill_price, slippage_bps, latency_ms, fee_bps,
-               bid, ask, arrival_mid_price, price_source, quote_time, quote_age_sec, fallback_reason, status
+        SELECT
+            fill_id,
+            created_at,
+            run_id,
+            mode,
+            plan_id,
+            strategy_id,
+            alpha_family,
+            symbol,
+            side,
+            fill_qty,
+            fill_price,
+            slippage_bps,
+            latency_ms,
+            fee_bps,
+            bid,
+            ask,
+            arrival_mid_price,
+            price_source,
+            quote_time,
+            quote_age_sec,
+            fallback_reason,
+            status
         FROM execution_fills
         ORDER BY created_at DESC, symbol ASC
         LIMIT ?
         """,
         [limit],
     )
-    return {'status': 'ok', 'items': items, 'as_of': items[0].get('created_at') if items else None, 'run_id': items[0].get('run_id') if items else None}
 
+    for item in items:
+        item["order_id"] = item.get("plan_id") or item.get("fill_id")
+
+    return {
+        "status": "ok",
+        "items": items,
+        "as_of": items[0].get("created_at") if items else None,
+        "run_id": items[0].get("run_id") if items else None,
+    }
 
 @router.get('/plans')
 def execution_plans(limit: int = 100) -> dict:

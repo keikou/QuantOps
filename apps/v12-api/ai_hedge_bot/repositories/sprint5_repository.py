@@ -100,13 +100,63 @@ class Sprint5Repository:
         self.store.append('execution_plans', rows)
 
     def create_execution_fills(self, rows: list[dict[str, Any]]) -> None:
-        self.store.append('execution_fills', rows)
+        normalized: list[dict[str, Any]] = []
+
+        for row in rows:
+            plan_id = row.get('plan_id')
+            fill_id = row.get('fill_id')
+            symbol = row.get('symbol')
+            side = row.get('side')
+            fill_price = row.get('fill_price')
+            fill_qty = row.get('fill_qty')
+
+            normalized.append(
+                {
+                    'fill_id': fill_id,
+                    'created_at': row.get('created_at'),
+                    'run_id': row.get('run_id'),
+                    'mode': row.get('mode'),
+                    'plan_id': plan_id,
+                    'order_id': row.get('order_id') or plan_id or fill_id,
+                    'client_order_id': row.get('client_order_id') or row.get('order_id') or plan_id or fill_id,
+                    'strategy_id': row.get('strategy_id'),
+                    'alpha_family': row.get('alpha_family'),
+                    'symbol': symbol,
+                    'side': side,
+                    'fill_qty': fill_qty,
+                    'fill_price': fill_price,
+                    'slippage_bps': row.get('slippage_bps', 0.0),
+                    'latency_ms': row.get('latency_ms', 0.0),
+                    'fee_bps': row.get('fee_bps', 0.0),
+                    'bid': row.get('bid'),
+                    'ask': row.get('ask'),
+                    'arrival_mid_price': row.get('arrival_mid_price'),
+                    'price_source': row.get('price_source'),
+                    'quote_time': row.get('quote_time'),
+                    'quote_age_sec': row.get('quote_age_sec', 0.0),
+                    'fallback_reason': row.get('fallback_reason'),
+                    'status': row.get('status'),
+                }
+            )
+
+        self.store.append('execution_fills', normalized)
 
     def latest_equity_snapshot(self) -> dict[str, Any] | None:
         row = self.store.fetchone_dict(
             """
-            SELECT snapshot_time, cash_balance, free_cash, used_margin, collateral_equity, available_margin, margin_utilization, gross_exposure, net_exposure, long_exposure, short_exposure,
-                   market_value, unrealized_pnl, realized_pnl, fees_paid, total_equity, drawdown, peak_equity
+            SELECT
+                snapshot_time,
+                cash_balance,
+                gross_exposure,
+                net_exposure,
+                long_exposure,
+                short_exposure,
+                market_value,
+                unrealized_pnl,
+                realized_pnl,
+                total_equity,
+                drawdown,
+                peak_equity
             FROM equity_snapshots
             ORDER BY snapshot_time DESC
             LIMIT 1
@@ -114,7 +164,28 @@ class Sprint5Repository:
         )
         if not row:
             return None
-        return row
+
+        # --- backward compatibility layer ---
+        cash = float(row.get("cash_balance", 0.0) or 0.0)
+        total = float(row.get("total_equity", 0.0) or 0.0)
+        market_value = float(row.get("market_value", 0.0) or 0.0)
+
+        # 仮想計算（Phase6H仕様）
+        used_margin = max(0.0, abs(market_value) - cash)
+        free_cash = cash
+        available_margin = free_cash
+        collateral_equity = total
+        margin_utilization = used_margin / max(collateral_equity, 1e-9)
+
+        return {
+            **row,
+            "free_cash": free_cash,
+            "used_margin": used_margin,
+            "available_margin": available_margin,
+            "collateral_equity": collateral_equity,
+            "margin_utilization": margin_utilization,
+            "fees_paid": float(row.get("fees_paid", 0.0) or 0.0),  # fallback
+        }
 
     def latest_signal_snapshot(self) -> dict[str, Any]:
         row = self.store.fetchone_dict(

@@ -12,7 +12,10 @@ except Exception:  # pragma: no cover
     duckdb = None
     import sqlite3
 
+from datetime import datetime, timezone
 
+
+    
 class RuntimeStore:
     def __init__(self, path: Path) -> None:
         self.path = path if duckdb is not None else path.with_suffix('.sqlite3')
@@ -57,6 +60,56 @@ class RuntimeStore:
 
     def close(self) -> None:
         self._reset_conn()
+    
+    def ensure_paper_initial_equity(self, initial_capital: float = 100000.0) -> bool:
+        with self._session() as conn:
+            row = conn.execute("SELECT COUNT(*) FROM equity_snapshots").fetchone()
+            existing_count = int((row or [0])[0] or 0)
+            if existing_count > 0:
+                return False
+
+            now_ts = datetime.now(timezone.utc)
+
+            conn.execute(
+                """
+                INSERT INTO equity_snapshots (
+                    snapshot_time,
+                    cash_balance,
+                    gross_exposure,
+                    net_exposure,
+                    long_exposure,
+                    short_exposure,
+                    market_value,
+                    unrealized_pnl,
+                    realized_pnl,
+                    total_equity,
+                    drawdown,
+                    peak_equity
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                [
+                    now_ts,
+                    initial_capital,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    initial_capital,
+                    0.0,
+                    initial_capital,
+                ],
+            )
+
+            try:
+                conn.commit()
+            except Exception:
+                pass
+
+            return True
 
     def _ensure_schema(self) -> None:
         with self._session() as conn:
@@ -313,6 +366,10 @@ class RuntimeStore:
                     run_id VARCHAR,
                     mode VARCHAR,
                     plan_id VARCHAR,
+                    order_id VARCHAR,
+                    client_order_id VARCHAR,
+                    strategy_id VARCHAR,
+                    alpha_family VARCHAR,
                     symbol VARCHAR,
                     side VARCHAR,
                     fill_qty DOUBLE,
@@ -320,6 +377,13 @@ class RuntimeStore:
                     slippage_bps DOUBLE,
                     latency_ms DOUBLE,
                     fee_bps DOUBLE,
+                    bid DOUBLE,
+                    ask DOUBLE,
+                    arrival_mid_price DOUBLE,
+                    price_source VARCHAR,
+                    quote_time TIMESTAMP,
+                    quote_age_sec DOUBLE,
+                    fallback_reason VARCHAR,
                     status VARCHAR
                 );
                 CREATE TABLE IF NOT EXISTS strategy_registry (
@@ -661,6 +725,32 @@ class RuntimeStore:
                 conn.execute(schema_sql)
             else:
                 conn.executescript(schema_sql)
+            
+            # Backward-compatible migrations for existing runtime DB files.
+            # CREATE TABLE IF NOT EXISTS does not add missing columns to an
+            # already-existing table, so we patch the legacy execution_fills
+            # schema here to match the richer read model expected by execution.py.
+            migration_sqls = [
+                "ALTER TABLE execution_fills ADD COLUMN order_id VARCHAR",
+                "ALTER TABLE execution_fills ADD COLUMN client_order_id VARCHAR",
+                "ALTER TABLE execution_fills ADD COLUMN strategy_id VARCHAR",
+                "ALTER TABLE execution_fills ADD COLUMN alpha_family VARCHAR",
+                "ALTER TABLE execution_fills ADD COLUMN bid DOUBLE",
+                "ALTER TABLE execution_fills ADD COLUMN ask DOUBLE",
+                "ALTER TABLE execution_fills ADD COLUMN arrival_mid_price DOUBLE",
+                "ALTER TABLE execution_fills ADD COLUMN price_source VARCHAR",
+                "ALTER TABLE execution_fills ADD COLUMN quote_time TIMESTAMP",
+                "ALTER TABLE execution_fills ADD COLUMN quote_age_sec DOUBLE",
+                "ALTER TABLE execution_fills ADD COLUMN fallback_reason VARCHAR",
+            ]
+
+            for sql in migration_sqls:
+                try:
+                    conn.execute(sql)
+                except Exception:
+                    # Column already exists, or DB is not in a state that needs this migration
+                    pass
+
             try:
                 conn.commit()
             except Exception:

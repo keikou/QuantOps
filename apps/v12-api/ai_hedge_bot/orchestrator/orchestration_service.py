@@ -507,10 +507,11 @@ class OrchestrationService:
             for row in position_rows
         }
         latest_equity_row = CONTAINER.runtime_store.fetchone_dict(
-            "SELECT total_equity, available_margin FROM equity_snapshots ORDER BY snapshot_time DESC LIMIT 1"
+            "SELECT total_equity, used_margin FROM equity_snapshots ORDER BY snapshot_time DESC LIMIT 1"
         )
         capital_base = float((latest_equity_row or {}).get('total_equity', 0.0) or 0.0)
-        available_margin = float((latest_equity_row or {}).get('available_margin', capital_base) or capital_base)
+        used_margin = float((latest_equity_row or {}).get('used_margin', 0.0) or 0.0)
+        available_margin = max(capital_base - used_margin, 0.0)
         capital_base = capital_base if capital_base > 1000.0 else self._truth.initial_capital
         if not decisions:
             blocked_events.append(
