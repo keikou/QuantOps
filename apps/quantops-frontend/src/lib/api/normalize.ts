@@ -857,6 +857,16 @@ export function normalizeCommandCenterRuntimeDebug(input: any): CommandCenterRun
           runtimeDebugApiPath: toString(x.linked_evidence.runtime_debug_api_path, ''),
         }
       : undefined,
+    retryGuidance: x.retry_guidance
+      ? {
+          retryCandidate: toBool(x.retry_guidance.retry_candidate, false),
+          retryReason: toString(x.retry_guidance.retry_reason, ''),
+          retryBlockReason: toString(x.retry_guidance.retry_block_reason, ''),
+          retryScope: toString(x.retry_guidance.retry_scope, ''),
+          suggestedAction: toString(x.retry_guidance.suggested_action, ''),
+          copyableCommand: toString(x.retry_guidance.copyable_command, ''),
+        }
+      : undefined,
     counts: x.counts ?? {},
     stages: stages.map((item: any) => ({
       key: toString(item.key, ''),

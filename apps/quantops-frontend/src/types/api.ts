@@ -448,6 +448,15 @@ export type RuntimeReviewState = {
   noteRequiredFor?: string[];
 };
 
+export type RuntimeRetryGuidance = {
+  retryCandidate: boolean;
+  retryReason?: string;
+  retryBlockReason?: string;
+  retryScope?: string;
+  suggestedAction?: string;
+  copyableCommand?: string;
+};
+
 export type RuntimeIssueBucket = {
   code: string;
   count: number;
@@ -643,6 +652,7 @@ export type CommandCenterRuntimeDebug = {
     runtimeRunsApiPath?: string;
     runtimeDebugApiPath?: string;
   };
+  retryGuidance?: RuntimeRetryGuidance;
   counts?: Record<string, number>;
   stages: RuntimeStage[];
   timeline: RuntimeTimelineEvent[];

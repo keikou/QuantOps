@@ -35,6 +35,7 @@ export default function Page() {
 
   const detail = runtime.data?.data;
   const linkedEvidence = detail?.linkedEvidence;
+  const retryGuidance = detail?.retryGuidance;
   const review = detail?.review;
   const summary = detail?.summary;
   const allowedTransitions = review?.allowedTransitions ?? ['acknowledged', 'investigating', 'resolved', 'ignored'];
@@ -220,6 +221,44 @@ export default function Page() {
             </a>
           ) : null}
         </div>
+      </div>
+
+      <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 text-sm text-slate-300">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <div className="font-medium text-slate-100">Retry Guidance</div>
+            <div className="text-xs text-slate-500">Non-destructive operator guidance only. No retry execution is triggered here.</div>
+          </div>
+          <div className={`rounded-full border px-3 py-1 text-xs ${
+            retryGuidance?.retryCandidate
+              ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-100'
+              : 'border-amber-500/40 bg-amber-500/10 text-amber-100'
+          }`}>
+            {retryGuidance?.retryCandidate ? 'Retry Candidate' : 'Retry Blocked'}
+          </div>
+        </div>
+        <div className="mt-3 grid gap-2 md:grid-cols-2">
+          <div>Retry scope: <span className="text-slate-100">{retryGuidance?.retryScope || '-'}</span></div>
+          <div>Retry reason: <span className="text-slate-100">{retryGuidance?.retryReason || '-'}</span></div>
+          <div className="md:col-span-2">Suggested action: <span className="text-slate-100">{retryGuidance?.suggestedAction || '-'}</span></div>
+          <div className="md:col-span-2">Block reason: <span className="text-slate-100">{retryGuidance?.retryBlockReason || '-'}</span></div>
+        </div>
+        {retryGuidance?.copyableCommand ? (
+          <>
+            <pre className="mt-4 overflow-x-auto rounded-xl bg-slate-950/70 p-3 text-xs text-cyan-200">
+              {retryGuidance.copyableCommand}
+            </pre>
+            <button
+              type="button"
+              onClick={async () => {
+                await navigator.clipboard.writeText(retryGuidance.copyableCommand || '');
+              }}
+              className="mt-3 rounded-full border border-slate-700 bg-slate-800/70 px-3 py-1 text-xs text-slate-100 transition hover:border-cyan-500/40 hover:text-cyan-100"
+            >
+              Copy Retry Command
+            </button>
+          </>
+        ) : null}
       </div>
 
       <div className="grid gap-4 xl:grid-cols-2">

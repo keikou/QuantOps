@@ -940,6 +940,89 @@ class CommandCenterService:
             "runtime_debug_api_path": f"/api/v1/command-center/debug/runtime?run_id={run_id}" if run_id else None,
         }
 
+    @staticmethod
+    def _runtime_retry_command(*, run_mode: str | None, linked_evidence: dict, run_id: str | None) -> str:
+        mode = str(run_mode or "paper").strip().lower() or "paper"
+        debug_path = str(linked_evidence.get("runtime_debug_api_path") or "")
+        if debug_path:
+            return (
+                "curl -X POST \"http://127.0.0.1:8010/api/v1/scheduler/run-now?mode="
+                f"{mode}\" -H \"X-User-Id: operator\" -H \"X-User-Role: operator\""
+                f" && curl \"http://127.0.0.1:8010{debug_path}\""
+            )
+        return (
+            "curl -X POST \"http://127.0.0.1:8010/api/v1/scheduler/run-now?mode="
+            f"{mode}\" -H \"X-User-Id: operator\" -H \"X-User-Role: operator\""
+        )
+
+    def _classify_runtime_retry_guidance(
+        self,
+        *,
+        run_id: str | None,
+        run_mode: str | None,
+        diagnosis: dict,
+        review: dict,
+        recurrence: dict | None,
+        linked_evidence: dict,
+    ) -> dict:
+        diagnosis_code = str(diagnosis.get("primary_code") or "")
+        recurrence_status = str((recurrence or {}).get("recurrence_status") or "")
+        review_status = str(review.get("review_status") or "new")
+        retry_candidate = False
+        retry_reason = ""
+        retry_block_reason = ""
+        retry_scope = "single_run"
+        suggested_action = ""
+
+        if review_status == "resolved":
+            retry_block_reason = "run already resolved; reopen investigation before retrying"
+            suggested_action = "Re-open investigation if a follow-up paper run is still needed."
+        elif diagnosis_code == "missing_price":
+            retry_candidate = True
+            retry_reason = "pricing_input_refresh_may_allow_retry"
+            suggested_action = "Refresh pricing inputs, verify symbol mapping, then re-run a paper cycle."
+        elif diagnosis_code == "artifact_chain_incomplete":
+            retry_candidate = True
+            retry_reason = "artifacts_can_be_rebuilt_after_evidence_check"
+            suggested_action = "Inspect the first missing stage and artifact evidence, then re-run a paper cycle if upstream inputs look healthy."
+        elif diagnosis_code == "execution_bridge_missing":
+            retry_block_reason = "manual_investigation_required_before_retry"
+            suggested_action = "Inspect planner-to-bridge handoff and linked evidence before considering a retry."
+        elif diagnosis_code == "risk_guard_block":
+            retry_block_reason = "risk_gate_active"
+            suggested_action = "Review risk thresholds and exposure before any retry."
+        elif diagnosis_code == "portfolio_not_updated":
+            retry_block_reason = "portfolio_writer_state_must_be_checked"
+            suggested_action = "Inspect portfolio writer state and snapshot persistence before retrying."
+        elif diagnosis_code == "fill_not_captured":
+            retry_block_reason = "fill_capture_integrity_needs_review"
+            suggested_action = "Review broker acknowledgements and fill capture latency before retrying."
+        elif diagnosis_code == "successful_chain":
+            retry_block_reason = "no_retry_needed_for_successful_chain"
+            suggested_action = "No retry is recommended. Use linked evidence if you need to compare related runs."
+        else:
+            retry_candidate = recurrence_status in {"isolated", "repeating"}
+            retry_reason = "generic_runtime_gap_retryable_after_review" if retry_candidate else ""
+            retry_block_reason = "" if retry_candidate else "persistent_runtime_gap_requires_manual_investigation"
+            suggested_action = (
+                "Use linked evidence to inspect the first missing truth point, then re-run a paper cycle if the gap appears transient."
+                if retry_candidate
+                else "Use linked evidence to inspect the recurring runtime gap before retrying."
+            )
+
+        return {
+            "retry_candidate": retry_candidate,
+            "retry_reason": retry_reason or None,
+            "retry_block_reason": retry_block_reason or None,
+            "retry_scope": retry_scope,
+            "suggested_action": suggested_action,
+            "copyable_command": self._runtime_retry_command(
+                run_mode=run_mode,
+                linked_evidence=linked_evidence,
+                run_id=run_id,
+            ),
+        }
+
     async def get_overview(self) -> dict:
         dashboard = await self.dashboard_service.get_overview()
         execution = await self.analytics_service.execution_summary_live()
@@ -1214,6 +1297,13 @@ class CommandCenterService:
                     "last_seen_at": run_timestamp,
                 }
         review = self._get_run_review_map([str(resolved_run_id or "")]).get(str(resolved_run_id or ""))
+        linked_evidence = self._runtime_linked_evidence(
+            run_id=resolved_run_id,
+            diagnosis_code=str(diagnosis.get("primary_code") or ""),
+            reason_code=str(summary.get("latest_reason_code") or ""),
+            blocking_component=str(summary.get("blocking_component") or ""),
+        )
+        review_payload = self._attach_run_review_state({}, review)["review"]
         return {
             "scope": "command_center.runtime",
             "status": "ok" if resolved_run_id else "no_data",
@@ -1258,12 +1348,15 @@ class CommandCenterService:
             "artifacts": artifacts,
             "diagnosis": diagnosis,
             "diagnosis_context": recurrence,
-            "review": self._attach_run_review_state({}, review)["review"],
-            "linked_evidence": self._runtime_linked_evidence(
+            "review": review_payload,
+            "linked_evidence": linked_evidence,
+            "retry_guidance": self._classify_runtime_retry_guidance(
                 run_id=resolved_run_id,
-                diagnosis_code=str(diagnosis.get("primary_code") or ""),
-                reason_code=str(summary.get("latest_reason_code") or ""),
-                blocking_component=str(summary.get("blocking_component") or ""),
+                run_mode=str((run_item or {}).get("mode") or "paper"),
+                diagnosis=diagnosis,
+                review=review_payload,
+                recurrence=recurrence,
+                linked_evidence=linked_evidence,
             ),
             "stages": stages,
             "timeline": self._timeline_items(events, limit=25),

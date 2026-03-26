@@ -275,3 +275,43 @@ def test_runtime_review_rejects_invalid_transition_and_exposes_linked_evidence(t
     assert debug_payload["review"]["allowed_transitions"] == ["new", "investigating", "ignored"]
     assert debug_payload["linked_evidence"]["execution_issue_path"] == "/execution?issueCode=execution_bridge_missing"
     assert "issue_code=execution_bridge_missing" in debug_payload["linked_evidence"]["runtime_runs_api_path"]
+
+
+def test_retry_guidance_blocks_bridge_gap_and_exposes_copyable_command(tmp_path) -> None:
+    service = _build_service(tmp_path)
+
+    debug_payload = asyncio.run(service.get_runtime_debug(run_id="run-blocked-new"))
+    retry = debug_payload["retry_guidance"]
+    assert retry["retry_candidate"] is False
+    assert retry["retry_block_reason"] == "manual_investigation_required_before_retry"
+    assert "Inspect planner-to-bridge handoff" in retry["suggested_action"]
+    assert "scheduler/run-now?mode=paper" in retry["copyable_command"]
+
+
+def test_retry_guidance_blocks_resolved_runs(tmp_path) -> None:
+    service = _build_service(tmp_path)
+    actor = RequestActor(user_id="alice", role="operator")
+
+    asyncio.run(
+        service.review_runtime_run(
+            run_id="run-blocked-new",
+            review_status="investigating",
+            acknowledged=True,
+            operator_note="Investigating before resolve.",
+            actor=actor,
+        )
+    )
+    asyncio.run(
+        service.review_runtime_run(
+            run_id="run-blocked-new",
+            review_status="resolved",
+            acknowledged=True,
+            operator_note="Resolved after manual investigation.",
+            actor=actor,
+        )
+    )
+
+    debug_payload = asyncio.run(service.get_runtime_debug(run_id="run-blocked-new"))
+    retry = debug_payload["retry_guidance"]
+    assert retry["retry_candidate"] is False
+    assert retry["retry_block_reason"] == "run already resolved; reopen investigation before retrying"
