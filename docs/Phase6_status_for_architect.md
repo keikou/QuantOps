@@ -134,6 +134,33 @@ Validation:
 
 - `python -m pytest apps/v12-api/tests/test_phase6_live_trading_closure.py -q`
 
+### 7. Third Phase6 proof now exists
+
+Added:
+
+- `apps/v12-api/ai_hedge_bot/services/live_trading_service.py`
+- `apps/v12-api/tests/test_phase6_live_trading_closure.py`
+
+Current proof:
+
+```text
+reconciliation mismatch or live anomaly
+-> explicit incident / guard decision
+-> live trading suppression or safe containment
+```
+
+Concrete assertions now covered:
+
+- mismatched reconciliation writes `fill_mismatch`
+- mismatch creates `live_incidents`
+- mismatch triggers runtime halt through the guard path
+- later approved live intent is blocked with `execution_disabled`
+- unsafe continued live execution is suppressed after mismatch
+
+Validation:
+
+- `python -m pytest apps/v12-api/tests/test_phase6_live_trading_closure.py -q`
+
 ## Current Codex Judgment
 
 This is the current engineering judgment:
@@ -204,6 +231,15 @@ then the system must persist an explicit reconciliation event,
 raise a live incident or guard state,
 and prevent unsafe continued live execution until resolved or recovered
 ```
+
+## Questions For Architect
+
+Please re-judge Phase6 after the mismatch / incident / suppression proof packet:
+
+1. Is `Phase6` still `VERY EARLY / PARTIALLY COMPLETE`, or has it moved further?
+2. Does the current packet satisfy `Phase6-CLOSE-3`?
+3. If yes, what exact invariant should be treated as `Phase6-CLOSE-4`?
+4. Has the hardest gap shifted from mismatch containment to recovery / resume after live anomaly?
 
 ## Likely Closure Definition
 

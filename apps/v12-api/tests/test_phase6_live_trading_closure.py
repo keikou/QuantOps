@@ -161,3 +161,70 @@ def test_phase6_close2_live_send_persists_lifecycle_and_reconciliation_evidence(
 
     incident_count = CONTAINER.runtime_store.fetchone_dict("SELECT COUNT(*) AS c FROM live_incidents")
     assert int(incident_count["c"]) == 0
+
+
+def test_phase6_close3_reconciliation_mismatch_raises_incident_and_suppresses_live_execution() -> None:
+    _reset_phase6_state()
+    service = LiveTradingService()
+    service.runtime_service.resume_trading("phase6 close3 reset", actor="test")
+
+    submitted = service.submit_live_order(
+        symbol="ETHUSDT",
+        side="buy",
+        qty=1.0,
+        urgency="high",
+        target_weight=0.25,
+        approved=True,
+        mode=Mode.LIVE,
+    )
+    assert submitted["status"] == "ok"
+
+    mismatch = service.reconcile_live_fill(
+        live_order_id=submitted["live_order_id"],
+        venue_order_id=submitted["venue_order_id"],
+        symbol="ETHUSDT",
+        side="buy",
+        fill_qty=0.5,
+        fill_price=2500.0,
+        free_balance=8000.0,
+        locked_balance=1200.0,
+        matched=False,
+    )
+    assert mismatch["status"] == "incident"
+    assert mismatch["order_status"] == "mismatch"
+    assert mismatch["matched"] is False
+
+    recon_rows = CONTAINER.runtime_store.fetchall_dict(
+        """
+        SELECT event_type, status, matched
+        FROM live_reconciliation_events
+        WHERE live_order_id = ?
+        ORDER BY created_at ASC
+        """,
+        [submitted["live_order_id"]],
+    )
+    assert [row["event_type"] for row in recon_rows] == ["order_submitted", "fill_mismatch"]
+    assert recon_rows[-1]["status"] == "incident"
+    assert bool(recon_rows[-1]["matched"]) is False
+
+    incident = CONTAINER.runtime_store.fetchone_dict(
+        "SELECT category, severity, status, summary FROM live_incidents ORDER BY created_at DESC LIMIT 1"
+    )
+    assert incident is not None
+    assert incident["category"] == "reconciliation"
+    assert incident["severity"] == "high"
+    assert incident["status"] == "open"
+
+    trading_state = service.runtime_service.get_trading_state()
+    assert str(trading_state["trading_state"]).lower() == "halted"
+
+    blocked = service.evaluate_live_intent(
+        symbol="BTCUSDT",
+        urgency="high",
+        target_weight=0.30,
+        approved=True,
+        mode=Mode.LIVE,
+    )
+    assert blocked["status"] == "blocked"
+    assert blocked["reason_code"] == "execution_disabled"
+    assert blocked["trading_state"] == "halted"

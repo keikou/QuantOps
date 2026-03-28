@@ -221,6 +221,10 @@ class LiveTradingService:
             },
         )
         if not matched:
+            halt = self.runtime_service.halt_trading(
+                "Live reconciliation mismatch detected",
+                actor="live_reconciliation_guard",
+            )
             CONTAINER.runtime_store.append(
                 "live_incidents",
                 {
@@ -231,7 +235,11 @@ class LiveTradingService:
                     "status": "open",
                     "summary": "Live reconciliation mismatch detected",
                     "details_json": CONTAINER.runtime_store.to_json(
-                        {"live_order_id": live_order_id, "venue_order_id": venue_order_id}
+                        {
+                            "live_order_id": live_order_id,
+                            "venue_order_id": venue_order_id,
+                            "guard_state": halt.get("trading_state"),
+                        }
                     ),
                 },
             )

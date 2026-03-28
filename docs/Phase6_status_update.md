@@ -257,3 +257,33 @@ Phase6-CLOSE-1 is satisfied.
 Phase6-CLOSE-2 is satisfied.
 The next closure target is mismatch / anomaly -> incident / guard / suppression.
 ```
+
+## Phase6-CLOSE-3 Proof Added
+
+Added:
+
+- `apps/v12-api/ai_hedge_bot/services/live_trading_service.py`
+- `apps/v12-api/tests/test_phase6_live_trading_closure.py`
+
+What it proves:
+
+```text
+reconciliation mismatch or live anomaly
+-> explicit incident / guard decision
+-> live trading suppression or safe containment
+```
+
+Concrete behavior now covered:
+
+- mismatched reconciliation writes `fill_mismatch`
+- mismatch creates `live_incidents`
+- mismatch triggers runtime halt via guard path
+- later approved live intent is blocked with `execution_disabled`
+- unsafe continued live execution is suppressed after mismatch
+
+Validation:
+
+```text
+python -m pytest apps\v12-api\tests\test_phase6_live_trading_closure.py -q
+4 passed
+```
