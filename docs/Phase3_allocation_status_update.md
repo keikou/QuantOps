@@ -3,11 +3,11 @@
 Date: `2026-03-29`
 Repo: `QuantOps_github`
 Branch: `main`
-Status: `in_progress`
+Status: `complete`
 
 ## Summary
 
-Phase3 now has a stronger closure packet:
+Phase3 now has a closed allocation packet:
 
 - score-driven allocation intent in runtime portfolio preparation
 - proof test for changed alpha inputs -> changed allocation weights
@@ -15,7 +15,7 @@ Phase3 now has a stronger closure packet:
 - proof test for prior realized/unrealized result -> next allocation reweight with same alpha inputs
 - live verification script for allocation -> execution -> fills -> realized positions surfaces
 
-This is meaningful progress, but it is not yet the final Phase3 closeout memo.
+This packet is now sufficient to close Phase3.
 
 ## What Was Added
 
@@ -83,40 +83,37 @@ status = ok
 
 ## Current Judgment
 
-Phase3 is now close enough to closeout that the remaining step is re-judgment rather than first implementation. It should still currently be treated as:
+Phase3 should now be treated as:
 
 ```text
-PARTIALLY COMPLETE
+COMPLETE
 ```
 
-Why it is not yet marked closed in repo:
+Why:
 
-- architect has not yet re-judged the updated Phase3 packet
-- there is not yet a final completion memo equivalent to Phase1/Phase2 closeout
+- feedback/reallocation proof is now added
+- live verification still passes
+- architect re-judged the updated packet as `Phase3 = COMPLETE`
 
-## Remaining Work To Close Phase3
+## Remaining Work After Closure
 
-### 1. Re-submit packet to architect
-
-Need judgment whether the newly added feedback/reallocation proof is sufficient for closure.
-
-### 2. Add final completion memo if architect confirms closure
-
-Suggested file:
+### 1. Canonical completion memo
 
 - `docs/Phase3_allocation_completion_final.md`
 
-Needed materials:
+### 2. Future work is hardening / acceptance-strengthening
 
-- `docs/Phase3_allocation_closure_plan.md`
-- `docs/Phase3_allocation_status_update.md`
-- `apps/v12-api/tests/test_phase3_allocation_loop_closure.py`
-- `test_bundle/scripts/verify_phase3_allocation_closure.py`
+Examples:
+
+- realized-state constraint tolerance strengthening
+- rebalance idempotence / anti-churn hardening
+- production acceptance criteria expansion
+
+These are no longer treated as closure blockers for Phase3.
 
 ## Working Conclusion
 
 ```text
-Phase3 now has a stronger proof packet that includes explicit feedback/reallocation.
-It is no longer only "components exist" or "allocation affects execution".
-The remaining step is architect re-judgment and final closeout memo.
+Phase3 closure is complete.
+Remaining work is hardening and acceptance-strengthening.
 ```
