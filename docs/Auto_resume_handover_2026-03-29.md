@@ -136,6 +136,12 @@ Use this exact prompt in the new architect conversation:
 Project ai_hedge_bot has completed Phase1 through Phase7 on main.
 We are now on branch codex/post-phase7-hardening and have moved into System Reliability Hardening Track rather than naming Phase8.
 
+GitHub repo:
+https://github.com/keikou/QuantOps
+
+Working branch URL:
+https://github.com/keikou/QuantOps/tree/codex/post-phase7-hardening
+
 Current architect-aligned status:
 - do not name Phase8 yet
 - lane 1 = Recovery / Replay Confidence
