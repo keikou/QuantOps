@@ -656,6 +656,62 @@ class RuntimeStore:
                     usage_count INTEGER,
                     tags_json VARCHAR
                 );
+                CREATE TABLE IF NOT EXISTS live_orders (
+                    live_order_id VARCHAR,
+                    created_at TIMESTAMP,
+                    updated_at TIMESTAMP,
+                    symbol VARCHAR,
+                    side VARCHAR,
+                    qty DOUBLE,
+                    venue VARCHAR,
+                    order_type VARCHAR,
+                    tif VARCHAR,
+                    decision_id VARCHAR,
+                    status VARCHAR,
+                    venue_order_id VARCHAR,
+                    metadata_json VARCHAR
+                );
+                CREATE TABLE IF NOT EXISTS live_fills (
+                    live_fill_id VARCHAR,
+                    created_at TIMESTAMP,
+                    live_order_id VARCHAR,
+                    venue_order_id VARCHAR,
+                    symbol VARCHAR,
+                    side VARCHAR,
+                    fill_qty DOUBLE,
+                    fill_price DOUBLE,
+                    status VARCHAR,
+                    metadata_json VARCHAR
+                );
+                CREATE TABLE IF NOT EXISTS live_account_balances (
+                    balance_snapshot_id VARCHAR,
+                    created_at TIMESTAMP,
+                    venue VARCHAR,
+                    asset VARCHAR,
+                    free_balance DOUBLE,
+                    locked_balance DOUBLE,
+                    total_balance DOUBLE,
+                    source VARCHAR
+                );
+                CREATE TABLE IF NOT EXISTS live_reconciliation_events (
+                    reconciliation_event_id VARCHAR,
+                    created_at TIMESTAMP,
+                    live_order_id VARCHAR,
+                    venue_order_id VARCHAR,
+                    event_type VARCHAR,
+                    status VARCHAR,
+                    matched BOOLEAN,
+                    details_json VARCHAR
+                );
+                CREATE TABLE IF NOT EXISTS live_incidents (
+                    incident_id VARCHAR,
+                    created_at TIMESTAMP,
+                    category VARCHAR,
+                    severity VARCHAR,
+                    status VARCHAR,
+                    summary VARCHAR,
+                    details_json VARCHAR
+                );
                 """
             if duckdb is not None:
                 conn.execute(schema_sql)

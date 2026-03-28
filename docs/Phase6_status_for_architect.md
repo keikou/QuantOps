@@ -105,6 +105,35 @@ Validation:
 
 - `python -m pytest apps/v12-api/tests/test_phase6_live_trading_closure.py -q`
 
+### 6. Second Phase6 proof now exists
+
+Added:
+
+- `apps/v12-api/ai_hedge_bot/services/live_trading_service.py`
+- `apps/v12-api/tests/test_phase6_live_trading_closure.py`
+
+Current proof:
+
+```text
+live send
+-> durable live order lifecycle state
+-> reconciliation evidence
+```
+
+Concrete assertions now covered:
+
+- `submit_live_order()` persists `live_orders` with explicit submitted state
+- submission persists `live_reconciliation_events` with `order_submitted`
+- `reconcile_live_fill()` advances the order to `filled`
+- fill persistence creates `live_fills`
+- reconciliation persists `live_account_balances`
+- successful reconciliation writes `fill_reconciled`
+- matched reconciliation does not create a live incident
+
+Validation:
+
+- `python -m pytest apps/v12-api/tests/test_phase6_live_trading_closure.py -q`
+
 ## Current Codex Judgment
 
 This is the current engineering judgment:
@@ -140,6 +169,15 @@ Current hardest gap:
 ```text
 approved live intent を venue/account truth まで閉じる live reconciliation problem
 ```
+
+## Questions For Architect
+
+Please re-judge Phase6 after the lifecycle / reconciliation proof packet:
+
+1. Is `Phase6` still `VERY EARLY / PARTIALLY COMPLETE`?
+2. Does the current packet satisfy `Phase6-CLOSE-2`?
+3. If yes, what exact invariant should be treated as `Phase6-CLOSE-3`?
+4. Has the hardest gap shifted from basic lifecycle persistence to reconciliation drift / incident closure?
 
 ## Likely Closure Definition
 
