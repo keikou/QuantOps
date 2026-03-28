@@ -5,10 +5,14 @@ from ai_hedge_bot.services.truth_engine import TruthEngine
 def _reset_runtime_state() -> None:
     tables = [
         'execution_fills', 'execution_orders', 'market_prices_latest', 'market_prices_history',
-        'position_snapshots_latest', 'position_snapshots_history', 'equity_snapshots', 'cash_ledger',
+        'position_snapshots_latest', 'position_snapshots_history', 'position_snapshot_versions',
+        'equity_snapshots', 'cash_ledger', 'truth_engine_state',
     ]
     for table in tables:
-        CONTAINER.runtime_store.execute(f'DELETE FROM {table}')
+        try:
+            CONTAINER.runtime_store.execute(f'DELETE FROM {table}')
+        except Exception:
+            pass
 
 
 def test_signed_qty_short_keeps_equity_near_initial_plus_pnl() -> None:

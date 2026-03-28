@@ -181,6 +181,41 @@ def test_dashboard_overview_parallelizes_upstream_reads() -> None:
     assert elapsed < 0.15
 
 
+def test_dashboard_overview_uses_v12_summary_margin_truth() -> None:
+    class _SummaryTruthDashboardClient(_DashboardClient):
+        async def get_portfolio_positions(self) -> dict:
+            await self._sleep()
+            return {
+                "items": [
+                    {
+                        "symbol": "BTCUSDT",
+                        "signed_qty": 2.0,
+                        "avg_price": 10.0,
+                        "mark_price": 10.0,
+                        "pnl": 0.0,
+                    },
+                    {
+                        "symbol": "BTCUSDT",
+                        "signed_qty": -1.0,
+                        "avg_price": 30.0,
+                        "mark_price": 10.0,
+                        "pnl": 0.0,
+                    },
+                ],
+                "as_of": "2026-03-22T00:00:00+00:00",
+            }
+
+    service = DashboardService(_SummaryTruthDashboardClient(), _SchedulerRepository(), _AlertService())  # type: ignore[arg-type]
+
+    payload = asyncio.run(service.get_overview())
+
+    assert payload["total_equity"] == 100.0
+    assert payload["used_margin"] == 70.0
+    assert payload["free_margin"] == 30.0
+    assert payload["stable_value"]["used_margin"] == 70.0
+    assert payload["display_value"]["free_margin"] == 30.0
+
+
 def test_dashboard_overview_bounded_fast_path_returns_primary_truth_when_aux_calls_are_slow() -> None:
     service = DashboardService(_SlowDashboardClient(), _SchedulerRepository(), _AlertService())  # type: ignore[arg-type]
     service.OVERVIEW_PRIMARY_TIMEOUT_SECONDS = 0.12

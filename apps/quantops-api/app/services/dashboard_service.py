@@ -296,7 +296,31 @@ class DashboardService:
                 "total_equity": round(summary_total_equity, 2),
             }
 
-        total_equity = self._safe_float(breakdown.get("total_equity"))
+        summary_balance_key = self._first_present_key(summary, "cash_balance", "balance", "cash", "free_cash")
+        summary_total_equity_key = self._first_present_key(summary, "total_equity", "portfolio_value")
+        summary_used_margin_key = self._first_present_key(summary, "used_margin")
+
+        total_equity = (
+            self._safe_float(summary.get(summary_total_equity_key))
+            if summary_total_equity_key
+            else self._safe_float(breakdown.get("total_equity"))
+        )
+        balance = (
+            self._safe_float(summary.get(summary_balance_key))
+            if summary_balance_key
+            else self._safe_float(breakdown.get("balance"))
+        )
+        used_margin = (
+            self._safe_float(summary.get(summary_used_margin_key))
+            if summary_used_margin_key
+            else self._safe_float(breakdown.get("used_margin"))
+        )
+        free_margin = (
+            round(total_equity - used_margin, 2)
+            if summary_used_margin_key
+            else self._safe_float(breakdown.get("free_margin"))
+        )
+        unrealized = self._safe_float(breakdown.get("unrealized"))
 
         gross_exposure = self._safe_float(
             summary.get("gross_exposure", summary.get("grossExposure", 0.0))
@@ -360,10 +384,10 @@ class DashboardService:
         result = {
             "portfolio_value": round(total_equity, 2),
             "total_equity": round(total_equity, 2),
-            "balance": round(self._safe_float(breakdown.get("balance")), 2),
-            "used_margin": round(self._safe_float(breakdown.get("used_margin")), 2),
-            "free_margin": round(self._safe_float(breakdown.get("free_margin")), 2),
-            "unrealized": round(self._safe_float(breakdown.get("unrealized")), 2),
+            "balance": round(balance, 2),
+            "used_margin": round(used_margin, 2),
+            "free_margin": round(free_margin, 2),
+            "unrealized": round(unrealized, 2),
             "pnl": round(pnl, 6),
             "gross_exposure": round(gross_exposure, 6),
             "net_exposure": round(net_exposure, 6),

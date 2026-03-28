@@ -447,10 +447,22 @@ class TruthEngine:
 
     @staticmethod
     def _summarize_positions_for_equity(positions: list[dict[str, Any]]) -> dict[str, float]:
+        used_margin_by_symbol: dict[str, float] = {}
+        for position in positions:
+            symbol = str(position.get("symbol") or "")
+            signed_qty_raw = position.get("signed_qty")
+            if signed_qty_raw is None:
+                abs_qty = float(position.get("abs_qty", 0.0) or 0.0)
+                side = str(position.get("side", "") or "").lower()
+                signed_qty = -abs_qty if side == "short" else abs_qty
+            else:
+                signed_qty = float(signed_qty_raw or 0.0)
+            avg_entry_price = float(position.get("avg_entry_price", 0.0) or 0.0)
+            used_margin_by_symbol[symbol] = used_margin_by_symbol.get(symbol, 0.0) + (signed_qty * avg_entry_price)
         return {
             "realized_total": round(sum(float(p.get("realized_pnl", 0.0) or 0.0) for p in positions), 8),
             "unrealized": round(sum(float(p.get("unrealized_pnl", 0.0) or 0.0) for p in positions), 8),
-            "used_margin": round(sum(float(p.get("avg_entry_price", 0.0) or 0.0) * float(p.get("abs_qty", 0.0) or 0.0) for p in positions), 8),
+            "used_margin": round(sum(abs(entry_notional) for entry_notional in used_margin_by_symbol.values()), 8),
             "current_long_notional": round(sum(max(0.0, float(p.get("market_value", 0.0) or 0.0)) for p in positions), 8),
             "current_short_notional": round(sum(abs(min(0.0, float(p.get("market_value", 0.0) or 0.0))) for p in positions), 8),
             "market_value": round(sum(float(p.get("market_value", 0.0) or 0.0) for p in positions), 8),
