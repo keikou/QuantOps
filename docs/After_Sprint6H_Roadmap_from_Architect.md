@@ -24,6 +24,7 @@ Phase3: Portfolio Intelligence = COMPLETE
 Phase4: Alpha Factory = COMPLETE
 Phase5: Risk / Guard OS = COMPLETE
 Phase6: Live Trading = COMPLETE
+Phase7: Self-Improving System = COMPLETE
 ```
 
 Interpretation:
@@ -231,10 +232,19 @@ Meaning:
 Status:
 
 ```text
-FUTURE PHASE
+COMPLETE
 ```
 
-This is intentionally downstream from the closure of execution and allocation loops.
+Why:
+
+- deterministic evaluation proof exists
+- governed deployment linkage proof exists
+- deployed-update to next-cycle feedback proof exists
+- architect re-judged the current packet as `Phase7 = COMPLETE`
+
+Reference:
+
+- [Phase7_self_improving_completion_final.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/Phase7_self_improving_completion_final.md)
 
 ## What Matters Most Right Now
 
@@ -251,31 +261,33 @@ That means the next highest-value work is no longer closing Phase2 or Phase3.
 The next highest-value work is:
 
 ```text
-post-Phase6 hardening and Phase7 self-improving system work
+post-Phase7 hardening and later roadmap work beyond the first seven closure phases
 ```
 
 ## Recommended Order
 
-### 1. Hardening after Phase5
+### 1. Hardening after Phase7
 
-Now that truth, execution, allocation, alpha factory, and guard closure are complete, the next focus should be:
+Now that truth, execution, allocation, alpha factory, guard, live trading, and self-improving closure are complete, the next focus should be:
 
 - acceptance-strengthening
 - policy precedence coverage
 - richer audit / config provenance
 
-### 2. Then move into Phase7
+### 2. Then move beyond the first closure stack
 
-After the closure phases and live-trading closure, the next focus should be:
+After the first seven closure phases, the next focus should be:
 
-- self-improving system work
+- acceptance-strengthening
+- broader operating quality
+- later roadmap expansion beyond Phase7
 
 ## Near-Term Action
 
 The immediate next action is:
 
 ```text
-continue hardening and define Phase7 closure
+continue hardening and define post-Phase7 roadmap work
 ```
 
 ## Working Summary
@@ -288,6 +300,7 @@ The repo has now also closed:
 - Phase4 alpha factory
 - Phase5 risk / guard OS
 - Phase6 live trading
+- Phase7 self-improving system
 
-The next roadmap milestone is post-Phase6 hardening and then Phase7 self-improving system work.
+The next roadmap milestone is post-Phase7 hardening and then later roadmap work beyond the first seven closure phases.
 ```
