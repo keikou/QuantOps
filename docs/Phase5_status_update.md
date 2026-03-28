@@ -3,17 +3,17 @@
 Date: `2026-03-29`
 Repo: `QuantOps_github`
 Branch: `main`
-Status: `partially_complete_late_stage`
+Status: `complete`
 
 ## Architect Verdict
 
 Latest architect judgment:
 
 ```text
-Phase5 = PARTIALLY COMPLETE
+Phase5 = COMPLETE
 ```
 
-This means the repo now has a real closure packet, but not yet a full guard-loop closeout.
+This means the Risk / Guard OS closure packet is now considered sufficient.
 
 ## What Already Exists
 
@@ -335,3 +335,67 @@ It is now about whether halt/resume decisions remain policy-consistent across eq
 ```text
 Phase5-CLOSE-4 = deterministic risk-policy / governance closure
 ```
+
+## Phase5-CLOSE-4 Proof Added
+
+Added:
+
+- `apps/v12-api/tests/test_phase5_risk_guard_close4.py`
+
+What it proves:
+
+```text
+same risk evidence + same policy config
+-> same halt / block / resume eligibility outcome
+across equivalent API and service entrypoints
+```
+
+Concrete behavior now covered:
+
+- API `kill-switch` and direct `RuntimeService.halt_trading(...)` yield the same halted enforcement outcome
+- API `resume` and direct `RuntimeService.resume_trading(...)` yield the same resumed execution outcome
+- equivalent halt evidence gives the same `risk_halted` enforcement surfaces
+- equivalent recovery path gives the same allowed next-cycle execution outcome
+- cache-sensitive runtime/execution views stay policy-consistent after reset
+
+Validation:
+
+```text
+python -m pytest apps\v12-api\tests\test_phase5_risk_guard_close4.py -q
+1 passed
+```
+
+## Architect Final Verdict
+
+Latest architect judgment:
+
+```text
+Phase5-CLOSE-4 = satisfied
+Phase5 = COMPLETE
+```
+
+Architect interpretation:
+
+- `Close-1`: risk breach -> suppression
+- `Close-2`: no-bypass suppression
+- `Close-3`: valid recovery -> next-cycle resume
+- `Close-4`: policy-consistent halt/resume outcome across equivalent paths
+
+Any remaining work is not a closure blocker.
+It belongs to hardening / acceptance-strengthening.
+
+Examples:
+
+- multi-strategy versus global guard precedence coverage
+- partial in-flight cancel / reduce-only behavior hardening
+- richer audit schema
+- policy versioning / config provenance
+- wider matrix coverage across paper / shadow / live-like modes
+
+## Final Conclusion
+
+```text
+Phase5 Risk / Guard OS = COMPLETE
+```
+
+The remaining follow-up items are optional quality-strengthening work, not phase closure work.

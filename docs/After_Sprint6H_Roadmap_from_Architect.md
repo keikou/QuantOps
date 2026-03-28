@@ -22,6 +22,7 @@ Phase1: Truth Layer = COMPLETE
 Phase2: Execution Reality = COMPLETE
 Phase3: Portfolio Intelligence = COMPLETE
 Phase4: Alpha Factory = COMPLETE
+Phase5: Risk / Guard OS = COMPLETE
 ```
 
 Interpretation:
@@ -30,7 +31,7 @@ Interpretation:
 - the execution loop is closed
 - the allocation loop is closed
 - the next work is no longer Phase2/Phase3 closure
-- the next work moves to Phase4+
+- the next work moves past the first five closure phases
 
 ## Architect Roadmap
 
@@ -174,10 +175,20 @@ Meaning:
 Status:
 
 ```text
-NOT STARTED AS A CLOSED PHASE
+COMPLETE
 ```
 
-This is a future closure track, even if some risk components already exist.
+Why:
+
+- suppression proof exists
+- no-bypass suppression proof exists
+- recovery/resume proof exists
+- policy-consistency proof exists
+- architect re-judged the Phase5 packet as `COMPLETE`
+
+Reference:
+
+- [Phase5_risk_guard_completion_final.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/Phase5_risk_guard_completion_final.md)
 
 ### Phase6: Live Trading
 
@@ -228,38 +239,23 @@ That means the next highest-value work is no longer closing Phase2 or Phase3.
 The next highest-value work is:
 
 ```text
-start Phase5 Risk / Guard OS hardening
+post-Phase5 hardening and later live-trading readiness
 ```
-
-Only after that should Phase3 be closed with the same rigor.
 
 ## Recommended Order
 
-### 1. Close Phase2
+### 1. Hardening after Phase5
 
-Needed outcome:
+Now that truth, execution, allocation, alpha factory, and guard closure are complete, the next focus should be:
 
-- `planner -> orders -> fills -> positions -> equity -> analytics`
-  proven with logs, tests, and verification procedure
+- acceptance-strengthening
+- policy precedence coverage
+- richer audit / config provenance
 
-Planned in:
+### 2. Then move into live trading
 
-- [Phase2_execution_closure_plan.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/Phase2_execution_closure_plan.md)
+After the closure phases and guard hardening, the next focus should be:
 
-### 2. Close Phase3
-
-Needed outcome:
-
-- `alpha -> optimizer -> weights -> execution -> result -> feedback -> reallocation`
-  proven as a closed loop
-
-This should be planned after Phase2 closure is materially underway or complete.
-
-### 3. Then move into Risk OS and later live trading
-
-Now that execution, allocation, and alpha factory loops are closed, the next focus should be:
-
-- risk operating system
 - live trading
 
 ## Near-Term Action
@@ -267,15 +263,8 @@ Now that execution, allocation, and alpha factory loops are closed, the next foc
 The immediate next action is:
 
 ```text
-start and define Phase5 Risk / Guard OS closure
+continue hardening and then define live-trading closure
 ```
-
-This means:
-
-- define guard and risk invariants
-- add proof tests
-- add verification script
-- produce completion memo
 
 ## Working Summary
 
@@ -285,6 +274,7 @@ The repo has now also closed:
 - Phase2 execution reality
 - Phase3 portfolio intelligence
 - Phase4 alpha factory
+- Phase5 risk / guard OS
 
-The next roadmap milestone is Phase5 Risk / Guard OS.
+The next roadmap milestone is post-Phase5 hardening and then live-trading readiness.
 ```

@@ -3,11 +3,11 @@
 Date: `2026-03-29`
 Repo: `QuantOps_github`
 Branch: `main`
-Current Working Status: `PARTIALLY COMPLETE, LATE-STAGE`
+Current Working Status: `COMPLETE`
 
 ## Purpose
 
-This note is the starting packet for judging `Phase5: Risk / Guard OS`.
+This note is the architect packet used during `Phase5: Risk / Guard OS` closure and now serves as the final record.
 
 Current completed phases:
 
@@ -16,7 +16,7 @@ Current completed phases:
 - `Phase3 Portfolio Intelligence = COMPLETE`
 - `Phase4 Alpha Factory = COMPLETE`
 
-The next question is how to define and close the risk/guard loop with the same rigor.
+The closure question has now been resolved and the packet is retained for reference.
 
 ## Current Evidence In Repo
 
@@ -171,18 +171,17 @@ Validation:
 This is the current engineering judgment:
 
 ```text
-Phase5 is PARTIALLY COMPLETE, late-stage.
+Phase5 is COMPLETE.
 Phase5-CLOSE-1 is satisfied.
 Phase5-CLOSE-2 is satisfied.
 Phase5-CLOSE-3 is satisfied.
-The next remaining gap is policy-deterministic guard/recovery closure.
+Phase5-CLOSE-4 is satisfied.
 ```
 
 Meaning:
 
-- stronger than "components only"
-- stronger than "single blocked path only"
-- still needs architect re-judgment on whether suppression completeness is now sufficient
+- the guard lifecycle is closed as a system loop
+- remaining work is hardening / acceptance-strengthening only
 
 ## Likely Closure Definition
 
@@ -219,17 +218,48 @@ Phase5-CLOSE-4
 -> same halted-or-running outcome across equivalent runtime entrypoints
 ```
 
-## Questions For Architect
+### 8. Policy-consistency proof now exists
 
-Please re-judge Phase5 after the recovery/resume proof packet:
+Added:
 
-1. Does the current packet satisfy `Phase5-CLOSE-3`?
-2. If yes, what exact invariant should be treated as `Phase5-CLOSE-4`?
-3. Has the hardest gap shifted from recovery determinism to broader risk-governance / policy closure?
-4. Is Phase5 still `PARTIALLY COMPLETE`, or now close enough to treat as `very close to COMPLETE`?
+- `apps/v12-api/tests/test_phase5_risk_guard_close4.py`
 
-## One-Line Prompt
+Current proof:
 
 ```text
-Please re-judge Phase5 Risk / Guard OS after the recovery/resume proof and specify whether Phase5-CLOSE-3 is satisfied, what exact invariant should be treated as Phase5-CLOSE-4, and whether the hardest gap has shifted to broader risk-policy / governance closure.
+same risk evidence + same policy config
+-> same halt / block / resume eligibility outcome
+across equivalent API and service entrypoints
+```
+
+Concrete assertions now covered:
+
+- API `kill-switch` and direct `RuntimeService.halt_trading(...)` produce the same halted enforcement outcome
+- API `resume` and direct `RuntimeService.resume_trading(...)` produce the same resumed execution outcome
+- equivalent halt evidence gives the same `risk_halted` enforcement surfaces
+- equivalent recovery path gives the same allowed next-cycle execution outcome
+
+Validation:
+
+- `python -m pytest apps/v12-api/tests/test_phase5_risk_guard_close4.py -q`
+
+## Architect Final Verdict
+
+Latest architect judgment:
+
+```text
+Phase5-CLOSE-4 = satisfied
+Phase5 = COMPLETE
+```
+
+Architect interpretation:
+
+- the closure packet is sufficient
+- remaining items are not closure blockers
+- examples of remaining work are broader precedence coverage, richer audit schema, policy versioning, and wider acceptance matrix coverage
+
+## Historical One-Line Prompt
+
+```text
+Please re-judge Phase5 Risk / Guard OS after the policy-consistency proof and specify whether Phase5-CLOSE-4 is satisfied, whether Phase5 is now COMPLETE or still PARTIALLY COMPLETE, and what invariant should be treated as next only if another blocker truly remains.
 ```
