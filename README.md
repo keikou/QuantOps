@@ -6,9 +6,12 @@ QuantOps is a local integrated trading operations workspace composed of three ma
 - `apps/quantops-api`: the QuantOps control-plane and aggregation API
 - `apps/quantops-frontend`: the Next.js operator GUI
 
-The current `main` branch reflects the post-SprintH state:
+The current `main` branch reflects the post-SprintH and post-closure state:
 
 - broad timeout mitigation is complete
+- `Phase1 Truth Layer` is complete
+- `Phase2 Execution Reality` is complete
+- `Phase3 Portfolio Intelligence` is complete
 - main GUI paths are stabilized on summary/read-model style routes
 - QuantOps summary contracts explicitly distinguish stable and display semantics
 - writer observability and incremental writer behavior are in place
@@ -29,15 +32,18 @@ The repo also contains `source_of_truth/` reference implementations and supporti
 
 If you are new to this repo, read these first:
 
-1. `docs/SprintH_completion_report.md`
-2. `docs/Development for AI.md`
-3. `docs/correlation-logging-guide.md`
-4. `docs/sprinth-finish-plan.md`
-5. `docs/development-rules-v12-vs-quantops.md`
-6. `docs/development-workflow.md`
-7. `docs/ops-runbook.md`
-8. `docs/dev-startup.md`
-9. `docs/ci_regression_packs.md`
+1. `docs/Development for AI.md`
+2. `docs/After_Sprint6H_Roadmap_from_Architect.md`
+3. `docs/SprintH_completion_report.md`
+4. `docs/Sprint6H_truth_completion_final.md`
+5. `docs/Phase2_execution_completion_final.md`
+6. `docs/Phase3_allocation_completion_final.md`
+7. `docs/correlation-logging-guide.md`
+8. `docs/development-rules-v12-vs-quantops.md`
+9. `docs/development-workflow.md`
+10. `docs/ops-runbook.md`
+11. `docs/dev-startup.md`
+12. `docs/ci_regression_packs.md`
 
 These documents capture the current architecture direction, development rules, startup path, regression surface, and SprintH closeout status.
 `docs/correlation-logging-guide.md` is the shortest practical path for tracing a page access, API timeout, or backend failure across frontend, QuantOps API, and V12 by `trace_id`.
@@ -119,12 +125,22 @@ These documents capture the current architecture direction, development rules, s
 
 SprintH is complete.
 
-The major remaining items are optional follow-up work, not SprintH blockers. The clearest remaining optional question is whether `source_fill_watermark` should ever be promoted into a broader public read-model contract.
+Phase closure status is:
+
+- `Phase1 Truth Layer = COMPLETE`
+- `Phase2 Execution Reality = COMPLETE`
+- `Phase3 Portfolio Intelligence = COMPLETE`
+
+The next roadmap target is no longer SprintH closeout or Phase2/3 closure. The next roadmap target is Phase4+ work such as Alpha Factory, Risk / Guard OS, and later live-trading readiness.
 
 See:
 
 - `docs/SprintH_completion_report.md`
 - `docs/sprinth-finish-plan.md`
+- `docs/Sprint6H_truth_completion_final.md`
+- `docs/Phase2_execution_completion_final.md`
+- `docs/Phase3_allocation_completion_final.md`
+- `docs/After_Sprint6H_Roadmap_from_Architect.md`
 
 ## CI And Regression Packs
 

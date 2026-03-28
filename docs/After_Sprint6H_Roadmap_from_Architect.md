@@ -26,8 +26,10 @@ Phase3: Portfolio Intelligence = COMPLETE
 Interpretation:
 
 - the truth layer is closed
-- the next work is no longer "make data true"
-- the next work is "close the execution loop" and then "close the allocation loop"
+- the execution loop is closed
+- the allocation loop is closed
+- the next work is no longer Phase2/Phase3 closure
+- the next work moves to Phase4+
 
 ## Architect Roadmap
 
@@ -216,7 +218,7 @@ That means the next highest-value work is no longer closing Phase2 or Phase3.
 The next highest-value work is:
 
 ```text
-close Phase2
+start Phase4 Alpha Factory planning and Phase5 Risk / Guard OS hardening
 ```
 
 Only after that should Phase3 be closed with the same rigor.
