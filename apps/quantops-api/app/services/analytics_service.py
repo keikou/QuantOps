@@ -37,6 +37,37 @@ class AnalyticsService:
             return None
         return dict(self._equity_history_cache)
 
+    @staticmethod
+    def _decorate_equity_history_contract(payload: dict, *, build_status: str) -> dict:
+        result = dict(payload)
+        items = result.get('items') if isinstance(result.get('items'), list) else []
+        source_snapshot_time = result.get('source_snapshot_time') or result.get('as_of')
+        result['source_snapshot_time'] = source_snapshot_time
+        result['rebuilt_at'] = result.get('rebuilt_at') or utc_now_iso()
+        result['build_status'] = build_status
+        stable_value = {
+            'items': items,
+            'point_count': len(items),
+            'last_point_as_of': ((items[-1] or {}).get('as_of') if items else None) or source_snapshot_time,
+            'base_equity': result.get('base_equity'),
+        }
+        result['stable_value'] = stable_value
+        result['live_delta'] = {
+            'recent_points_window': None,
+        }
+        result['display_value'] = dict(stable_value)
+        if source_snapshot_time:
+            try:
+                ts = datetime.fromisoformat(str(source_snapshot_time).replace("Z", "+00:00"))
+                if ts.tzinfo is None:
+                    ts = ts.replace(tzinfo=timezone.utc)
+                else:
+                    ts = ts.astimezone(timezone.utc)
+                result['data_freshness_sec'] = round(max(0.0, (datetime.now(timezone.utc) - ts).total_seconds()), 3)
+            except Exception:
+                pass
+        return result
+
     async def _build_equity_history_live(self) -> dict:
         payload = await self.v12_client.get_equity_history()
         items = payload.get('items') or []
@@ -76,17 +107,7 @@ class AnalyticsService:
                     'rebuilt_at': utc_now_iso(),
                     'build_status': 'fallback',
                 }
-        source_snapshot_time = result.get('source_snapshot_time') or result.get('as_of')
-        if source_snapshot_time:
-            try:
-                ts = datetime.fromisoformat(str(source_snapshot_time).replace("Z", "+00:00"))
-                if ts.tzinfo is None:
-                    ts = ts.replace(tzinfo=timezone.utc)
-                else:
-                    ts = ts.astimezone(timezone.utc)
-                result['data_freshness_sec'] = round(max(0.0, (datetime.now(timezone.utc) - ts).total_seconds()), 3)
-            except Exception:
-                pass
+        result = self._decorate_equity_history_contract(result, build_status=result.get('build_status') or 'live')
         now = datetime.now(timezone.utc)
         self._equity_history_cache = dict(result)
         self._equity_history_cache_updated_at = now
@@ -250,12 +271,12 @@ class AnalyticsService:
     async def equity_history(self) -> dict:
         cached = self._get_cached_equity_history()
         if cached is not None:
-            return cached
+            return self._decorate_equity_history_contract(cached, build_status='fresh_cache')
 
         stale_cached = self._get_cached_equity_history(allow_stale=True)
         if stale_cached is not None:
             self._schedule_equity_history_refresh()
-            return stale_cached
+            return self._decorate_equity_history_contract(stale_cached, build_status='stale_cache')
 
         task = self._equity_history_inflight_task
         if task is not None and not task.done():

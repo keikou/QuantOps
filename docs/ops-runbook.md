@@ -158,6 +158,79 @@ Typical files:
 - `runtime/logs/writer_cycles.jsonl`
 - `runtime/logs/orchestrator_runs.jsonl`
 
+## Writer Closeout Checks
+
+Use this section when validating the remaining SprintH writer/equity closeout work.
+
+Primary files:
+
+- `runtime/logs/writer_cycles.jsonl`
+- `runtime/logs/orchestrator_runs.jsonl`
+
+Focus fields in `writer_cycles.jsonl`:
+
+- `cycle_duration_ms`
+- `rebuild_positions_ms`
+- `compute_equity_snapshot_ms`
+- `fills_scanned_positions`
+- `fills_scanned_equity`
+- `new_fills_applied`
+- `rebuild_mode`
+- `full_rebuild_reason`
+- `equity_full_rebuild_reason`
+- `position_row_write_duration_ms`
+- `position_history_rows_written`
+- `position_rollup_source`
+
+### What good looks like
+
+No-fill cycle:
+
+- `fills_scanned_positions = 0`
+- `fills_scanned_equity = 0`
+- `new_fills_applied = 0`
+- `position_row_write_duration_ms` is near `0`
+- `position_history_rows_written = 0`
+- `full_rebuild_reason` is null or absent
+- `equity_full_rebuild_reason` is null or absent
+
+Fill cycle:
+
+- `new_fills_applied` matches the recent delta
+- `position_history_rows_written` stays bounded to changed rows
+- `rebuild_mode` is normally `incremental`
+- `position_rollup_source` is preferably `cached`
+- cycle duration scales with fill delta, not total historical size
+
+### What to investigate
+
+Investigate if you see:
+
+- repeated `rebuild_mode = full`
+- recurring `missing_fill_watermark`
+- large `fills_scanned_*` on routine cycles
+- `position_row_write_duration_ms` dominating the cycle
+- `compute_equity_snapshot_ms` staying high even when fill delta is small
+- restart followed by repeated fallback behavior instead of returning to incremental mode
+
+### Minimal closeout procedure
+
+1. Start the local stack and let the runtime settle.
+2. Capture several no-fill cycles from `writer_cycles.jsonl`.
+3. Trigger or wait for a small fill delta and capture several fill cycles.
+4. Restart the relevant service once and capture the first cycles after restart.
+5. Confirm the writer returns to normal incremental behavior after restart.
+
+### Closeout acceptance
+
+Treat the writer/equity path as closed for SprintH when:
+
+- normal no-fill cycles avoid row rewrite work
+- normal fill cycles stay delta-bounded
+- watermark-related fallback is not recurring
+- no hidden heavy equity aggregate remains material in routine operation
+- any remaining fallback reason is rare and explainable
+
 ## Common Failure Modes
 
 ### V12 fails with DuckDB file-in-use error
@@ -218,3 +291,4 @@ The following were recently verified on the real local stack:
 - [dev-startup.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/dev-startup.md)
 - [ci_regression_packs.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/ci_regression_packs.md)
 - [timeout-roadmap.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/timeout-roadmap.md)
+- [sprinth-finish-plan.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/sprinth-finish-plan.md)

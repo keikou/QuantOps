@@ -206,6 +206,16 @@ Still open:
 - extend the same explicit stable/display contract to any remaining mixed secondary summary routes if needed
 - decide whether to formalize `source_fill_watermark` in more read-model responses
 
+Update as of 2026-03-28:
+
+- `analytics/equity-history` now also carries explicit stable/display contract fields in QuantOps
+- no-fill writer cycles were rechecked on the real stack and showed:
+  - zero fill scans
+  - zero row rewrite
+  - zero history writes
+  - no rebuild reason
+- restart-followed paper-cycle verification did not reproduce recurring rebuild reasons in the checked sample
+
 ## Prioritized Issue Backlog
 
 ### P0
@@ -238,6 +248,10 @@ The highest-value remaining items are now:
    - frontend stable/live contract changes
 
 These are refinement tasks, not broad outage mitigation tasks.
+
+See also:
+
+- [sprinth-finish-plan.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/sprinth-finish-plan.md)
 
 ## Issue Templates
 

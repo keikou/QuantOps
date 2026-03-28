@@ -29,11 +29,14 @@ Protect stale-first behavior for endpoints that should return cached data quickl
 Tests:
 - `app/tests/test_sprint6h9_2_7_7_risk_snapshot_fast_path.py`
 - `app/tests/test_sprint6h9_2_7_7_monitoring_fast_path.py`
+- `app/tests/test_sprint6h9_2_7_7_gui_endpoint_fast_paths.py`
 
 Guards:
 - risk snapshot cached reads do not block on rebuild
 - monitoring snapshot cached reads do not block on refresh
 - upstream refresh logic remains parallelized
+- overview, portfolio, and secondary analytics fast paths keep their short-TTL/stale-first behavior
+- `analytics/equity-history` keeps its explicit freshness and stable/display contract shape
 
 ### `debug`
 
@@ -114,3 +117,7 @@ Coverage:
 - `CI-008` debug routes keep a stable envelope contract across risk, monitoring, execution, overview, and portfolio
 - `CI-010` optional Windows smoke can run the real local startup path through GitHub Actions when invoked manually
 - `QOPS-928-010` local startup smoke now asserts the runtime event chain and planner/bridge diagnostics after a real paper cycle
+
+For the remaining SprintH closeout work, see:
+
+- [sprinth-finish-plan.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/sprinth-finish-plan.md)

@@ -559,6 +559,10 @@ def test_analytics_equity_history_uses_short_ttl_cache_and_coalesces() -> None:
     assert len(third["items"]) == 3
     assert first["build_status"] == "live"
     assert first["rebuilt_at"]
+    assert first["stable_value"]["point_count"] == 3
+    assert first["display_value"]["last_point_as_of"] == (
+        first["items"][-1].get("as_of") or first["source_snapshot_time"]
+    )
     assert client.equity_history_calls == 1
 
 
@@ -582,7 +586,10 @@ def test_analytics_equity_history_returns_stale_cache_and_refreshes_in_backgroun
 
     payload = asyncio.run(run_test())
 
-    assert payload == stale_payload
+    assert payload["items"] == stale_payload["items"]
+    assert payload["build_status"] == "stale_cache"
+    assert payload["stable_value"]["point_count"] == 1
+    assert payload["display_value"]["last_point_as_of"] == "2026-03-22T00:00:00+00:00"
     assert client.equity_history_calls == 1
     assert service._equity_history_cache is not None
     assert len(service._equity_history_cache["items"]) == 3
