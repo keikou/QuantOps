@@ -9,8 +9,8 @@ Branch: `main`
 This note is a fact-based companion to the architect judgement memo. It is intended to help ChatGPT Architect reassess whether V12 "truthification" is complete enough for Sprint6H using:
 
 - current `main` code
-- current live V12 responses in [truthAPIResponse.md](https://github.com/keikou/QuantOps/blob/main/truthAPIResponse.md)
 - current tests already present in the repo
+- the follow-up proof note in [V12_truth_completion_reply_for_architect.md](https://github.com/keikou/QuantOps/blob/main/docs/V12_truth_completion_reply_for_architect.md)
 
 ## Important API fact
 
@@ -78,12 +78,11 @@ Relevant implementation area:
 
 ### Execution truth
 
-The live `/execution/fills` response in [truthAPIResponse.md](https://github.com/keikou/QuantOps/blob/main/truthAPIResponse.md) shows:
+Execution truth is supported by:
 
-- real fill rows exist
-- timestamps increase over time
-- prices vary
-- source metadata exists
+- current runtime API behavior
+- persisted `execution_fills`
+- existing runtime tests
 
 This supports the judgement that execution truth is substantially real.
 
@@ -125,9 +124,9 @@ Current `main` already changed truth semantics to use symbol-aggregated final-st
 
 This was not reflected in the architect memo.
 
-## What is still not fully proven by the current live response file alone
+## What was not fully proven at the time of the first review
 
-The live response file is useful, but by itself it does **not** fully prove these claims:
+The initial review still left some strict-proof gaps:
 
 ### 1. Replay determinism
 
@@ -147,7 +146,7 @@ The architect memo's strongest statement is effectively:
 Portfolio = f(Fills)
 ```
 
-Current code and tests strongly suggest this is the design, but the live [truthAPIResponse.md](https://github.com/keikou/QuantOps/blob/main/truthAPIResponse.md) alone does not mechanically prove the full reconciliation for every symbol from the attached dataset. That requires either:
+Current code and tests strongly suggest this is the design, but at first there was no explicit proof artifact that mechanically reconciled latest truth rows against a rebuild from fills. That required either:
 
 - a dedicated reconciliation script
 - or an explicit test that rebuilds positions from fills and compares against latest truth rows
@@ -209,10 +208,11 @@ It is closer to "mostly implemented, with replay/reconciliation proof still need
 
 For the most useful reassessment, provide these together:
 
-- [truthAPIResponse.md](https://github.com/keikou/QuantOps/blob/main/truthAPIResponse.md)
 - [V12_truth_completion_review_for_architect.md](https://github.com/keikou/QuantOps/blob/main/docs/V12_truth_completion_review_for_architect.md)
+- [V12_truth_completion_reply_for_architect.md](https://github.com/keikou/QuantOps/blob/main/docs/V12_truth_completion_reply_for_architect.md)
 - [test_sprint6h3_portfolio_truth.py](https://github.com/keikou/QuantOps/blob/main/apps/v12-api/tests/test_sprint6h3_portfolio_truth.py)
 - [test_sprint6h3c_equity_accounting.py](https://github.com/keikou/QuantOps/blob/main/apps/v12-api/tests/test_sprint6h3c_equity_accounting.py)
+- [test_sprint6h9_2_10_truth_completion_proofs.py](https://github.com/keikou/QuantOps/blob/main/apps/v12-api/tests/test_sprint6h9_2_10_truth_completion_proofs.py)
 - [truth_engine.py](https://github.com/keikou/QuantOps/blob/main/apps/v12-api/ai_hedge_bot/services/truth_engine.py)
 
 ## One-line request prompt for Architect
@@ -220,5 +220,5 @@ For the most useful reassessment, provide these together:
 Use this prompt when handing off:
 
 ```text
-Please reassess V12 truth completion using the attached live responses and current main-code facts. Note that /portfolio/positions is not live on current V12 and /portfolio/positions/latest is the actual truth route. Focus on whether replay determinism and explicit fill-to-position reconciliation proof are the remaining blockers, rather than assuming portfolio/equity truth are still mostly mock-based.
+Please reassess V12 truth completion using the attached current main-code facts. Note that /portfolio/positions is not live on current V12 and /portfolio/positions/latest is the actual truth route. Also note that explicit reconciliation and replay proof tests have now been added. Focus on whether any blockers remain beyond market-truth quality closure.
 ```
