@@ -6,11 +6,13 @@ from ai_hedge_bot.app.container import CONTAINER
 from ai_hedge_bot.core.clock import utc_now_iso
 from ai_hedge_bot.core.ids import new_cycle_id
 from ai_hedge_bot.research_factory.common import parse_json_field
+from ai_hedge_bot.research_factory.governance_state import GovernanceStateBridge
 
 
 class AlphaDecayMonitor:
     def __init__(self) -> None:
         self.store = CONTAINER.runtime_store
+        self.bridge = GovernanceStateBridge()
 
     def evaluate(self, payload: dict[str, Any] | None = None) -> dict[str, Any]:
         payload = payload or {}
@@ -60,6 +62,9 @@ class AlphaDecayMonitor:
             'notes': payload.get('notes', 'phaseh sprint3 decay monitor'),
         }
         self.store.append('alpha_drift_events', record)
+        alpha_target = self._alpha_target_state(status)
+        if alpha_target:
+            self.bridge.transition_alpha(alpha_id, alpha_target, 'decay', f'alpha_decay_{status}', record['created_at'])
         return self._decode(record)
 
     def list_latest(self, limit: int = 25) -> list[dict[str, Any]]:
@@ -92,3 +97,10 @@ class AlphaDecayMonitor:
         out = dict(row)
         out['flags'] = parse_json_field(out.pop('flags_json', None), [])
         return out
+
+    def _alpha_target_state(self, status: str) -> str | None:
+        if status == 'review_required':
+            return 'review_required'
+        if status == 'demote_candidate':
+            return 'demote_candidate'
+        return None

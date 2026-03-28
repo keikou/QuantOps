@@ -17,7 +17,10 @@ This means Phase4 is not a blank future phase.
 
 It already has meaningful implementation, but it is not yet closure-complete.
 
-Since that judgment, the repo now also has a first explicit closure proof for the architect-identified hardest gap.
+Since that judgment, the repo now also has:
+
+- a first explicit closure proof for the architect-identified hardest gap
+- a second governance-state proof for `runtime result -> feedback -> rollback / retire state`
 
 ## Architect Closure Definition
 
@@ -71,7 +74,7 @@ Architect also highlighted these important but secondary closure areas:
 - promotion / rollback determinism
 - DB/state-machine determinism
 
-These matter, but they are not the hardest gap.
+These matter, but they are now the active closure target after the first runtime-linkage proof.
 
 ## Practical Interpretation
 
@@ -129,24 +132,79 @@ python -m pytest apps\v12-api\tests\test_phaseh_sprint3_api.py -q
 2 passed
 ```
 
+## Second Proof Packet Added
+
+Added:
+
+- `apps/v12-api/tests/test_phase4_alpha_factory_governance_closure.py`
+- `apps/v12-api/ai_hedge_bot/research_factory/governance_state.py`
+
+Extended supporting implementation:
+
+- `apps/v12-api/ai_hedge_bot/research_factory/promotion_policy.py`
+- `apps/v12-api/ai_hedge_bot/research_factory/live_model_review.py`
+- `apps/v12-api/ai_hedge_bot/research_factory/alpha_decay_monitor.py`
+- `apps/v12-api/ai_hedge_bot/research_factory/rollback_policy.py`
+
+What it proves:
+
+```text
+runtime result / decay evidence
+-> live review / rollback decision
+-> model_state_transitions
+-> alpha_status_events
+-> explicit rollback / retire governance state
+```
+
+Concrete behavior now covered:
+
+- poor realized runtime metrics can produce a `rollback` live-review decision
+- governance evidence can transition model state through append-only latest rows
+- rollback policy can move the model to `rolled_back`
+- linked alpha governance state can move to `retired`
+- rollback-driven alpha demotion is explicitly persisted
+
+Validation:
+
+```text
+python -m pytest apps\v12-api\tests\test_phase4_alpha_factory_governance_closure.py -q
+1 passed
+
+python -m pytest apps\v12-api\tests\test_phase4_alpha_factory_closure.py -q
+1 passed
+
+python -m pytest apps\v12-api\tests\test_phaseh_sprint3_api.py -q
+2 passed
+```
+
 ## Next Action
 
 The next best implementation target is:
- 
-- next Phase4 closure packet beyond the first proof
 
-and its first proof should demonstrate:
+- architect re-judgment after the second proof packet
+
+because the repo now has evidence for both:
 
 ```text
-selected / promoted alpha state changes a later runtime-facing portfolio or execution outcome
+promoted alpha
+-> runtime signal / portfolio / execution linkage
 ```
 
-That first proof now exists.
+and
+
+```text
+runtime result / decay evidence
+-> governance-visible state transition
+```
 
 ## Working Conclusion
 
 ```text
-Phase4 is partially complete.
-The first closure proof for alpha-to-runtime causal linkage now exists.
-The hardest remaining gap has started to close, but Phase4 is not yet complete.
+Phase4 is still partially complete, but it is materially closer to closure.
+It now has both:
+- alpha-to-runtime linkage proof
+- runtime-result-to-governance-state proof
+
+The next step is architect re-judgment to determine whether the remaining blocker is
+only final lifecycle closure or whether another invariant is still missing.
 ```

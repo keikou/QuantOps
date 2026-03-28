@@ -6,11 +6,13 @@ from ai_hedge_bot.app.container import CONTAINER
 from ai_hedge_bot.core.clock import utc_now_iso
 from ai_hedge_bot.core.ids import new_cycle_id
 from ai_hedge_bot.research_factory.common import parse_json_field
+from ai_hedge_bot.research_factory.governance_state import GovernanceStateBridge
 
 
 class LiveModelReview:
     def __init__(self) -> None:
         self.store = CONTAINER.runtime_store
+        self.bridge = GovernanceStateBridge()
 
     def evaluate(self, payload: dict[str, Any] | None = None) -> dict[str, Any]:
         payload = payload or {}
@@ -63,6 +65,12 @@ class LiveModelReview:
             'notes': payload.get('notes', 'phaseh sprint3 live review'),
         }
         self.store.append('model_live_reviews', record)
+        model_target, alpha_target = self._governance_targets(action)
+        if model_target:
+            self.bridge.transition_model(model_id, model_target, f'live_review_{action}', record['created_at'])
+        alpha_id = self.bridge.alpha_id_for_model(model_id)
+        if alpha_id and alpha_target:
+            self.bridge.transition_alpha(alpha_id, alpha_target, 'live_review', f'live_review_{action}', record['created_at'])
         return self._decode(record)
 
     def list_latest(self, limit: int = 25) -> list[dict[str, Any]]:
@@ -122,3 +130,14 @@ class LiveModelReview:
         out = dict(row)
         out['flags'] = parse_json_field(out.pop('flags_json', None), [])
         return out
+
+    def _governance_targets(self, action: str) -> tuple[str | None, str | None]:
+        if action == 'keep':
+            return 'live', 'promoted'
+        if action == 'reduce_capital':
+            return 'approved', 'monitor'
+        if action == 'shadow':
+            return 'shadow', 'shadow'
+        if action == 'rollback':
+            return 'shadow', 'review_required'
+        return None, None

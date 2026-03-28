@@ -184,6 +184,10 @@ validation metrics affect ranking and promotion outcomes
 bad live-review / decay / rollback signals change governance state explicitly
 ```
 
+Status:
+
+- now implemented and proof-tested
+
 ### P4-D
 
 ```text
@@ -197,6 +201,28 @@ governed alpha state can influence later runtime-facing selection or deployment 
 ```
 
 This should be treated as the first proof target, not a late optional one.
+
+Status:
+
+- now implemented and proof-tested
+
+## Current Closed Proofs
+
+The repo can now show:
+
+```text
+P4-E: promoted alpha -> runtime signal / portfolio / execution linkage
+P4-C: runtime result / decay evidence -> governance-visible state transition
+```
+
+That means Phase4 has moved beyond component coverage.
+
+The likely next proof target is:
+
+```text
+updated governance state
+-> next-cycle selection / deployment reuse
+```
 
 ## Deliverables
 
@@ -228,9 +254,9 @@ Suggested file:
 
 1. inventory what is already implemented
 2. use architect judgment as the starting Definition of Done
-3. implement first proof tests for governance-state transitions
-4. add live verification script
-5. close with completion memo if architect confirms closure
+3. implement first proof tests for runtime-linkage and governance-state transitions
+4. re-ask architect for the next closure invariant
+5. add live verification script / completion memo when closure is confirmed
 
 ## Exit Condition
 

@@ -6,11 +6,13 @@ from ai_hedge_bot.app.container import CONTAINER
 from ai_hedge_bot.core.clock import utc_now_iso
 from ai_hedge_bot.core.ids import new_cycle_id
 from ai_hedge_bot.research_factory.common import parse_json_field
+from ai_hedge_bot.research_factory.governance_state import GovernanceStateBridge
 
 
 class PromotionPolicy:
     def __init__(self) -> None:
         self.store = CONTAINER.runtime_store
+        self.bridge = GovernanceStateBridge()
 
     def evaluate(self, payload: dict[str, Any] | None = None) -> dict[str, Any]:
         payload = payload or {}
@@ -63,14 +65,15 @@ class PromotionPolicy:
         }
         self.store.append('promotion_evaluations', row)
         if decision == 'approve':
-            self.store.append('model_state_transitions', {
-                'transition_id': f'trans_{new_cycle_id()}',
-                'created_at': row['created_at'],
-                'model_id': row['model_id'],
-                'from_state': model.get('state', 'candidate'),
-                'to_state': 'approved',
-                'reason': 'promotion_policy_approved',
-            })
+            self.bridge.transition_model(row['model_id'], 'approved', 'promotion_policy_approved', row['created_at'])
+            alpha_id = self.bridge.alpha_id_for_model(row['model_id'])
+            if alpha_id:
+                self.bridge.transition_alpha(alpha_id, 'promoted', 'promotion', 'promotion_policy_approved', row['created_at'])
+        elif decision == 'reject':
+            self.bridge.transition_model(row['model_id'], 'rejected', 'promotion_policy_rejected', row['created_at'])
+            alpha_id = self.bridge.alpha_id_for_model(row['model_id'])
+            if alpha_id:
+                self.bridge.transition_alpha(alpha_id, 'research', 'promotion', 'promotion_policy_rejected', row['created_at'])
         return self._decode(row)
 
     def list_latest(self, limit: int = 25) -> list[dict[str, Any]]:

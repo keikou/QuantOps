@@ -5,11 +5,13 @@ from typing import Any
 from ai_hedge_bot.app.container import CONTAINER
 from ai_hedge_bot.core.clock import utc_now_iso
 from ai_hedge_bot.core.ids import new_cycle_id
+from ai_hedge_bot.research_factory.governance_state import GovernanceStateBridge
 
 
 class RollbackPolicy:
     def __init__(self) -> None:
         self.store = CONTAINER.runtime_store
+        self.bridge = GovernanceStateBridge()
 
     def evaluate(self, payload: dict[str, Any] | None = None) -> dict[str, Any]:
         payload = payload or {}
@@ -36,6 +38,19 @@ class RollbackPolicy:
             'notes': payload.get('notes', 'phaseh sprint3 rollback evaluation'),
         }
         self.store.append('rollback_events', row)
+        if action == 'rollback':
+            self.bridge.transition_model(model_id, 'rolled_back', 'rollback_policy_triggered', row['created_at'])
+            alpha_id = self.bridge.alpha_id_for_model(model_id)
+            if alpha_id:
+                self.bridge.transition_alpha(alpha_id, 'retired', 'rollback', 'rollback_policy_triggered', row['created_at'])
+                self.store.append('alpha_demotions', {
+                    'demotion_id': f'demotion_{new_cycle_id()}',
+                    'created_at': row['created_at'],
+                    'alpha_id': alpha_id,
+                    'decision': 'rollback',
+                    'source_run_id': row['rollback_id'],
+                    'notes': 'demoted by rollback policy',
+                })
         return row
 
     def list_latest(self, limit: int = 25) -> list[dict[str, Any]]:
