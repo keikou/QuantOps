@@ -79,3 +79,28 @@ System Reliability Hardening Track
 -> start with Recovery / Replay Confidence
 -> then expand into Cross-Phase Acceptance
 ```
+
+## First Packet Added
+
+Added:
+
+- `docs/Recovery_replay_confidence_plan.md`
+- `test_bundle/scripts/verify_recovery_replay_confidence.py`
+
+What this first packet verifies:
+
+```text
+same live evidence
+-> same reconciliation outcome
+-> same incident and guard state
+-> same recovery and resume result
+regardless of ingest vs replay path
+```
+
+Validation:
+
+```text
+python test_bundle/scripts/verify_recovery_replay_confidence.py --json
+status = ok
+failures = []
+```
