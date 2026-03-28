@@ -37,6 +37,7 @@ As of the latest closeout state:
 - `Phase1 Truth Layer = COMPLETE`
 - `Phase2 Execution Reality = COMPLETE`
 - `Phase3 Portfolio Intelligence = COMPLETE`
+- `Phase4 Alpha Factory = COMPLETE`
 
 Completion references:
 
@@ -45,6 +46,7 @@ Completion references:
 - [Sprint6H_truth_completion_final.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/Sprint6H_truth_completion_final.md)
 - [Phase2_execution_completion_final.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/Phase2_execution_completion_final.md)
 - [Phase3_allocation_completion_final.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/Phase3_allocation_completion_final.md)
+- [Phase4_alpha_factory_completion_final.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/Phase4_alpha_factory_completion_final.md)
 - [After_Sprint6H_Roadmap_from_Architect.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/After_Sprint6H_Roadmap_from_Architect.md)
 
 ## Read These Docs First
@@ -55,16 +57,17 @@ Read in this order when starting fresh:
 2. [Sprint6H_truth_completion_final.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/Sprint6H_truth_completion_final.md)
 3. [Phase2_execution_completion_final.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/Phase2_execution_completion_final.md)
 4. [Phase3_allocation_completion_final.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/Phase3_allocation_completion_final.md)
-5. [SprintH_completion_report.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/SprintH_completion_report.md)
-6. [correlation-logging-guide.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/correlation-logging-guide.md)
-7. [development-rules-v12-vs-quantops.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/development-rules-v12-vs-quantops.md)
-8. [development-workflow.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/development-workflow.md)
-9. [architecture-read-models.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/architecture-read-models.md)
-10. [api-summary-contracts.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/api-summary-contracts.md)
-11. [ops-runbook.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/ops-runbook.md)
-12. [dev-startup.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/dev-startup.md)
-13. [ci_regression_packs.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/ci_regression_packs.md)
-14. [chatgpt-codex-cowork.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/chatgpt-codex-cowork.md)
+5. [Phase4_alpha_factory_completion_final.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/Phase4_alpha_factory_completion_final.md)
+6. [SprintH_completion_report.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/SprintH_completion_report.md)
+7. [correlation-logging-guide.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/correlation-logging-guide.md)
+8. [development-rules-v12-vs-quantops.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/development-rules-v12-vs-quantops.md)
+9. [development-workflow.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/development-workflow.md)
+10. [architecture-read-models.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/architecture-read-models.md)
+11. [api-summary-contracts.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/api-summary-contracts.md)
+12. [ops-runbook.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/ops-runbook.md)
+13. [dev-startup.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/dev-startup.md)
+14. [ci_regression_packs.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/ci_regression_packs.md)
+15. [chatgpt-codex-cowork.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/chatgpt-codex-cowork.md)
 
 Read these when touching specific areas:
 
@@ -314,10 +317,10 @@ Read:
 
 Then treat:
 
-- `Phase4 Alpha Factory`
 - `Phase5 Risk / Guard OS`
+- later `Phase6 Live Trading`
 
-as the next closure tracks, not Phase2/3 reopening.
+as the next closure tracks, not Phase2/3/4 reopening.
 
 ### New backend feature
 

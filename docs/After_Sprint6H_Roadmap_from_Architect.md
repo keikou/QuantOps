@@ -21,6 +21,7 @@ It is intended to answer:
 Phase1: Truth Layer = COMPLETE
 Phase2: Execution Reality = COMPLETE
 Phase3: Portfolio Intelligence = COMPLETE
+Phase4: Alpha Factory = COMPLETE
 ```
 
 Interpretation:
@@ -146,10 +147,19 @@ scale alpha production from a few alphas to many
 Status:
 
 ```text
-NOT STARTED AS A CLOSED PHASE
+COMPLETE
 ```
 
-Some components may exist, but this phase has not been treated as complete or near-complete.
+Why:
+
+- runtime-linkage proof exists
+- governance-state proof exists
+- next-cycle reuse / exclusion proof exists
+- architect re-judged the Phase4 packet as `COMPLETE`
+
+Reference:
+
+- [Phase4_alpha_factory_completion_final.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/Phase4_alpha_factory_completion_final.md)
 
 ### Phase5: Risk / Guard OS
 
@@ -218,7 +228,7 @@ That means the next highest-value work is no longer closing Phase2 or Phase3.
 The next highest-value work is:
 
 ```text
-start Phase4 Alpha Factory planning and Phase5 Risk / Guard OS hardening
+start Phase5 Risk / Guard OS hardening
 ```
 
 Only after that should Phase3 be closed with the same rigor.
@@ -245,11 +255,10 @@ Needed outcome:
 
 This should be planned after Phase2 closure is materially underway or complete.
 
-### 3. Then move into Alpha Factory and Risk OS
+### 3. Then move into Risk OS and later live trading
 
-Only after execution and allocation loops are closed should the project aggressively scale:
+Now that execution, allocation, and alpha factory loops are closed, the next focus should be:
 
-- alpha generation
 - risk operating system
 - live trading
 
@@ -258,12 +267,12 @@ Only after execution and allocation loops are closed should the project aggressi
 The immediate next action is:
 
 ```text
-implement and prove Phase2 execution loop closure
+start and define Phase5 Risk / Guard OS closure
 ```
 
 This means:
 
-- define execution invariants
+- define guard and risk invariants
 - add proof tests
 - add verification script
 - produce completion memo
@@ -272,7 +281,10 @@ This means:
 
 ```text
 Sprint6H completed the truth layer.
-The next roadmap milestone is not “more truth work”.
-It is Phase2 execution closure.
-After that comes Phase3 allocation closure.
+The repo has now also closed:
+- Phase2 execution reality
+- Phase3 portfolio intelligence
+- Phase4 alpha factory
+
+The next roadmap milestone is Phase5 Risk / Guard OS.
 ```

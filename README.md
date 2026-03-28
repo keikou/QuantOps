@@ -12,6 +12,7 @@ The current `main` branch reflects the post-SprintH and post-closure state:
 - `Phase1 Truth Layer` is complete
 - `Phase2 Execution Reality` is complete
 - `Phase3 Portfolio Intelligence` is complete
+- `Phase4 Alpha Factory` is complete
 - main GUI paths are stabilized on summary/read-model style routes
 - QuantOps summary contracts explicitly distinguish stable and display semantics
 - writer observability and incremental writer behavior are in place
@@ -38,12 +39,13 @@ If you are new to this repo, read these first:
 4. `docs/Sprint6H_truth_completion_final.md`
 5. `docs/Phase2_execution_completion_final.md`
 6. `docs/Phase3_allocation_completion_final.md`
-7. `docs/correlation-logging-guide.md`
-8. `docs/development-rules-v12-vs-quantops.md`
-9. `docs/development-workflow.md`
-10. `docs/ops-runbook.md`
-11. `docs/dev-startup.md`
-12. `docs/ci_regression_packs.md`
+7. `docs/Phase4_alpha_factory_completion_final.md`
+8. `docs/correlation-logging-guide.md`
+9. `docs/development-rules-v12-vs-quantops.md`
+10. `docs/development-workflow.md`
+11. `docs/ops-runbook.md`
+12. `docs/dev-startup.md`
+13. `docs/ci_regression_packs.md`
 
 These documents capture the current architecture direction, development rules, startup path, regression surface, and SprintH closeout status.
 `docs/correlation-logging-guide.md` is the shortest practical path for tracing a page access, API timeout, or backend failure across frontend, QuantOps API, and V12 by `trace_id`.
@@ -130,8 +132,9 @@ Phase closure status is:
 - `Phase1 Truth Layer = COMPLETE`
 - `Phase2 Execution Reality = COMPLETE`
 - `Phase3 Portfolio Intelligence = COMPLETE`
+- `Phase4 Alpha Factory = COMPLETE`
 
-The next roadmap target is no longer SprintH closeout or Phase2/3 closure. The next roadmap target is Phase4+ work such as Alpha Factory, Risk / Guard OS, and later live-trading readiness.
+The next roadmap target is no longer SprintH closeout or Phase2/3/4 closure. The next roadmap target is Phase5+ work such as Risk / Guard OS and later live-trading readiness.
 
 See:
 
@@ -140,6 +143,7 @@ See:
 - `docs/Sprint6H_truth_completion_final.md`
 - `docs/Phase2_execution_completion_final.md`
 - `docs/Phase3_allocation_completion_final.md`
+- `docs/Phase4_alpha_factory_completion_final.md`
 - `docs/After_Sprint6H_Roadmap_from_Architect.md`
 
 ## CI And Regression Packs
