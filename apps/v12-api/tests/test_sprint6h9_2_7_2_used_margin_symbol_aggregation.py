@@ -43,6 +43,8 @@ def test_used_margin_rollup_nets_same_symbol_entry_notional() -> None:
     ])
 
     assert round(rollup['used_margin'], 2) == 60.0
+    assert round(rollup['current_long_notional'], 2) == 100.0
+    assert round(rollup['current_short_notional'], 2) == 0.0
     assert round(rollup['market_value'], 2) == 100.0
 
 

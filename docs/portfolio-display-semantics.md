@@ -65,7 +65,7 @@ Why:
 - the normal Portfolio page should align with the net symbol view shown to the user
 
 This was updated so the Portfolio page and position table use the same aggregation basis.
-The V12 `equity_snapshots.used_margin` truth is now also computed on the same symbol-aggregated signed entry basis, while the lower-level position truth rows remain unchanged.
+The V12 `equity_snapshots.used_margin` truth is now also computed on the same symbol-aggregated signed entry basis, and exposure ratios in the equity snapshot use the same symbol-aggregated market value basis, while the lower-level position truth rows remain unchanged.
 
 ## Strategy vs Alpha Family
 
