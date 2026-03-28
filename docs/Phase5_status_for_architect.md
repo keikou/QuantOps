@@ -76,20 +76,51 @@ What they suggest:
 - risk halt can suppress execution activity
 - halt state propagates into runtime-facing execution surfaces
 
+### 5. First closure proof now exists
+
+Added:
+
+- `apps/v12-api/tests/test_phase5_risk_guard_closure.py`
+
+Current proof:
+
+```text
+risk breach
+-> guard trigger
+-> execution suppression
+-> explicit reason and audit evidence
+```
+
+Concrete assertions now covered:
+
+- kill-switch / halted state acts as the first explicit risk-breach trigger
+- once the breach is active, `run-once` is blocked
+- no new execution plans, orders, or fills are created
+- execution-state and block-reason surfaces make suppression explicit
+- runtime reasons and audit logs persist the blocked decision
+
+Validation:
+
+- `python -m pytest apps/v12-api/tests/test_phase5_risk_guard_closure.py -q`
+- `python -m pytest apps/v12-api/tests/test_sprint6h8_risk_execution_stop.py -q`
+- `python -m pytest apps/v12-api/tests/test_sprint6h9_2_3_risk_halt_propagation.py -q`
+
 ## Current Codex Judgment
 
 This is the current engineering judgment:
 
 ```text
-Phase5 is not unstarted.
-It is partially implemented, but not closure-judged.
+Phase5 is no longer just speculative.
+It now has a first closure proof packet.
+
+But it is not yet closure-judged after that packet.
 ```
 
 Meaning:
 
 - stronger than "future only"
-- weaker than any closed phase
-- needs explicit architect closure definition before proof work starts
+- stronger than "components only"
+- still needs architect re-judgment after the first proof packet
 
 ## Likely Closure Definition
 
@@ -113,15 +144,15 @@ risk evidence
 
 ## Questions For Architect
 
-Please judge Phase5 directly:
+Please re-judge Phase5 directly after the first proof packet:
 
-1. Is `Phase5` currently best classified as `NOT STARTED`, `PARTIALLY COMPLETE`, or something stronger?
-2. What exact closure definition should be used for `Risk / Guard OS` in this repo?
-3. What should be the first invariant to prove as `Phase5-CLOSE-1`?
-4. What is the hardest gap: guard triggering, execution suppression, persisted auditability, or deterministic recovery?
+1. Is `Phase5` still best classified as `NOT STARTED`, or has it moved to `PARTIALLY COMPLETE`?
+2. Does the current proof packet satisfy `Phase5-CLOSE-1`, or is one more invariant missing before that can be considered closed?
+3. If `Phase5-CLOSE-1` is now satisfied, what exact invariant should be treated as `Phase5-CLOSE-2`?
+4. Is the hardest gap still `execution suppression`, or has it shifted to `persisted auditability` or `deterministic recovery`?
 
 ## One-Line Prompt
 
 ```text
-Please classify Phase5 Risk / Guard OS in the current repo and specify the exact closure definition, first proof invariant, and hardest remaining gap.
+Please re-judge Phase5 Risk / Guard OS after the first proof packet and specify whether the phase is still NOT STARTED or now PARTIALLY COMPLETE, whether Phase5-CLOSE-1 is satisfied, and what exact invariant should be treated as Phase5-CLOSE-2.
 ```

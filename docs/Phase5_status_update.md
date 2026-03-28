@@ -116,3 +116,55 @@ Phase5 is not yet a closing phase.
 The repo has prerequisite components.
 The first real closure step is to prove deterministic execution suppression under risk breach.
 ```
+
+## Phase5-CLOSE-1 Proof Added
+
+Added:
+
+- `apps/v12-api/tests/test_phase5_risk_guard_closure.py`
+
+What it proves:
+
+```text
+risk breach
+-> guard trigger
+-> execution suppression
+-> explicit reason and audit evidence
+```
+
+Concrete behavior now covered:
+
+- kill-switch / halted state acts as the explicit first risk-breach trigger
+- once breached, `run-once` returns `blocked`
+- no new execution plans, orders, or fills are created
+- execution state and block-reason surfaces show the suppression
+- runtime reasons and audit logs persist the blocked decision
+
+Validation:
+
+```text
+python -m pytest apps\v12-api\tests\test_phase5_risk_guard_closure.py -q
+1 passed
+
+python -m pytest apps\v12-api\tests\test_sprint6h8_risk_execution_stop.py -q
+1 passed
+
+python -m pytest apps\v12-api\tests\test_sprint6h9_2_3_risk_halt_propagation.py -q
+1 passed
+```
+
+## Updated Interpretation
+
+Phase5 now has a real first proof packet.
+
+That means the repo has moved from:
+
+```text
+NOT STARTED as a closed phase
+```
+
+toward:
+
+```text
+first closure evidence exists, architect re-judgment needed
+```
