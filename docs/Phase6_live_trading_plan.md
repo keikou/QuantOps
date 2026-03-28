@@ -155,7 +155,7 @@ approved live intent
 -> explicit live-send or live-block reason
 ```
 
-Architect-confirmed hardest gap:
+Architect-confirmed initial hardest gap:
 
 ```text
 live lifecycle + reconciliation closure
@@ -166,6 +166,21 @@ More exact wording:
 ```text
 first blocker = account/reconciliation truth
 ```
+
+## Architect Re-Judgment After First Proof
+
+Latest architect judgment:
+
+```text
+Phase6 = VERY EARLY / PARTIALLY COMPLETE
+Phase6-CLOSE-1 = satisfied
+```
+
+Interpretation:
+
+- the first proof packet moved Phase6 beyond `NOT STARTED`
+- the decision boundary from live intent to explicit send/block is now accepted
+- the remaining core blocker is still live lifecycle / reconciliation closure
 
 ## Recommended Execution Order
 
