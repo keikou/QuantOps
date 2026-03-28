@@ -273,6 +273,19 @@ Now that truth, execution, allocation, alpha factory, guard, live trading, and s
 - acceptance-strengthening
 - policy precedence coverage
 - richer audit / config provenance
+- recovery / replay confidence
+
+Architect-approved working name:
+
+```text
+System Reliability Hardening Track
+```
+
+Architect-prioritized first lane:
+
+```text
+Recovery / Replay Confidence
+```
 
 ### 2. Then move beyond the first closure stack
 
@@ -287,7 +300,7 @@ After the first seven closure phases, the next focus should be:
 The immediate next action is:
 
 ```text
-continue hardening and define post-Phase7 roadmap work
+continue System Reliability Hardening Track work, starting with Recovery / Replay Confidence
 ```
 
 ## Working Summary
@@ -303,4 +316,10 @@ The repo has now also closed:
 - Phase7 self-improving system
 
 The next roadmap milestone is post-Phase7 hardening and then later roadmap work beyond the first seven closure phases.
+
+Architect rule for naming a future new phase:
+
+```text
+Only create a new phase when a genuinely new closed loop is added.
+```
 ```

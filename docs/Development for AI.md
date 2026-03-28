@@ -53,6 +53,8 @@ Completion references:
 - [Phase5_risk_guard_completion_final.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/Phase5_risk_guard_completion_final.md)
 - [Phase6_live_trading_completion_final.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/Phase6_live_trading_completion_final.md)
 - [Phase7_self_improving_completion_final.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/Phase7_self_improving_completion_final.md)
+- [Post_Phase7_hardening_plan.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/Post_Phase7_hardening_plan.md)
+- [Post_Phase7_hardening_status_update.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/Post_Phase7_hardening_status_update.md)
 - [After_Sprint6H_Roadmap_from_Architect.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/After_Sprint6H_Roadmap_from_Architect.md)
 
 ## Read These Docs First
@@ -67,16 +69,17 @@ Read in this order when starting fresh:
 6. [Phase5_risk_guard_completion_final.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/Phase5_risk_guard_completion_final.md)
 7. [Phase6_live_trading_completion_final.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/Phase6_live_trading_completion_final.md)
 8. [Phase7_self_improving_completion_final.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/Phase7_self_improving_completion_final.md)
-9. [SprintH_completion_report.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/SprintH_completion_report.md)
-10. [correlation-logging-guide.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/correlation-logging-guide.md)
-11. [development-rules-v12-vs-quantops.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/development-rules-v12-vs-quantops.md)
-12. [development-workflow.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/development-workflow.md)
-13. [architecture-read-models.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/architecture-read-models.md)
-14. [api-summary-contracts.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/api-summary-contracts.md)
-15. [ops-runbook.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/ops-runbook.md)
-16. [dev-startup.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/dev-startup.md)
-17. [ci_regression_packs.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/ci_regression_packs.md)
-18. [chatgpt-codex-cowork.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/chatgpt-codex-cowork.md)
+9. [Post_Phase7_hardening_plan.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/Post_Phase7_hardening_plan.md)
+10. [SprintH_completion_report.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/SprintH_completion_report.md)
+11. [correlation-logging-guide.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/correlation-logging-guide.md)
+12. [development-rules-v12-vs-quantops.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/development-rules-v12-vs-quantops.md)
+13. [development-workflow.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/development-workflow.md)
+14. [architecture-read-models.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/architecture-read-models.md)
+15. [api-summary-contracts.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/api-summary-contracts.md)
+16. [ops-runbook.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/ops-runbook.md)
+17. [dev-startup.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/dev-startup.md)
+18. [ci_regression_packs.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/ci_regression_packs.md)
+19. [chatgpt-codex-cowork.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/chatgpt-codex-cowork.md)
 
 Read these when touching specific areas:
 
@@ -324,6 +327,8 @@ Read:
 - [After_Sprint6H_Roadmap_from_Architect.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/After_Sprint6H_Roadmap_from_Architect.md)
 - [Phase6_live_trading_completion_final.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/Phase6_live_trading_completion_final.md)
 - [Phase7_self_improving_completion_final.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/Phase7_self_improving_completion_final.md)
+- [Post_Phase7_hardening_plan.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/Post_Phase7_hardening_plan.md)
+- [Post_Phase7_hardening_status_update.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/Post_Phase7_hardening_status_update.md)
 
 Then treat:
 

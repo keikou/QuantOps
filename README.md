@@ -156,6 +156,8 @@ See:
 - `docs/Phase5_risk_guard_completion_final.md`
 - `docs/Phase6_live_trading_completion_final.md`
 - `docs/Phase7_self_improving_completion_final.md`
+- `docs/Post_Phase7_hardening_plan.md`
+- `docs/Post_Phase7_hardening_status_update.md`
 - `docs/After_Sprint6H_Roadmap_from_Architect.md`
 
 ## CI And Regression Packs
