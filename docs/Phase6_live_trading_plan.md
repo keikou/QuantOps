@@ -250,8 +250,15 @@ python -m pytest apps\v12-api\tests\test_phase6_live_trading_closure.py -q
 6 passed
 ```
 
-This does not yet claim `Phase6 = COMPLETE`.
-It prepares the packet for the next architect re-judgment on whether another blocker remains.
+Architect final re-judgment after this packet:
+
+```text
+Phase6-CLOSE-5 = satisfied
+Phase6 = COMPLETE
+Any further Close-6 should be acceptance-strengthening, not a closure blocker
+```
+
+This closes the Phase6 loop at the architect level.
 
 ## Recommended Execution Order
 

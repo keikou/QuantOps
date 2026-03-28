@@ -14,6 +14,7 @@ The current `main` branch reflects the post-SprintH and post-closure state:
 - `Phase3 Portfolio Intelligence` is complete
 - `Phase4 Alpha Factory` is complete
 - `Phase5 Risk / Guard OS` is complete
+- `Phase6 Live Trading` is complete
 - main GUI paths are stabilized on summary/read-model style routes
 - QuantOps summary contracts explicitly distinguish stable and display semantics
 - writer observability and incremental writer behavior are in place
@@ -42,12 +43,13 @@ If you are new to this repo, read these first:
 6. `docs/Phase3_allocation_completion_final.md`
 7. `docs/Phase4_alpha_factory_completion_final.md`
 8. `docs/Phase5_risk_guard_completion_final.md`
-9. `docs/correlation-logging-guide.md`
-10. `docs/development-rules-v12-vs-quantops.md`
-11. `docs/development-workflow.md`
-12. `docs/ops-runbook.md`
-13. `docs/dev-startup.md`
-14. `docs/ci_regression_packs.md`
+9. `docs/Phase6_live_trading_completion_final.md`
+10. `docs/correlation-logging-guide.md`
+11. `docs/development-rules-v12-vs-quantops.md`
+12. `docs/development-workflow.md`
+13. `docs/ops-runbook.md`
+14. `docs/dev-startup.md`
+15. `docs/ci_regression_packs.md`
 
 These documents capture the current architecture direction, development rules, startup path, regression surface, and SprintH closeout status.
 `docs/correlation-logging-guide.md` is the shortest practical path for tracing a page access, API timeout, or backend failure across frontend, QuantOps API, and V12 by `trace_id`.
@@ -136,8 +138,9 @@ Phase closure status is:
 - `Phase3 Portfolio Intelligence = COMPLETE`
 - `Phase4 Alpha Factory = COMPLETE`
 - `Phase5 Risk / Guard OS = COMPLETE`
+- `Phase6 Live Trading = COMPLETE`
 
-The next roadmap target is no longer SprintH closeout or Phase2/3/4/5 closure. The next roadmap target is post-Phase5 hardening and later live-trading readiness.
+The next roadmap target is no longer SprintH closeout or Phase2/3/4/5/6 closure. The next roadmap target is `Phase7 Self-Improving System` plus post-Phase6 hardening.
 
 See:
 
@@ -148,6 +151,7 @@ See:
 - `docs/Phase3_allocation_completion_final.md`
 - `docs/Phase4_alpha_factory_completion_final.md`
 - `docs/Phase5_risk_guard_completion_final.md`
+- `docs/Phase6_live_trading_completion_final.md`
 - `docs/After_Sprint6H_Roadmap_from_Architect.md`
 
 ## CI And Regression Packs

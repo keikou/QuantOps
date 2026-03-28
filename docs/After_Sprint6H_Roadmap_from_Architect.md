@@ -23,6 +23,7 @@ Phase2: Execution Reality = COMPLETE
 Phase3: Portfolio Intelligence = COMPLETE
 Phase4: Alpha Factory = COMPLETE
 Phase5: Risk / Guard OS = COMPLETE
+Phase6: Live Trading = COMPLETE
 ```
 
 Interpretation:
@@ -202,10 +203,21 @@ Meaning:
 Status:
 
 ```text
-FUTURE PHASE
+COMPLETE
 ```
 
-This should not be treated as current scope.
+Why:
+
+- live routing/send-vs-block proof exists
+- lifecycle/reconciliation proof exists
+- mismatch/incident/guard proof exists
+- recovery/resume proof exists
+- path-independent reconciliation determinism proof exists
+- architect re-judged the current packet as `Phase6 = COMPLETE`
+
+Reference:
+
+- [Phase6_live_trading_completion_final.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/Phase6_live_trading_completion_final.md)
 
 ### Phase7: Self-Improving System
 
@@ -239,7 +251,7 @@ That means the next highest-value work is no longer closing Phase2 or Phase3.
 The next highest-value work is:
 
 ```text
-post-Phase5 hardening and later live-trading readiness
+post-Phase6 hardening and Phase7 self-improving system work
 ```
 
 ## Recommended Order
@@ -252,18 +264,18 @@ Now that truth, execution, allocation, alpha factory, and guard closure are comp
 - policy precedence coverage
 - richer audit / config provenance
 
-### 2. Then move into live trading
+### 2. Then move into Phase7
 
-After the closure phases and guard hardening, the next focus should be:
+After the closure phases and live-trading closure, the next focus should be:
 
-- live trading
+- self-improving system work
 
 ## Near-Term Action
 
 The immediate next action is:
 
 ```text
-continue hardening and then define live-trading closure
+continue hardening and define Phase7 closure
 ```
 
 ## Working Summary
@@ -275,6 +287,7 @@ The repo has now also closed:
 - Phase3 portfolio intelligence
 - Phase4 alpha factory
 - Phase5 risk / guard OS
+- Phase6 live trading
 
-The next roadmap milestone is post-Phase5 hardening and then live-trading readiness.
+The next roadmap milestone is post-Phase6 hardening and then Phase7 self-improving system work.
 ```
