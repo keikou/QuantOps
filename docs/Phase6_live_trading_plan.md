@@ -212,6 +212,21 @@ Interpretation:
 - the next blocker is no longer first incident propagation
 - the next blocker is deterministic live recovery / resume after anomaly
 
+## Architect Re-Judgment After Close-4 Packet
+
+Latest architect judgment:
+
+```text
+Phase6-CLOSE-4 = satisfied
+Phase6 = PARTIALLY COMPLETE
+```
+
+Interpretation:
+
+- deterministic recovery / resume after anomaly is now accepted
+- the phase has progressed beyond very-early partial
+- the next blocker is path-independent reconciliation / incident / recovery determinism
+
 ## Recommended Execution Order
 
 1. get architect judgment for exact closure definition

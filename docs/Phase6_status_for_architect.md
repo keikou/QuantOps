@@ -305,6 +305,43 @@ Please re-judge Phase6 after the recovery / resume proof packet:
 3. If another closure blocker remains, what exact invariant should be treated as `Phase6-CLOSE-5`?
 4. If not a closure blocker, what remaining work is merely hardening / acceptance-strengthening?
 
+## Architect Re-Judgment After Close-4 Packet
+
+Latest architect judgment:
+
+```text
+Phase6-CLOSE-4 = satisfied
+Phase6 = PARTIALLY COMPLETE
+```
+
+Architect interpretation:
+
+- the phase is no longer only `VERY EARLY`
+- it has advanced to a mid-stage partial state
+- the next closure blocker is path-independent determinism across equivalent ingestion/replay paths
+
+Architect-defined next invariant:
+
+```text
+same live venue/account evidence
+-> deterministic reconciliation classification
+-> deterministic incident/guard/recovery decision
+across all equivalent ingestion/replay paths
+```
+
+Stricter phrasing:
+
+```text
+if the same live order/fill/account evidence is replayed or ingested
+through equivalent paths,
+the system must produce the same:
+1) reconciliation outcome,
+2) incident state,
+3) halt/resume decision,
+4) persisted audit/reconciliation records,
+without divergence caused by cache/ordering/path differences
+```
+
 ## Likely Closure Definition
 
 Current working hypothesis:
