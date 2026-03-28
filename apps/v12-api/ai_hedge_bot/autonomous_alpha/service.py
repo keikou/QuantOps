@@ -300,6 +300,73 @@ class AutonomousAlphaService:
                 'source_run_id': ranking['ranking_id'],
                 'notes': 'promoted by sprint4 ranker',
             })
+            self.store.append('alpha_library', {
+                'library_id': new_cycle_id(),
+                'created_at': created_at,
+                'alpha_id': alpha_id,
+                'alpha_family': alpha.get('alpha_family', 'custom'),
+                'factor_type': alpha.get('factor_type', 'hybrid'),
+                'state': 'promoted',
+                'rank_score': rank_score,
+                'usage_count': int((self.store.fetchone_dict(
+                    'SELECT usage_count FROM alpha_library WHERE alpha_id=? ORDER BY created_at DESC LIMIT 1',
+                    [alpha_id],
+                ) or {}).get('usage_count') or 0),
+                'tags_json': (self.store.fetchone_dict(
+                    'SELECT tags_json FROM alpha_library WHERE alpha_id=? ORDER BY created_at DESC LIMIT 1',
+                    [alpha_id],
+                ) or {}).get('tags_json') or self.store.to_json([alpha.get('alpha_family', 'custom'), alpha.get('factor_type', 'hybrid')]),
+            })
+            self.store.append('alpha_registry', {
+                'alpha_id': alpha_id,
+                'created_at': created_at,
+                'alpha_family': alpha.get('alpha_family', 'custom'),
+                'factor_type': alpha.get('factor_type', 'hybrid'),
+                'horizon': alpha.get('horizon', 'short'),
+                'turnover_profile': alpha.get('turnover_profile', 'medium'),
+                'feature_dependencies_json': alpha.get('feature_dependencies_json') or self.store.to_json([]),
+                'risk_profile': alpha.get('risk_profile', 'balanced'),
+                'execution_sensitivity': float(alpha.get('execution_sensitivity', 0.0) or 0.0),
+                'state': 'promoted',
+                'source': 'alpha_evaluate',
+                'notes': 'promoted by sprint4 ranker',
+            })
+            self.store.append('alpha_status_events', {
+                'event_id': new_cycle_id(),
+                'created_at': created_at,
+                'alpha_id': alpha_id,
+                'event_type': 'promote',
+                'from_state': alpha.get('state', 'candidate'),
+                'to_state': 'promoted',
+                'reason': f'rank_score={rank_score}',
+            })
+        elif action == 'shadow':
+            self.store.append('alpha_library', {
+                'library_id': new_cycle_id(),
+                'created_at': created_at,
+                'alpha_id': alpha_id,
+                'alpha_family': alpha.get('alpha_family', 'custom'),
+                'factor_type': alpha.get('factor_type', 'hybrid'),
+                'state': 'shadow',
+                'rank_score': rank_score,
+                'usage_count': int((self.store.fetchone_dict(
+                    'SELECT usage_count FROM alpha_library WHERE alpha_id=? ORDER BY created_at DESC LIMIT 1',
+                    [alpha_id],
+                ) or {}).get('usage_count') or 0),
+                'tags_json': (self.store.fetchone_dict(
+                    'SELECT tags_json FROM alpha_library WHERE alpha_id=? ORDER BY created_at DESC LIMIT 1',
+                    [alpha_id],
+                ) or {}).get('tags_json') or self.store.to_json([alpha.get('alpha_family', 'custom'), alpha.get('factor_type', 'hybrid')]),
+            })
+            self.store.append('alpha_status_events', {
+                'event_id': new_cycle_id(),
+                'created_at': created_at,
+                'alpha_id': alpha_id,
+                'event_type': 'shadow',
+                'from_state': alpha.get('state', 'candidate'),
+                'to_state': 'shadow',
+                'reason': f'rank_score={rank_score}',
+            })
         elif action == 'research':
             self.store.append('alpha_demotions', {
                 'demotion_id': new_cycle_id(),
@@ -308,6 +375,32 @@ class AutonomousAlphaService:
                 'decision': 'research',
                 'source_run_id': ranking['ranking_id'],
                 'notes': 'returned to research queue by sprint4 ranker',
+            })
+            self.store.append('alpha_library', {
+                'library_id': new_cycle_id(),
+                'created_at': created_at,
+                'alpha_id': alpha_id,
+                'alpha_family': alpha.get('alpha_family', 'custom'),
+                'factor_type': alpha.get('factor_type', 'hybrid'),
+                'state': 'research',
+                'rank_score': rank_score,
+                'usage_count': int((self.store.fetchone_dict(
+                    'SELECT usage_count FROM alpha_library WHERE alpha_id=? ORDER BY created_at DESC LIMIT 1',
+                    [alpha_id],
+                ) or {}).get('usage_count') or 0),
+                'tags_json': (self.store.fetchone_dict(
+                    'SELECT tags_json FROM alpha_library WHERE alpha_id=? ORDER BY created_at DESC LIMIT 1',
+                    [alpha_id],
+                ) or {}).get('tags_json') or self.store.to_json([alpha.get('alpha_family', 'custom'), alpha.get('factor_type', 'hybrid')]),
+            })
+            self.store.append('alpha_status_events', {
+                'event_id': new_cycle_id(),
+                'created_at': created_at,
+                'alpha_id': alpha_id,
+                'event_type': 'research',
+                'from_state': alpha.get('state', 'candidate'),
+                'to_state': 'research',
+                'reason': f'rank_score={rank_score}',
             })
         return ranking
 

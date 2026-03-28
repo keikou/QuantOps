@@ -141,17 +141,53 @@ Validation:
 - `python -m pytest apps/v12-api/tests/test_phase4_alpha_factory_closure.py -q`
 - `python -m pytest apps/v12-api/tests/test_phaseh_sprint3_api.py -q`
 
+### 6. Phase4-CLOSE-3 proof now exists
+
+Added:
+
+- [`apps/v12-api/tests/test_phase4_alpha_factory_close3.py`](https://github.com/keikou/QuantOps/blob/main/apps/v12-api/tests/test_phase4_alpha_factory_close3.py)
+
+Extended implementation:
+
+- [`apps/v12-api/ai_hedge_bot/signal/signal_service.py`](https://github.com/keikou/QuantOps/blob/main/apps/v12-api/ai_hedge_bot/signal/signal_service.py)
+- [`apps/v12-api/ai_hedge_bot/autonomous_alpha/service.py`](https://github.com/keikou/QuantOps/blob/main/apps/v12-api/ai_hedge_bot/autonomous_alpha/service.py)
+
+Current proof:
+
+```text
+persisted governance outcome from cycle N
+-> deterministically changes next-cycle alpha reuse / exclusion
+-> next-cycle portfolio inclusion and execution plan reflect that persisted state
+```
+
+Concrete assertions now covered:
+
+- promoted alpha state is persisted into lifecycle state, not only promotion rows
+- runtime overlay now reuses only eligible lifecycle states
+- if alpha A is retired in cycle N, then cycle N+1 excludes A from runtime overlay reuse
+- that persisted exclusion propagates into portfolio and execution plan weight
+
+Validation:
+
+- `python -m pytest apps/v12-api/tests/test_phase4_alpha_factory_closure.py -q`
+- `python -m pytest apps/v12-api/tests/test_phase4_alpha_factory_governance_closure.py -q`
+- `python -m pytest apps/v12-api/tests/test_phase4_alpha_factory_close3.py -q`
+
 ## Current Codex Judgment
 
 This is the current engineering judgment:
 
 ```text
-Phase4 is PARTIALLY COMPLETE.
+Phase4 is now either:
+- still PARTIALLY COMPLETE but with closure-grade evidence,
+- or ready for COMPLETE if no further invariant is missing.
+
 It now has component coverage plus:
 - a runtime-linkage proof
 - a runtime-result-to-governance-state proof
+- a next-cycle reuse / exclusion proof
 
-But it is not yet closure-complete.
+This is the strongest Phase4 packet so far.
 ```
 
 Meaning:
@@ -162,30 +198,31 @@ Meaning:
 
 ## Likely Missing Closure Proof
 
-The main remaining gap is now likely this:
+The main remaining question is now this:
 
 ```text
-alpha lifecycle governance must be proven as a fully closed loop,
-not only as runtime linkage plus rollback visibility
+does this packet already satisfy alpha lifecycle loop closure,
+or is there still one final invariant missing?
 ```
 
-In practice, likely remaining proofs are:
+If something is still missing, likely candidates are:
 
-- keep / reduce / shadow / rollback branches under explicit deterministic transitions
+- keep / reduce / shadow / rollback branch completeness under the same deterministic pattern
+- positive-path next-cycle retained reuse, not only negative-path exclusion
 - champion-challenger or governance winner state linking into actual deployment state
-- next-cycle reuse of updated governance state after feedback
-- possibly multi-alpha deployment behavior beyond a single promoted overlay
+- multi-alpha deployment behavior beyond a single promoted overlay
 
 ## Questions For Architect
 
 Please judge the updated repo state and answer these directly:
 
-1. Is `Phase4` still `PARTIALLY COMPLETE`, or do these two proof packets move it materially closer to `COMPLETE`?
-2. What exact next closure invariant should be proven after:
+1. Can `Phase4` now be judged `COMPLETE`, or is it still `PARTIALLY COMPLETE`?
+2. If it is still partial, what exact next closure invariant should be proven after:
    - `promoted alpha -> runtime impact`
    - `runtime result -> governance-visible rollback/retire state`
-3. Has the hardest remaining gap shifted from `runtime deployment linkage` to `lifecycle closure / next-cycle reuse / governance determinism`?
-4. What should now be treated as `Phase4-CLOSE-3`?
+   - `persisted governance outcome -> next-cycle reuse / exclusion`
+3. Has the hardest remaining gap now shifted beyond `next-cycle reuse`, or is Phase4 already closure-complete?
+4. If not complete, what should now be treated as `Phase4-CLOSE-4`?
 
 ## References
 
@@ -199,5 +236,5 @@ Please judge the updated repo state and answer these directly:
 ## One-Line Prompt
 
 ```text
-Please re-judge Phase4 Alpha Factory after both the runtime deployment linkage proof and the governance-state closure proof, and specify the exact next closure invariant that should be proven after them.
+Please re-judge Phase4 Alpha Factory after the runtime linkage proof, governance-state closure proof, and next-cycle reuse/exclusion proof, and say whether Phase4 is now COMPLETE. If not, specify the exact next closure invariant.
 ```

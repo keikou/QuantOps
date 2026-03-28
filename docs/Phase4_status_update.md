@@ -265,3 +265,55 @@ governance outcome persisted in cycle N
 must deterministically control next-cycle alpha reuse / exclusion
 in ranking, portfolio inclusion, and execution planning
 ```
+
+## Phase4-CLOSE-3 Proof Added
+
+Added:
+
+- `apps/v12-api/tests/test_phase4_alpha_factory_close3.py`
+
+Extended supporting implementation:
+
+- `apps/v12-api/ai_hedge_bot/signal/signal_service.py`
+- `apps/v12-api/ai_hedge_bot/autonomous_alpha/service.py`
+
+What it proves:
+
+```text
+cycle N governance outcome
+-> persisted alpha lifecycle state
+-> next-cycle runtime overlay reuse / exclusion
+-> next-cycle portfolio inclusion and execution plan change
+```
+
+Concrete behavior now covered:
+
+- promoted alpha state is written into persisted alpha lifecycle state
+- runtime overlay only reuses alpha states that remain eligible
+- if the same alpha is retired in cycle N, then cycle N+1 falls back to baseline runtime selection
+- that exclusion propagates into portfolio weight and execution plan weight
+
+Validation:
+
+```text
+python -m pytest apps\v12-api\tests\test_phase4_alpha_factory_closure.py -q
+1 passed
+
+python -m pytest apps\v12-api\tests\test_phase4_alpha_factory_governance_closure.py -q
+1 passed
+
+python -m pytest apps\v12-api\tests\test_phase4_alpha_factory_close3.py -q
+1 passed
+```
+
+## Updated Practical Interpretation
+
+The repo can now prove all three of these:
+
+```text
+1. promoted alpha -> runtime impact
+2. runtime result -> governance-visible state transition
+3. persisted governance state -> next-cycle reuse / exclusion
+```
+
+At this point, the natural next step is architect re-judgment for whether Phase4 can be closed.

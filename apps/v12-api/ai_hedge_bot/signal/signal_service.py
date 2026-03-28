@@ -18,19 +18,61 @@ class SignalService:
                 p.alpha_id,
                 reg.alpha_family,
                 reg.factor_type,
+                lib.state AS governance_state,
                 COALESCE(r.rank_score, 0.0) AS rank_score,
                 COALESCE(r.recommended_action, p.decision) AS recommended_action
             FROM alpha_promotions p
-            LEFT JOIN alpha_registry reg
+            LEFT JOIN (
+                SELECT alpha_id, alpha_family, factor_type
+                FROM (
+                    SELECT
+                        alpha_id,
+                        alpha_family,
+                        factor_type,
+                        created_at,
+                        ROW_NUMBER() OVER (PARTITION BY alpha_id ORDER BY created_at DESC) AS rn
+                    FROM alpha_registry
+                ) t
+                WHERE rn = 1
+            ) reg
                 ON reg.alpha_id = p.alpha_id
-            LEFT JOIN alpha_rankings r
+            LEFT JOIN (
+                SELECT alpha_id, state
+                FROM (
+                    SELECT
+                        alpha_id,
+                        state,
+                        created_at,
+                        ROW_NUMBER() OVER (PARTITION BY alpha_id ORDER BY created_at DESC) AS rn
+                    FROM alpha_library
+                ) t
+                WHERE rn = 1
+            ) lib
+                ON lib.alpha_id = p.alpha_id
+            LEFT JOIN (
+                SELECT alpha_id, rank_score, recommended_action
+                FROM (
+                    SELECT
+                        alpha_id,
+                        rank_score,
+                        recommended_action,
+                        created_at,
+                        ROW_NUMBER() OVER (PARTITION BY alpha_id ORDER BY created_at DESC) AS rn
+                    FROM alpha_rankings
+                ) t
+                WHERE rn = 1
+            ) r
                 ON r.alpha_id = p.alpha_id
             WHERE lower(coalesce(p.decision, '')) = 'promote'
-            ORDER BY p.created_at DESC, r.created_at DESC
+            ORDER BY p.created_at DESC
             LIMIT 1
             """
         )
         if not row or not symbols:
+            return None
+
+        governance_state = str(row.get("governance_state") or "").lower()
+        if governance_state and governance_state not in {"promoted", "approved", "live", "monitor"}:
             return None
 
         alpha_id = str(row.get("alpha_id") or "")
@@ -54,6 +96,7 @@ class SignalService:
             "preferred_symbol": preferred_symbol,
             "boost": boost,
             "recommended_action": str(row.get("recommended_action") or "promote"),
+            "governance_state": governance_state or "promoted",
         }
 
     def generate(self, symbols: list[str]) -> list[dict]:
