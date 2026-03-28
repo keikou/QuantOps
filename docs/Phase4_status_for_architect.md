@@ -3,7 +3,7 @@
 Date: `2026-03-29`
 Repo: `QuantOps_github`
 Branch: `main`
-Current Working Status: `NOT YET JUDGED`
+Current Working Status: `PARTIALLY COMPLETE`
 
 ## Purpose
 
@@ -15,11 +15,9 @@ The repo now has:
 - `Phase2 Execution Reality = COMPLETE`
 - `Phase3 Portfolio Intelligence = COMPLETE`
 
-The next question is whether Phase4 is:
+The next question is no longer the initial classification.
 
-- only partially implemented as components
-- already materially advanced
-- or close enough that a closure plan can be made precisely
+The next question is whether the newly added first proof packet materially advances closure and what exact invariant should be proven next.
 
 ## Current Evidence In Repo
 
@@ -81,25 +79,50 @@ Current subsystems visible in code:
 - rollback policy
 - champion-challenger
 
+### 4. First runtime-deployment linkage proof now exists
+
+Added:
+
+- [`apps/v12-api/tests/test_phase4_alpha_factory_closure.py`](https://github.com/keikou/QuantOps/blob/main/apps/v12-api/tests/test_phase4_alpha_factory_closure.py)
+
+Supporting implementation:
+
+- [`apps/v12-api/ai_hedge_bot/signal/signal_service.py`](https://github.com/keikou/QuantOps/blob/main/apps/v12-api/ai_hedge_bot/signal/signal_service.py)
+
+Current proof:
+
+```text
+promoted alpha
+-> runtime signal overlay
+-> changed portfolio inclusion
+-> changed execution plan weight
+```
+
+Validation:
+
+- `python -m pytest apps/v12-api/tests/test_phase4_alpha_factory_closure.py -q`
+- `python -m pytest apps/v12-api/tests/test_phaseh_sprint4_api.py -q`
+- `python -m pytest apps/v12-api/tests/test_phaseh_sprint3_api.py -q`
+
 ## Current Codex Judgment
 
 This is the current engineering judgment:
 
 ```text
-Phase4 is not zero.
-It already has substantial component and API coverage.
-But it has not yet been closure-proven.
+Phase4 is PARTIALLY COMPLETE.
+It now has component coverage plus a first runtime-linkage proof.
+But it is not yet closure-complete.
 ```
 
 Meaning:
 
-- likely more advanced than "not started"
+- stronger than component-only partial
 - not yet justified as `COMPLETE`
-- probably in a state similar to Phase3 before first proof packet
+- likely in a state similar to Phase3 after first proof packet but before full closure
 
 ## Likely Missing Closure Proof
 
-The main likely gap is this:
+The main remaining gap is now this:
 
 ```text
 alpha generation / evaluation / governance
@@ -107,25 +130,21 @@ must be proven as a closed state-transition system,
 not only a set of isolated registration and review endpoints
 ```
 
-In practice, likely missing proofs are:
+In practice, likely remaining proofs are:
 
-- validation metrics changing promotion decisions deterministically
-- poor live-review / decay results changing governance state
-- champion-challenger results changing selected winner state
-- governed alpha state influencing later deployment/runtime-facing selection
+- promotion / rollback determinism under explicit state transitions
+- governed alpha state influencing later runtime state beyond first-symbol linkage
+- champion-challenger / governance winner state linking into actual deployment state
+- possibly realized portfolio/execution consequence under multiple alphas rather than a single promoted overlay
 
 ## Questions For Architect
 
-Please judge the current repo state and answer these directly:
+Please judge the updated repo state and answer these directly:
 
-1. Is `Phase4` best classified as `NOT STARTED`, `PARTIALLY COMPLETE`, or something stronger?
-2. What exact closure definition should be used for `Alpha Factory` in this repo?
-3. What is the single most important missing invariant to prove first?
-4. Is the hardest remaining gap likely:
-   - governance-state closure
-   - promotion/rollback determinism
-   - runtime deployment linkage
-   - or something else?
+1. Is `Phase4` still `PARTIALLY COMPLETE`, or did the first runtime-linkage proof move it materially beyond that?
+2. What exact next closure invariant should be proven after this first proof?
+3. Is the hardest remaining gap still `runtime deployment linkage`, or has that now shifted to `promotion / rollback determinism` or `governance-state closure`?
+4. What should be treated as `Phase4-CLOSE-2`?
 
 ## References
 
@@ -139,5 +158,5 @@ Please judge the current repo state and answer these directly:
 ## One-Line Prompt
 
 ```text
-Please judge the current Phase4 Alpha Factory status from the existing repo evidence and specify the exact first closure invariant that should be proven next.
+Please re-judge Phase4 Alpha Factory after the first runtime deployment linkage proof and specify the exact next closure invariant that should be proven after it.
 ```
