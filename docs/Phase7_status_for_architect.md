@@ -228,3 +228,55 @@ Please re-judge Phase7 after the close2 governed deployment packet:
 2. If yes, does `Phase7` remain `PARTIALLY COMPLETE`, or has it moved further?
 3. If another closure blocker remains, what exact invariant should be treated as `Phase7-CLOSE-3`?
 4. Has the hardest gap shifted from deploy linkage to measured next-cycle attribution / feedback closure?
+
+## Architect Re-Judgment After Close-2 Packet
+
+```text
+Phase7-CLOSE-2 = satisfied
+Phase7 = still PARTIALLY COMPLETE
+```
+
+Architect-defined exact `Phase7-CLOSE-3` invariant:
+
+```text
+deployed update
+-> attributable next-cycle measured outcome
+-> feedback re-enters the governed self-improving loop
+```
+
+## Phase7-CLOSE-3 Proof Added
+
+Added:
+
+- `apps/v12-api/ai_hedge_bot/services/self_improving_service.py`
+- `apps/v12-api/tests/test_phase7_self_improving_closure.py`
+
+Current proof:
+
+```text
+deployed update
+-> attributable next-cycle measured outcome
+-> feedback re-enters the governed self-improving loop
+```
+
+Concrete assertions now covered:
+
+- an approved update is deployed into runtime-visible state
+- the next cycle actually runs with that deployed alpha as `dominant_alpha`
+- the next cycle plan reflects that deployed state
+- measured next-cycle evidence is fed back into the same governed improvement service
+- the feedback leg persists a second governed review artifact and state transition
+
+Validation:
+
+- `python -m pytest apps/v12-api/tests/test_phase7_self_improving_closure.py -q`
+- current result: `3 passed`
+
+## Questions For Architect
+
+Please re-judge Phase7 after the close3 next-cycle feedback packet:
+
+1. Does the current packet satisfy `Phase7-CLOSE-3`?
+2. If yes, does `Phase7` remain `PARTIALLY COMPLETE`, or has it moved further?
+3. If another closure blocker remains, what exact invariant should be treated as `Phase7-CLOSE-4`?
+4. If not, can Phase7 now be treated as `COMPLETE` with only hardening left?

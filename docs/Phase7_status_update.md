@@ -144,3 +144,57 @@ Validation:
 python -m pytest apps\v12-api\tests\test_phase7_self_improving_closure.py -q
 2 passed
 ```
+
+## Architect Re-Judgment After Close-2 Packet
+
+Latest architect judgment:
+
+```text
+Phase7-CLOSE-2 = satisfied
+Phase7 = still PARTIALLY COMPLETE
+```
+
+Architect-defined exact `Phase7-CLOSE-3` invariant:
+
+```text
+deployed update
+-> attributable next-cycle measured outcome
+-> feedback re-enters the governed self-improving loop
+```
+
+Stricter phrasing:
+
+```text
+if an approved update is deployed and used in the next cycle,
+the system must produce a measurable next-cycle outcome that is attributable to that deployed state,
+and that measured outcome must be able to feed back into the same governed improvement loop
+```
+
+## Phase7-CLOSE-3 Proof Added
+
+Added:
+
+- `apps/v12-api/ai_hedge_bot/services/self_improving_service.py`
+- `apps/v12-api/tests/test_phase7_self_improving_closure.py`
+
+What it proves:
+
+```text
+deployed update
+-> attributable next-cycle measured outcome
+-> feedback re-enters the governed self-improving loop
+```
+
+Concrete behavior now covered:
+
+- a deployed promoted alpha is used as next-cycle `dominant_alpha`
+- the next cycle execution plan reflects that deployed state
+- next-cycle measured evidence is fed back into `SelfImprovingService`
+- a second governed review artifact is persisted from that next-cycle feedback
+
+Validation:
+
+```text
+python -m pytest apps\v12-api\tests\test_phase7_self_improving_closure.py -q
+3 passed
+```

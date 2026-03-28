@@ -256,3 +256,51 @@ python -m pytest apps\v12-api\tests\test_phase7_self_improving_closure.py -q
 
 This does not yet claim `Phase7 = COMPLETE`.
 It prepares the packet for the next architect re-judgment on whether `Phase7-CLOSE-2` is satisfied.
+
+## Architect Re-Judgment After Close-2 Packet
+
+Latest architect judgment:
+
+```text
+Phase7-CLOSE-2 = satisfied
+Phase7 = still PARTIALLY COMPLETE
+```
+
+Interpretation:
+
+- governed deploy/update linkage is now accepted
+- the remaining blocker is no longer deployment itself
+- the final leg is attributable next-cycle outcome and feedback re-entry
+
+Architect-defined next invariant:
+
+```text
+deployed update
+-> attributable next-cycle measured outcome
+-> feedback re-enters the governed self-improving loop
+```
+
+## Current Repo Packet After Close-3 Proof
+
+The repo now also includes a next-cycle attribution and feedback re-entry proof:
+
+```text
+deployed update
+-> attributable next-cycle measured outcome
+-> feedback re-enters the governed self-improving loop
+```
+
+Implemented in:
+
+- `apps/v12-api/ai_hedge_bot/services/self_improving_service.py`
+- `apps/v12-api/tests/test_phase7_self_improving_closure.py`
+
+Current validation state:
+
+```text
+python -m pytest apps\v12-api\tests\test_phase7_self_improving_closure.py -q
+3 passed
+```
+
+This does not yet claim `Phase7 = COMPLETE`.
+It prepares the packet for the next architect re-judgment on whether `Phase7-CLOSE-3` is satisfied.

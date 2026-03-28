@@ -320,3 +320,112 @@ def test_phase7_close2_governed_improvement_decision_changes_next_cycle_runtime_
     assert promoted_signal_map["BTCUSDT"]["dominant_alpha"] == alpha_id
     assert float(promoted_signal_map["BTCUSDT"]["score"]) > float(baseline_signal_map["BTCUSDT"]["score"])
     assert promoted_plan_map["BTCUSDT"] > baseline_plan_map["BTCUSDT"]
+
+
+def test_phase7_close3_deployed_update_creates_attributable_next_cycle_feedback() -> None:
+    _reset_phase7_state()
+    client.post("/runtime/resume")
+
+    alpha_id = "alpha.phase7.close3"
+    model_id = "model_phase7_close3"
+    _register_phase7_model(alpha_id, model_id)
+
+    original_datetime = signal_service_module.datetime
+    signal_service_module.datetime = _FixedDateTime
+    try:
+        service = SelfImprovingService()
+        deployed = service.evaluate_result_evidence(
+            {
+                "created_at": "2026-03-29T14:20:00+00:00",
+                "model_id": model_id,
+                "strategy_id": "trend_core",
+                "expected_return": 0.12,
+                "realized_return": 0.11,
+                "hit_rate": 0.68,
+                "turnover": 0.32,
+                "drawdown": -0.05,
+                "slippage_bps": 4.0,
+                "fill_rate": 0.91,
+                "risk_usage": 0.52,
+            }
+        )
+        assert deployed["decision"] == "keep"
+
+        next_cycle = client.post("/runtime/run-once?mode=paper")
+        assert next_cycle.status_code == 200
+        next_payload = next_cycle.json()
+        next_run_id = next_payload["run_id"]
+        next_created_at = next_payload["result"]["timestamp"]
+
+        next_signals = CONTAINER.runtime_store.fetchall_dict(
+            """
+            SELECT symbol, score, dominant_alpha
+            FROM signals
+            WHERE created_at = ?
+            ORDER BY symbol ASC
+            """,
+            [next_created_at],
+        )
+        next_signal_map = {str(row["symbol"]): row for row in next_signals}
+        assert next_signal_map["BTCUSDT"]["dominant_alpha"] == alpha_id
+
+        next_plans = CONTAINER.runtime_store.fetchall_dict(
+            """
+            SELECT symbol, target_weight
+            FROM execution_plans
+            WHERE run_id = ?
+            ORDER BY symbol ASC
+            """,
+            [next_run_id],
+        )
+        next_plan_map = {str(row["symbol"]): abs(float(row["target_weight"] or 0.0)) for row in next_plans}
+        assert next_plan_map["BTCUSDT"] > 0.0
+
+        feedback = service.evaluate_result_evidence(
+            {
+                "created_at": "2026-03-29T14:25:00+00:00",
+                "model_id": model_id,
+                "strategy_id": "trend_core",
+                "expected_return": 0.14,
+                "realized_return": 0.15,
+                "hit_rate": 0.72,
+                "turnover": 0.34,
+                "drawdown": -0.03,
+                "slippage_bps": 3.5,
+                "fill_rate": 0.94,
+                "risk_usage": 0.49,
+                "notes": f"phase7 close3 feedback run {next_run_id}",
+            }
+        )
+        assert feedback["decision"] == "keep"
+    finally:
+        signal_service_module.datetime = original_datetime
+
+    latest_reviews = CONTAINER.runtime_store.fetchall_dict(
+        """
+        SELECT decision, notes
+        FROM model_live_reviews
+        WHERE model_id = ?
+        ORDER BY created_at DESC
+        LIMIT 2
+        """,
+        [model_id],
+    )
+    assert len(latest_reviews) == 2
+    assert latest_reviews[0]["decision"] == "keep"
+    assert str(latest_reviews[0]["notes"]).startswith("phase7 close3 feedback run ")
+    assert latest_reviews[1]["decision"] == "keep"
+
+    latest_alpha_event = CONTAINER.runtime_store.fetchone_dict(
+        """
+        SELECT to_state, reason
+        FROM alpha_status_events
+        WHERE alpha_id = ?
+        ORDER BY created_at DESC
+        LIMIT 1
+        """,
+        [alpha_id],
+    )
+    assert latest_alpha_event is not None
+    assert latest_alpha_event["to_state"] == "promoted"
+    assert latest_alpha_event["reason"] == "self_improving_keep"
