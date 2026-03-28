@@ -112,11 +112,55 @@ Suggested file:
 
 - `docs/Phase5_risk_guard_completion_final.md`
 
+## Architect Initial Verdict
+
+Initial architect judgment:
+
+```text
+Phase5 = NOT STARTED
+```
+
+Interpretation:
+
+- the repo has relevant components, but not a closure packet
+- existing halt/risk pieces are not yet enough to claim partial phase closure
+- Phase5 should be treated as a new closure effort, not as an already progressing closed loop
+
+Architect closure framing:
+
+```text
+risk
+-> guard
+-> suppression
+-> audit
+-> recovery
+```
+
+Architect-defined first invariant:
+
+```text
+risk breach
+-> guard trigger
+-> execution suppression
+```
+
+Architect-defined hardest gap:
+
+```text
+execution suppression
+```
+
+Meaning:
+
+- not merely that risk flags exist
+- not merely that halt state can be read
+- but that the system deterministically prevents further execution under breach conditions
+
 ## Recommended Execution Order
 
 1. inventory existing risk/guard/runtime-control behavior
 2. get architect judgment for exact closure definition
-3. implement first proof test for guard decision -> execution consequence
+3. implement first proof test for `risk breach -> execution suppression`
 4. add verification script
 5. close with completion memo after architect re-judgment
 
