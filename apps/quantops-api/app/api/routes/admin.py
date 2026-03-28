@@ -2,8 +2,9 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends
 
-from app.core.deps import get_admin_service
+from app.core.deps import get_admin_service, get_frontend_telemetry_service
 from app.services.admin_service import AdminService
+from app.services.frontend_telemetry_service import FrontendTelemetryService
 
 router = APIRouter()
 
@@ -22,3 +23,8 @@ def config_changes(service: AdminService = Depends(get_admin_service)) -> dict:
 @router.get('/mode-switches')
 def mode_switches(service: AdminService = Depends(get_admin_service)) -> dict:
     return service.get_mode_switches()
+
+
+@router.post('/frontend-events')
+def frontend_events(payload: dict, service: FrontendTelemetryService = Depends(get_frontend_telemetry_service)) -> dict:
+    return service.record_event(payload)

@@ -30,6 +30,7 @@ from app.services.command_center_service import CommandCenterService
 from app.services.event_stream_service import EventStreamService
 from app.services.notification_service import NotificationService
 from app.services.execution_service import ExecutionService
+from app.services.frontend_telemetry_service import FrontendTelemetryService
 
 
 @lru_cache(maxsize=1)
@@ -123,6 +124,11 @@ def get_incident_service() -> IncidentService:
 
 def get_admin_service() -> AdminService:
     return AdminService(get_audit_repository())
+
+
+@lru_cache(maxsize=1)
+def get_frontend_telemetry_service() -> FrontendTelemetryService:
+    return FrontendTelemetryService()
 
 
 

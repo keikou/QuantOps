@@ -153,6 +153,42 @@ Typical files:
 - `v12.log`
 - `pids.json`
 
+### Correlation and timeout logs
+
+- `apps/quantops-api/runtime/logs/frontend_events.jsonl`
+- `apps/quantops-api/runtime/logs/quantops_requests.jsonl`
+- `apps/quantops-api/runtime/logs/quantops_upstream_v12.jsonl`
+- `apps/v12-api/runtime/logs/v12_requests.jsonl`
+
+Useful keys:
+
+- `trace_id`
+- `request_id`
+- `session_id`
+- `page_path`
+- `duration_ms`
+- `timeout_detected`
+- `timeout_source`
+
+When investigating GUI timeout reports:
+
+1. find the `page_view` or `api_error` row in `frontend_events.jsonl`
+2. match the same `trace_id` in `quantops_requests.jsonl`
+3. match the same `trace_id` in `quantops_upstream_v12.jsonl`
+4. confirm the corresponding V12 side row in `v12_requests.jsonl`
+
+Quick helper:
+
+```powershell
+python test_bundle/scripts/analyze_correlation_timeouts.py
+```
+
+JSON output:
+
+```powershell
+python test_bundle/scripts/analyze_correlation_timeouts.py --json
+```
+
 ### Writer observability
 
 - `runtime/logs/writer_cycles.jsonl`

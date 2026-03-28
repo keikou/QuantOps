@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from fastapi import FastAPI
 from ai_hedge_bot.app.startup import lifespan
+from ai_hedge_bot.middleware.request_logging import RequestLoggingMiddleware
 from ai_hedge_bot.api.routes import (
     system,
     market,
@@ -33,6 +34,7 @@ def create_app() -> FastAPI:
         version='0.12.0-phaseh-sprint5-integrated',
         lifespan=lifespan,
     )
+    app.add_middleware(RequestLoggingMiddleware)
     for router in (
         system.router,
         market.router,

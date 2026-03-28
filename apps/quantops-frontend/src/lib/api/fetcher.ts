@@ -1,5 +1,6 @@
 import { API_BASE_URL, API_DEBUG_ERRORS, API_TIMEOUT_MS, ENABLE_MOCK_FALLBACK, USE_PROXY } from '@/lib/api/config';
 import { useApiErrorStore, type ApiErrorEntry, type ApiErrorKind } from '@/lib/api/error-store';
+import { emitFrontendTelemetry, getCurrentPagePath, getCurrentTraceId, getTelemetrySessionId } from '@/lib/api/telemetry';
 import type { ActionResult, ApiEnvelope } from '@/types/api';
 
 class ApiRequestError extends Error {
@@ -62,7 +63,7 @@ function timeoutForPath(path: string) {
 
 function getCurrentPage() {
   if (typeof window === 'undefined') return 'server';
-  return `${window.location.pathname}${window.location.search}`;
+  return getCurrentPagePath() ?? `${window.location.pathname}${window.location.search}`;
 }
 
 function makeRequestId() {
@@ -92,6 +93,8 @@ async function request<T>(path: string, init?: RequestInit): Promise<ApiEnvelope
   const method = init?.method || 'GET';
   const page = getCurrentPage();
   const requestId = makeRequestId();
+  const traceId = getCurrentTraceId() ?? requestId;
+  const sessionId = getTelemetrySessionId();
 
   try {
     const response = await fetch(requestUrl, {
@@ -100,7 +103,11 @@ async function request<T>(path: string, init?: RequestInit): Promise<ApiEnvelope
       cache: 'no-store',
       headers: {
         'Content-Type': 'application/json',
+        'X-Request-Id': requestId,
         'X-Client-Request-Id': requestId,
+        'X-Trace-Id': traceId,
+        'X-Session-Id': sessionId,
+        'X-Page-Path': page,
         ...(init?.headers || {}),
       },
     });
@@ -179,6 +186,25 @@ async function request<T>(path: string, init?: RequestInit): Promise<ApiEnvelope
         correlationId: err.correlationId,
         durationMs: err.durationMs,
         createdAt: new Date().toISOString(),
+      });
+      void emitFrontendTelemetry({
+        event_type: 'api_error',
+        trace_id: traceId,
+        request_id: requestId,
+        session_id: sessionId,
+        page_path: page,
+        status: err.kind,
+        action: method,
+        target: path,
+        details: {
+          request_url: requestUrl,
+          message: err.message,
+          status: err.status ?? null,
+          status_text: err.statusText ?? null,
+          duration_ms: err.durationMs,
+          response_snippet: err.responseSnippet ?? null,
+          correlation_id: err.correlationId ?? null,
+        },
       });
     }
 

@@ -202,6 +202,49 @@ Healthy no-fill cycle:
 - zero history writes
 - no rebuild reason
 
+## Correlation Logging
+
+Frontend page-view and API error telemetry now has a first-pass correlation path:
+
+- frontend emits page and client error events to:
+  - `apps/quantops-api/runtime/logs/frontend_events.jsonl`
+- QuantOps API request middleware writes:
+  - `apps/quantops-api/runtime/logs/quantops_requests.jsonl`
+- QuantOps API forwards correlation headers to V12
+- V12 request middleware writes:
+  - `apps/v12-api/runtime/logs/v12_requests.jsonl`
+
+Primary keys used to correlate events:
+
+- `trace_id`
+- `request_id`
+- `session_id`
+- `page_path`
+
+Header flow:
+
+- frontend request headers:
+  - `X-Request-Id`
+  - `X-Client-Request-Id`
+  - `X-Trace-Id`
+  - `X-Session-Id`
+  - `X-Page-Path`
+- QuantOps API returns:
+  - `X-Request-Id`
+  - `X-Trace-Id`
+- QuantOps API forwards the same trace/session/page headers to V12
+
+This is the intended debugging path when you need to answer:
+
+- which page view triggered an API call
+- which QuantOps request led to a V12 upstream call
+- whether a frontend error and backend failure share the same `trace_id`
+
+Current limitation:
+
+- `frontend-start.log` is still only a process startup log, not a user interaction log
+- button-level telemetry is not yet generalized; page views, client errors, and API errors are the current baseline
+
 ## Current Known Safe Direction
 
 Do:

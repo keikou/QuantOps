@@ -6,15 +6,57 @@ from typing import Any, Iterable
 import httpx
 import logging
 
-from app.core.request_context import current_request_id, current_request_path
+from app.core.config import get_settings
+from app.core.jsonl_logger import JsonlLogger
+from app.core.request_context import current_page_path, current_request_id, current_request_path, current_session_id, current_trace_id
 
 
 logger = logging.getLogger("uvicorn.error")
 TARGET_PATHS = {"/api/v1/dashboard/overview", "/api/v1/portfolio/positions"}
+upstream_jsonl_logger = JsonlLogger(get_settings().log_dir / "quantops_upstream_v12.jsonl")
 
 
 def utc_now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
+
+
+def _is_timeout_exception(exc: Exception) -> bool:
+    name = type(exc).__name__.lower()
+    text = repr(exc).lower()
+    return "timeout" in name or "timeout" in text or "readtimeout" in text
+
+
+def _append_upstream_row(
+    *,
+    event_type: str,
+    method: str,
+    upstream_path: str,
+    status: int | None,
+    duration_ms: float,
+    error: str | None = None,
+    timeout_detected: bool = False,
+    timeout_source: str | None = None,
+) -> None:
+    upstream_jsonl_logger.append(
+        {
+            "timestamp": utc_now_iso(),
+            "service": "quantops-api",
+            "upstream_service": "v12-api",
+            "event_type": event_type,
+            "method": method.upper(),
+            "quantops_path": current_request_path(),
+            "upstream_path": upstream_path,
+            "status": status,
+            "request_id": current_request_id(),
+            "trace_id": current_trace_id(),
+            "session_id": current_session_id(),
+            "page_path": current_page_path(),
+            "duration_ms": duration_ms,
+            "timeout_detected": timeout_detected,
+            "timeout_source": timeout_source,
+            "error": error,
+        }
+    )
 
 
 class V12Client:
@@ -40,17 +82,38 @@ class V12Client:
             for path in path_list:
                 started = datetime.now(timezone.utc)
                 try:
-                    resp = await client.request(method, path, json=json)
+                    resp = await client.request(
+                        method,
+                        path,
+                        json=json,
+                        headers={
+                            "X-Request-Id": current_request_id() or "",
+                            "X-Trace-Id": current_trace_id() or current_request_id() or "",
+                            "X-Session-Id": current_session_id() or "",
+                            "X-Page-Path": current_page_path() or "",
+                        },
+                    )
                     duration_ms = round((datetime.now(timezone.utc) - started).total_seconds() * 1000.0, 2)
                     log_fn = logger.warning if current_request_path() in TARGET_PATHS else logger.info
                     log_fn(
-                        "v12_request_complete request_id=%s quantops_path=%s method=%s upstream_path=%s status=%s duration_ms=%s",
+                        "v12_request_complete request_id=%s trace_id=%s quantops_path=%s page_path=%s method=%s upstream_path=%s status=%s duration_ms=%s",
                         current_request_id(),
+                        current_trace_id(),
                         current_request_path(),
+                        current_page_path(),
                         method.upper(),
                         path,
                         resp.status_code,
                         duration_ms,
+                    )
+                    _append_upstream_row(
+                        event_type="upstream_request_complete",
+                        method=method,
+                        upstream_path=path,
+                        status=resp.status_code,
+                        duration_ms=duration_ms,
+                        timeout_detected=resp.status_code in {408, 504},
+                        timeout_source="status_code" if resp.status_code in {408, 504} else None,
                     )
                     if resp.status_code == 404:
                         last_error = httpx.HTTPStatusError("404 fallback", request=resp.request, response=resp)
@@ -64,27 +127,52 @@ class V12Client:
                     last_error = exc
                     duration_ms = round((datetime.now(timezone.utc) - started).total_seconds() * 1000.0, 2)
                     logger.warning(
-                        "v12_request_http_error request_id=%s quantops_path=%s method=%s upstream_path=%s status=%s duration_ms=%s",
+                        "v12_request_http_error request_id=%s trace_id=%s quantops_path=%s page_path=%s method=%s upstream_path=%s status=%s duration_ms=%s",
                         current_request_id(),
+                        current_trace_id(),
                         current_request_path(),
+                        current_page_path(),
                         method.upper(),
                         path,
                         exc.response.status_code if exc.response is not None else None,
                         duration_ms,
+                    )
+                    _append_upstream_row(
+                        event_type="upstream_request_http_error",
+                        method=method,
+                        upstream_path=path,
+                        status=exc.response.status_code if exc.response is not None else None,
+                        duration_ms=duration_ms,
+                        error=repr(exc),
+                        timeout_detected=(exc.response.status_code if exc.response is not None else None) in {408, 504},
+                        timeout_source="status_code" if (exc.response.status_code if exc.response is not None else None) in {408, 504} else None,
                     )
                     if exc.response is not None and exc.response.status_code in {404, 500, 502, 503, 504}:
                         continue
                 except Exception as exc:
                     last_error = exc
                     duration_ms = round((datetime.now(timezone.utc) - started).total_seconds() * 1000.0, 2)
+                    timeout_detected = _is_timeout_exception(exc)
                     logger.warning(
-                        "v12_request_exception request_id=%s quantops_path=%s method=%s upstream_path=%s duration_ms=%s error=%s",
+                        "v12_request_exception request_id=%s trace_id=%s quantops_path=%s page_path=%s method=%s upstream_path=%s duration_ms=%s error=%s",
                         current_request_id(),
+                        current_trace_id(),
                         current_request_path(),
+                        current_page_path(),
                         method.upper(),
                         path,
                         duration_ms,
                         repr(exc),
+                    )
+                    _append_upstream_row(
+                        event_type="upstream_request_exception",
+                        method=method,
+                        upstream_path=path,
+                        status=None,
+                        duration_ms=duration_ms,
+                        error=repr(exc),
+                        timeout_detected=timeout_detected,
+                        timeout_source="exception" if timeout_detected else None,
                     )
                     continue
 

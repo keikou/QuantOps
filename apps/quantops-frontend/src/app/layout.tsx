@@ -1,5 +1,7 @@
 import './globals.css';
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
+import { FrontendTelemetry } from '@/components/telemetry/frontend-telemetry';
 import { QueryProvider } from '@/lib/api/query-provider';
 
 export const metadata: Metadata = {
@@ -11,7 +13,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="ja">
       <body>
-        <QueryProvider>{children}</QueryProvider>
+        <QueryProvider>
+          <Suspense fallback={null}>
+            <FrontendTelemetry />
+          </Suspense>
+          {children}
+        </QueryProvider>
       </body>
     </html>
   );
