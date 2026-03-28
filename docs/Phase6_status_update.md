@@ -119,3 +119,32 @@ Phase6 has started as a planning track, but not yet as a closed-phase proof trac
 The first real blocker is account/reconciliation truth.
 The first proof should stay narrow: live intent -> explicit route/send-or-block decision.
 ```
+
+## Phase6-CLOSE-1 Proof Added
+
+Added:
+
+- `apps/v12-api/ai_hedge_bot/services/live_trading_service.py`
+- `apps/v12-api/tests/test_phase6_live_trading_closure.py`
+
+What it proves:
+
+```text
+approved live intent
+-> deterministic venue routing decision
+-> explicit live-send or explicit live-block reason
+```
+
+Concrete behavior now covered:
+
+- approved live intent in non-live mode returns explicit `live_mode_disabled`
+- approved live intent in halted runtime returns explicit `execution_disabled`
+- approved live intent in live mode returns deterministic `live_send`
+- the same live input returns the same route decision repeatedly
+- live send route is explicit as venue/order_type/tif
+
+Validation:
+
+```text
+python -m pytest apps\v12-api\tests\test_phase6_live_trading_closure.py -q
+```

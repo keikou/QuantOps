@@ -78,21 +78,48 @@ What this suggests:
 - this is a major prerequisite for live trading
 - but it is still a prerequisite, not proof of live-trading closure itself
 
+### 5. First Phase6 proof now exists
+
+Added:
+
+- `apps/v12-api/ai_hedge_bot/services/live_trading_service.py`
+- `apps/v12-api/tests/test_phase6_live_trading_closure.py`
+
+Current proof:
+
+```text
+approved live intent
+-> deterministic venue routing decision
+-> explicit live-send or explicit live-block reason
+```
+
+Concrete assertions now covered:
+
+- approved live intent in non-live mode returns explicit `live_mode_disabled`
+- approved live intent in halted runtime returns explicit `execution_disabled`
+- approved live intent in live mode returns deterministic `live_send`
+- the same live input returns the same route decision repeatedly
+- live send route is explicit as venue/order_type/tif
+
+Validation:
+
+- `python -m pytest apps/v12-api/tests/test_phase6_live_trading_closure.py -q`
+
 ## Current Codex Judgment
 
 This is the current engineering judgment:
 
 ```text
-Phase6 is not started as a closed phase.
-The repo has meaningful live-facing scaffolds and prerequisites,
-but no closure packet yet.
+Phase6 now has a first proof packet,
+but it is still unclear whether architect should treat that as
+NOT STARTED or VERY EARLY / PARTIALLY COMPLETE.
 ```
 
 Meaning:
 
 - stronger than "nothing exists"
-- weaker than "partial phase closure"
-- the next step is to define the first real live invariant
+- stronger than "scaffolds only"
+- still needs architect judgment on whether the first proof is enough to move beyond `NOT STARTED`
 
 ## Likely Closure Definition
 
