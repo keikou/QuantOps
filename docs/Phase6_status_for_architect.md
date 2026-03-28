@@ -241,6 +241,32 @@ Please re-judge Phase6 after the mismatch / incident / suppression proof packet:
 3. If yes, what exact invariant should be treated as `Phase6-CLOSE-4`?
 4. Has the hardest gap shifted from mismatch containment to recovery / resume after live anomaly?
 
+## Architect Re-Judgment After Close-3 Packet
+
+Latest architect judgment:
+
+```text
+Phase6 = still VERY EARLY / PARTIALLY COMPLETE
+Phase6-CLOSE-3 = satisfied
+```
+
+Architect-defined next invariant:
+
+```text
+mismatch-triggered halt
+-> valid recovery / resolution action
+-> safe live resume
+-> reconciliation / incident / audit state reflect both suppression and recovery consistently
+```
+
+Stricter phrasing:
+
+```text
+only a valid recovery path may clear suppression;
+after recovery, live execution may resume safely;
+and all incident/reconciliation/audit records must remain consistent
+```
+
 ## Likely Closure Definition
 
 Current working hypothesis:
