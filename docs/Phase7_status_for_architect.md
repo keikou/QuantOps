@@ -192,3 +192,39 @@ governed improvement decision
 -> persisted approved update/deploy state
 -> next cycle actually runs with the updated model/alpha/weight state
 ```
+
+## Phase7-CLOSE-2 Proof Added
+
+Added:
+
+- `apps/v12-api/ai_hedge_bot/services/self_improving_service.py`
+- `apps/v12-api/tests/test_phase7_self_improving_closure.py`
+
+Current proof:
+
+```text
+governed improvement decision
+-> persisted approved update/deploy state
+-> next cycle actually runs with the updated model/alpha/weight state
+```
+
+Concrete assertions now covered:
+
+- a `keep` improvement decision persists runtime-visible promotion/deploy state
+- deploy state is written into `alpha_promotions` and `alpha_rankings`
+- the next cycle runs with the promoted alpha selected as `dominant_alpha`
+- the next cycle execution plan weight changes with that updated state
+
+Validation:
+
+- `python -m pytest apps/v12-api/tests/test_phase7_self_improving_closure.py -q`
+- current result: `2 passed`
+
+## Questions For Architect
+
+Please re-judge Phase7 after the close2 governed deployment packet:
+
+1. Does the current packet satisfy `Phase7-CLOSE-2`?
+2. If yes, does `Phase7` remain `PARTIALLY COMPLETE`, or has it moved further?
+3. If another closure blocker remains, what exact invariant should be treated as `Phase7-CLOSE-3`?
+4. Has the hardest gap shifted from deploy linkage to measured next-cycle attribution / feedback closure?

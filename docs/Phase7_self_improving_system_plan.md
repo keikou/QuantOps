@@ -231,3 +231,28 @@ governed improvement decision
 -> persisted approved update/deploy state
 -> next cycle actually runs with the updated model/alpha/weight state
 ```
+
+## Current Repo Packet After Close-2 Proof
+
+The repo now also includes a governed deployment linkage proof:
+
+```text
+governed improvement decision
+-> persisted approved update/deploy state
+-> next cycle actually runs with the updated model/alpha/weight state
+```
+
+Implemented in:
+
+- `apps/v12-api/ai_hedge_bot/services/self_improving_service.py`
+- `apps/v12-api/tests/test_phase7_self_improving_closure.py`
+
+Current validation state:
+
+```text
+python -m pytest apps\v12-api\tests\test_phase7_self_improving_closure.py -q
+2 passed
+```
+
+This does not yet claim `Phase7 = COMPLETE`.
+It prepares the packet for the next architect re-judgment on whether `Phase7-CLOSE-2` is satisfied.

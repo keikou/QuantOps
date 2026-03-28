@@ -78,6 +78,14 @@ class SelfImprovingService:
         alpha_id = self.bridge.alpha_id_for_model(model_id)
         if alpha_id and alpha_target:
             self.bridge.transition_alpha(alpha_id, alpha_target, "self_improving", f"self_improving_{decision}", created_at)
+            self._persist_runtime_deploy_state(
+                alpha_id=alpha_id,
+                decision=decision,
+                created_at=created_at,
+                pnl_drift=pnl_drift,
+                hit_rate=hit_rate,
+                slippage_bps=slippage,
+            )
 
         return {
             "status": "ok",
@@ -92,6 +100,56 @@ class SelfImprovingService:
             "turnover": turnover,
             "risk_usage": risk_usage,
         }
+
+    def _persist_runtime_deploy_state(
+        self,
+        *,
+        alpha_id: str,
+        decision: str,
+        created_at: str,
+        pnl_drift: float,
+        hit_rate: float,
+        slippage_bps: float,
+    ) -> None:
+        if decision == "keep":
+            rank_score = max(0.0, min(1.0, 0.82 + hit_rate * 0.1 - min(slippage_bps, 20.0) / 400.0))
+            self.store.append(
+                "alpha_rankings",
+                {
+                    "ranking_id": new_cycle_id(),
+                    "created_at": created_at,
+                    "alpha_id": alpha_id,
+                    "rank_score": rank_score,
+                    "expected_return": max(0.0, 0.12 - pnl_drift),
+                    "risk_adjusted_score": rank_score,
+                    "execution_cost_adjusted_score": max(0.0, rank_score - slippage_bps / 200.0),
+                    "diversification_value": 0.4,
+                    "recommended_action": "promote",
+                },
+            )
+            self.store.append(
+                "alpha_promotions",
+                {
+                    "promotion_id": new_cycle_id(),
+                    "created_at": created_at,
+                    "alpha_id": alpha_id,
+                    "decision": "promote",
+                    "source_run_id": f"self_improving_{decision}",
+                    "notes": "phase7 self improving deploy",
+                },
+            )
+        elif decision == "rollback":
+            self.store.append(
+                "alpha_demotions",
+                {
+                    "demotion_id": new_cycle_id(),
+                    "created_at": created_at,
+                    "alpha_id": alpha_id,
+                    "decision": "rollback",
+                    "source_run_id": f"self_improving_{decision}",
+                    "notes": "phase7 self improving rollback",
+                },
+            )
 
     def _governance_targets(self, decision: str) -> tuple[str | None, str | None]:
         if decision == "keep":

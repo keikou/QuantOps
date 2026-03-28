@@ -116,3 +116,31 @@ if a governed improvement decision is approved,
 the system must persist that update decision into runtime-visible deployed state,
 and the next cycle must actually execute using that updated state rather than the previous one
 ```
+
+## Phase7-CLOSE-2 Proof Added
+
+Added:
+
+- `apps/v12-api/ai_hedge_bot/services/self_improving_service.py`
+- `apps/v12-api/tests/test_phase7_self_improving_closure.py`
+
+What it proves:
+
+```text
+governed improvement decision
+-> persisted approved update/deploy state
+-> next cycle actually runs with the updated model/alpha/weight state
+```
+
+Concrete behavior now covered:
+
+- a `keep` decision persists deploy-visible state through `alpha_promotions` and `alpha_rankings`
+- the next cycle uses that promoted alpha as runtime `dominant_alpha`
+- the next cycle execution plan weight changes with the updated deployed state
+
+Validation:
+
+```text
+python -m pytest apps\v12-api\tests\test_phase7_self_improving_closure.py -q
+2 passed
+```
