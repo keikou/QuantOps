@@ -135,6 +135,7 @@ def test_phase3_score_weighted_allocation_changes_with_alpha_inputs() -> None:
 
     assert first["diagnostics"]["allocation_mode"] == "score_weighted"
     assert second["diagnostics"]["allocation_mode"] == "score_weighted"
+    assert first["diagnostics"]["feedback_mode"] == "symbol_pnl_overlay"
     assert sum(first_weights.values()) <= SETTINGS.max_gross_exposure + 1e-6
     assert sum(second_weights.values()) <= SETTINGS.max_gross_exposure + 1e-6
     assert max(first_weights.values()) <= SETTINGS.max_symbol_weight + 1e-6
@@ -236,3 +237,74 @@ def test_phase3_changed_alpha_inputs_rebalance_execution_and_positions() -> None
     )
     assert any(str(row["run_id"]) == second_run_id for row in rebalance_rows)
     assert any(int(row["action_count"] or 0) >= 1 for row in rebalance_rows if str(row["run_id"]) == second_run_id)
+
+
+def test_phase3_realized_result_changes_next_allocation_with_same_alpha_inputs() -> None:
+    _reset_runtime_state()
+    client.post("/runtime/resume")
+
+    static_signals = [
+        _signal("phase3-btc", "BTCUSDT", 0.76, side="long"),
+        _signal("phase3-eth", "ETHUSDT", 0.52, side="long"),
+        _signal("phase3-sol", "SOLUSDT", 0.23, side="long"),
+        _signal("phase3-wld", "WLDUSDT", 0.14, side="long"),
+        _signal("phase3-doge", "DOGEUSDT", 0.09, side="long"),
+    ]
+
+    def fake_generate(_symbols: list[str]) -> list[dict]:
+        return list(static_signals)
+
+    monkeypatch_target = runtime_routes._service.orchestrator._signal_service
+    original_generate = monkeypatch_target.generate
+    monkeypatch_target.generate = fake_generate
+    try:
+        first = client.post("/runtime/run-once?mode=paper")
+        assert first.status_code == 200
+        first_payload = first.json()
+        assert first_payload["status"] == "ok"
+        first_created_at = first_payload["result"]["timestamp"]
+        first_weights = _decision_weights(first_created_at)
+        assert first_weights["BTCUSDT"] > first_weights["ETHUSDT"]
+
+        CONTAINER.runtime_store.execute(
+            """
+            UPDATE position_snapshots_latest
+            SET realized_pnl = CASE
+                    WHEN symbol = 'BTCUSDT' THEN -4000.0
+                    WHEN symbol = 'ETHUSDT' THEN 1500.0
+                    ELSE COALESCE(realized_pnl, 0.0)
+                END,
+                unrealized_pnl = CASE
+                    WHEN symbol = 'BTCUSDT' THEN -2500.0
+                    WHEN symbol = 'ETHUSDT' THEN 2200.0
+                    ELSE COALESCE(unrealized_pnl, 0.0)
+                END,
+                exposure_notional = CASE
+                    WHEN symbol IN ('BTCUSDT', 'ETHUSDT') THEN 10000.0
+                    ELSE COALESCE(exposure_notional, 0.0)
+                END
+            WHERE symbol IN ('BTCUSDT', 'ETHUSDT')
+            """
+        )
+
+        second = client.post("/runtime/run-once?mode=paper")
+    finally:
+        monkeypatch_target.generate = original_generate
+
+    assert second.status_code == 200
+    second_payload = second.json()
+    assert second_payload["status"] == "ok"
+    second_created_at = second_payload["result"]["timestamp"]
+    second_run_id = second_payload["run_id"]
+
+    second_weights = _decision_weights(second_created_at)
+    assert second_weights["ETHUSDT"] > second_weights["BTCUSDT"]
+
+    second_plans = _plan_rows(second_run_id)
+    second_plan_weights = {str(row["symbol"]): abs(float(row["target_weight"] or 0.0)) for row in second_plans}
+    assert second_plan_weights["ETHUSDT"] > second_plan_weights["BTCUSDT"]
+
+    diagnostics = getattr(CONTAINER, "latest_portfolio_diagnostics", {}) or {}
+    assert diagnostics.get("feedback_applied") is True
+    assert "BTCUSDT" in diagnostics.get("feedback_symbols", [])
+    assert "ETHUSDT" in diagnostics.get("feedback_symbols", [])

@@ -7,11 +7,12 @@ Status: `in_progress`
 
 ## Summary
 
-Phase3 now has its first explicit closure packet components:
+Phase3 now has a stronger closure packet:
 
 - score-driven allocation intent in runtime portfolio preparation
 - proof test for changed alpha inputs -> changed allocation weights
 - proof test for changed allocation intent -> changed execution plan mix
+- proof test for prior realized/unrealized result -> next allocation reweight with same alpha inputs
 - live verification script for allocation -> execution -> fills -> realized positions surfaces
 
 This is meaningful progress, but it is not yet the final Phase3 closeout memo.
@@ -38,6 +39,7 @@ Proven now:
 - changed alpha inputs change allocation weights
 - changed allocation intent changes downstream execution plan mix
 - rebalance behavior emits explicit buy/sell execution actions
+- changed prior result can change later allocation even when alpha inputs stay the same
 - runtime event chain includes portfolio/execution/fill completion events
 
 ### 3. Live verification script
@@ -62,7 +64,7 @@ Verified live against `http://127.0.0.1:8000`:
 
 ```text
 python -m pytest apps\v12-api\tests\test_phase3_allocation_loop_closure.py -q
-2 passed
+3 passed
 ```
 
 ### Regression guard
@@ -81,31 +83,28 @@ status = ok
 
 ## Current Judgment
 
-Phase3 is stronger than before, but it should still be treated as:
+Phase3 is now close enough to closeout that the remaining step is re-judgment rather than first implementation. It should still currently be treated as:
 
 ```text
 PARTIALLY COMPLETE
 ```
 
-Why it is not closed yet:
+Why it is not yet marked closed in repo:
 
-- result -> feedback -> reallocation is not yet proven as a stable contract
-- there is not yet a final completion memo equivalent to Phase1/Phase2 closeout
 - architect has not yet re-judged the updated Phase3 packet
+- there is not yet a final completion memo equivalent to Phase1/Phase2 closeout
 
 ## Remaining Work To Close Phase3
 
-### 1. Close feedback -> reallocation
+### 1. Re-submit packet to architect
 
-Need proof that changed realized results or risk state can alter later allocation behavior under an explicit contract.
+Need judgment whether the newly added feedback/reallocation proof is sufficient for closure.
 
-### 2. Add final completion memo
+### 2. Add final completion memo if architect confirms closure
 
 Suggested file:
 
 - `docs/Phase3_allocation_completion_final.md`
-
-### 3. Re-submit packet to architect
 
 Needed materials:
 
@@ -117,7 +116,7 @@ Needed materials:
 ## Working Conclusion
 
 ```text
-Phase3 now has a real first proof packet.
-It is no longer only "components exist".
-But final closure still depends on explicit feedback/reallocation proof.
+Phase3 now has a stronger proof packet that includes explicit feedback/reallocation.
+It is no longer only "components exist" or "allocation affects execution".
+The remaining step is architect re-judgment and final closeout memo.
 ```

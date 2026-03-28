@@ -14,8 +14,8 @@ The question is no longer whether Phase3 has components.
 The question is now:
 
 ```text
-Does the current packet materially close the allocation loop,
-or is result -> feedback -> reallocation still the remaining blocker?
+Does the current packet now materially close the allocation loop,
+including result -> feedback -> reallocation?
 ```
 
 ## What Is Now Proven
@@ -78,6 +78,20 @@ filled_count >= 1
 failures = []
 ```
 
+### 5. Prior result now changes later allocation under the same alpha inputs
+
+The proof packet now also includes:
+
+```text
+same alpha inputs + changed prior realized/unrealized result
+-> changed next allocation weights
+-> changed next execution plan mix
+```
+
+Relevant test:
+
+- [`apps/v12-api/tests/test_phase3_allocation_loop_closure.py`](https://github.com/keikou/QuantOps/blob/main/apps/v12-api/tests/test_phase3_allocation_loop_closure.py)
+
 ## Current Evidence Packet
 
 ### Planning / status docs
@@ -101,20 +115,19 @@ failures = []
 This is the current engineering judgment:
 
 ```text
-Phase3 is stronger than "components exist".
-It now has a real first proof packet.
-But it is not yet safe to mark COMPLETE.
+Phase3 now has a materially stronger closure packet.
+It no longer lacks an explicit feedback/reallocation proof.
+The remaining question is whether this is sufficient for final closure.
 ```
 
-Why not yet complete:
+Why it is not yet marked closed in repo:
 
-- current proof closes `alpha -> allocation -> execution`
-- it does not yet fully close `result -> feedback -> reallocation`
+- architect has not yet re-judged the updated packet
 - there is not yet a final completion memo equivalent to Phase1 / Phase2 closeout
 
 ## The Remaining Narrow Question
 
-Please judge whether the remaining blocker is now only this:
+Please judge whether the packet now closes this former blocker:
 
 ```text
 feedback / reallocation closure proof
@@ -126,13 +139,13 @@ More concretely:
 
 ```text
 Phase3 remains PARTIALLY COMPLETE because
-result -> feedback -> reallocation is still not explicitly proven.
+additional allocation-loop invariants are still missing.
 ```
 
 ### Option B
 
 ```text
-Phase3 can already be considered COMPLETE enough,
+Phase3 can now be considered COMPLETE,
 with remaining work treated as quality/refinement rather than closure blocker.
 ```
 
@@ -141,11 +154,11 @@ with remaining work treated as quality/refinement rather than closure blocker.
 Please answer these directly:
 
 1. Is `Phase3` still `PARTIALLY COMPLETE`, or can it now be marked `COMPLETE`?
-2. If still partial, is the only remaining closure blocker `result -> feedback -> reallocation`?
+2. If still partial, what exact remaining invariant is still missing now that result -> feedback -> reallocation has a proof test?
 3. If not, what exact additional invariant is still missing?
 
 ## One-Line Prompt
 
 ```text
-Please re-judge Phase3 Portfolio Intelligence based on the new allocation-loop proof packet and say whether the remaining blocker is only result -> feedback -> reallocation, or whether Phase3 can now be marked COMPLETE.
+Please re-judge Phase3 Portfolio Intelligence based on the updated allocation-loop proof packet, including the new result -> feedback -> reallocation proof, and say whether Phase3 can now be marked COMPLETE or what exact invariant is still missing.
 ```

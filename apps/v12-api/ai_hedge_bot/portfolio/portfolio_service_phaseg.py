@@ -1,9 +1,32 @@
 from __future__ import annotations
 
+from ai_hedge_bot.app.container import CONTAINER
 from ai_hedge_bot.core.settings import SETTINGS
 
 
 class PhaseGPortfolioService:
+    def _latest_symbol_feedback(self) -> dict[str, float]:
+        rows = CONTAINER.runtime_store.fetchall_dict(
+            """
+            SELECT
+                symbol,
+                SUM(COALESCE(unrealized_pnl, 0.0) + COALESCE(realized_pnl, 0.0)) AS total_pnl,
+                SUM(COALESCE(exposure_notional, 0.0)) AS exposure_notional
+            FROM position_snapshots_latest
+            GROUP BY symbol
+            """
+        )
+        feedback: dict[str, float] = {}
+        for row in rows:
+            symbol = str(row.get('symbol') or '')
+            exposure = float(row.get('exposure_notional', 0.0) or 0.0)
+            total_pnl = float(row.get('total_pnl', 0.0) or 0.0)
+            if not symbol or exposure <= 1e-9:
+                continue
+            feedback_return = total_pnl / exposure
+            feedback[symbol] = max(-0.5, min(0.5, feedback_return))
+        return feedback
+
     def _allocate_weights(self, signals: list[dict]) -> dict[str, float]:
         if not signals:
             return {}
@@ -52,8 +75,22 @@ class PhaseGPortfolioService:
 
     def prepare(self, signals: list[dict]) -> dict:
         count = len(signals)
+        latest_symbol_feedback = self._latest_symbol_feedback()
+        scored = []
+        feedback_applied = False
+        feedback_symbols: list[str] = []
+        for signal in signals:
+            symbol = str(signal.get('symbol') or '')
+            base_score = float(signal.get('score', 0.0) or 0.0)
+            feedback_return = float(latest_symbol_feedback.get(symbol, 0.0) or 0.0)
+            adjusted_score = base_score
+            if abs(feedback_return) > 1e-9:
+                adjusted_score = max(0.0001, base_score * (1.0 + 1.5 * feedback_return))
+                feedback_applied = True
+                feedback_symbols.append(symbol)
+            scored.append({**signal, 'score': round(adjusted_score, 6)})
         ranked = sorted(
-            signals,
+            scored,
             key=lambda signal: (float(signal.get('score', 0.0) or 0.0), str(signal.get('symbol') or '')),
             reverse=True,
         )
@@ -65,6 +102,9 @@ class PhaseGPortfolioService:
             'crowding_flags': [],
             'overlap_penalty_applied': False,
             'allocation_mode': 'score_weighted',
+            'feedback_mode': 'symbol_pnl_overlay',
+            'feedback_applied': feedback_applied,
+            'feedback_symbols': sorted(set(feedback_symbols)),
             'max_gross_exposure': float(SETTINGS.max_gross_exposure),
             'max_symbol_weight': float(SETTINGS.max_symbol_weight),
         }
