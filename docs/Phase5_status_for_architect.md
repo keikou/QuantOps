@@ -3,7 +3,7 @@
 Date: `2026-03-29`
 Repo: `QuantOps_github`
 Branch: `main`
-Current Working Status: `PARTIALLY IMPLEMENTED, NOT YET CLOSURE-JUDGED`
+Current Working Status: `PARTIALLY COMPLETE, LATE-STAGE`
 
 ## Purpose
 
@@ -105,22 +105,84 @@ Validation:
 - `python -m pytest apps/v12-api/tests/test_sprint6h8_risk_execution_stop.py -q`
 - `python -m pytest apps/v12-api/tests/test_sprint6h9_2_3_risk_halt_propagation.py -q`
 
+### 7. Deterministic recovery / resume proof now exists
+
+Added:
+
+- `apps/v12-api/tests/test_phase5_risk_guard_close3.py`
+
+Current proof:
+
+```text
+halted state
+-> explicit deterministic recovery transition
+-> next allowed cycle resumes execution correctly
+-> blocked state/reasons/audit reflect both halt and recovery consistently
+```
+
+Concrete assertions now covered:
+
+- halted state still blocks `run-once`
+- `POST /runtime/resume` acts as the valid recovery transition
+- the next cycle returns `status=ok`
+- execution artifacts grow again only after recovery
+- execution state returns from `halted/blocked` to running path behavior
+- runtime audit keeps `kill_switch`, `resume`, and `run_finished`
+
+Validation:
+
+- `python -m pytest apps/v12-api/tests/test_phase5_risk_guard_close3.py -q`
+
+### 6. No-bypass suppression proof now exists
+
+Added:
+
+- `apps/v12-api/tests/test_phase5_risk_guard_close2.py`
+
+Current proof:
+
+```text
+guarded/halted state
+-> direct API runtime cycle is blocked
+-> startup/runtime-loop style cycle is blocked
+-> repeated next-cycle execution attempts remain blocked
+-> no rebalance plans / execution plans / orders / fills are created
+-> blocked reasons remain explicit
+```
+
+Concrete assertions now covered:
+
+- `POST /runtime/run-once` is blocked while halted
+- `RuntimeService.run_once(... job_name='paper_runtime_loop' ...)` is blocked while halted
+- a later loop variant remains blocked in the next cycle
+- `runtime_runs` and `scheduler_runs` do not grow from blocked attempts
+- `rebalance_plans`, `execution_plans`, `execution_orders`, and `execution_fills` remain unchanged
+- scheduler job surfaces expose `execution_blocked=true` while halted
+
+Validation:
+
+- `python -m pytest apps/v12-api/tests/test_phase5_risk_guard_close2.py -q`
+- `python -m pytest apps/v12-api/tests/test_phase5_risk_guard_closure.py -q`
+- `python -m pytest apps/v12-api/tests/test_sprint6h8_risk_execution_stop.py -q`
+- `python -m pytest apps/v12-api/tests/test_sprint6h9_2_3_risk_halt_propagation.py -q`
+
 ## Current Codex Judgment
 
 This is the current engineering judgment:
 
 ```text
-Phase5 is no longer just speculative.
-It now has a first closure proof packet.
-
-But it is not yet closure-judged after that packet.
+Phase5 is PARTIALLY COMPLETE, late-stage.
+Phase5-CLOSE-1 is satisfied.
+Phase5-CLOSE-2 is satisfied.
+Phase5-CLOSE-3 is satisfied.
+The next remaining gap is policy-deterministic guard/recovery closure.
 ```
 
 Meaning:
 
-- stronger than "future only"
 - stronger than "components only"
-- still needs architect re-judgment after the first proof packet
+- stronger than "single blocked path only"
+- still needs architect re-judgment on whether suppression completeness is now sufficient
 
 ## Likely Closure Definition
 
@@ -131,28 +193,43 @@ Risk / Guard OS = risk sensing, guard decision, execution suppression/degrade,
 audit evidence, and deterministic recovery are closed as one loop.
 ```
 
-## Likely First Closure Invariant
+## Current Closure Progress
 
-Best current guess:
+Current accepted invariant:
 
 ```text
-risk evidence
--> deterministic guard decision
--> execution block / degrade outcome
--> persisted reason and runtime state
+Phase5-CLOSE-1
+= risk breach -> guard trigger -> execution suppression
+```
+
+Current target under re-judgment:
+
+```text
+Phase5-CLOSE-2
+= guarded/halted state -> deterministic propagation to downstream execution entrypoints
+-> no bypass path can create executable intent until explicit recovery/unhalt
+```
+
+Next likely invariant:
+
+```text
+Phase5-CLOSE-4
+= same risk evidence + same policy config
+-> same guard decision / same recovery eligibility
+-> same halted-or-running outcome across equivalent runtime entrypoints
 ```
 
 ## Questions For Architect
 
-Please re-judge Phase5 directly after the first proof packet:
+Please re-judge Phase5 after the recovery/resume proof packet:
 
-1. Is `Phase5` still best classified as `NOT STARTED`, or has it moved to `PARTIALLY COMPLETE`?
-2. Does the current proof packet satisfy `Phase5-CLOSE-1`, or is one more invariant missing before that can be considered closed?
-3. If `Phase5-CLOSE-1` is now satisfied, what exact invariant should be treated as `Phase5-CLOSE-2`?
-4. Is the hardest gap still `execution suppression`, or has it shifted to `persisted auditability` or `deterministic recovery`?
+1. Does the current packet satisfy `Phase5-CLOSE-3`?
+2. If yes, what exact invariant should be treated as `Phase5-CLOSE-4`?
+3. Has the hardest gap shifted from recovery determinism to broader risk-governance / policy closure?
+4. Is Phase5 still `PARTIALLY COMPLETE`, or now close enough to treat as `very close to COMPLETE`?
 
 ## One-Line Prompt
 
 ```text
-Please re-judge Phase5 Risk / Guard OS after the first proof packet and specify whether the phase is still NOT STARTED or now PARTIALLY COMPLETE, whether Phase5-CLOSE-1 is satisfied, and what exact invariant should be treated as Phase5-CLOSE-2.
+Please re-judge Phase5 Risk / Guard OS after the recovery/resume proof and specify whether Phase5-CLOSE-3 is satisfied, what exact invariant should be treated as Phase5-CLOSE-4, and whether the hardest gap has shifted to broader risk-policy / governance closure.
 ```

@@ -156,13 +156,109 @@ Meaning:
 - not merely that halt state can be read
 - but that the system deterministically prevents further execution under breach conditions
 
+## Architect Re-Judgment After First Proof
+
+Latest architect judgment:
+
+```text
+Phase5 = PARTIALLY COMPLETE
+Phase5-CLOSE-1 is satisfied
+```
+
+Interpretation:
+
+- the repo now has a real closure packet for the first guard invariant
+- Risk / Guard OS is no longer just a planning phase
+- the remaining work is about proving there is no execution-producing bypass path while guarded
+
+Architect-defined `Phase5-CLOSE-2`:
+
+```text
+guarded/halted state
+-> deterministic propagation to all downstream execution entrypoints
+-> no bypass path can create executable intent until explicit recovery/unhalt
+```
+
+The practical meaning is:
+
+- API-triggered cycles must block
+- background/runtime loop variants must block
+- planner/rebalance/execution artifacts must not grow while halted
+- blocked decisions must remain explicit and persisted until resume/unhalt
+
+## Architect Re-Judgment After Close-2 Packet
+
+Latest architect judgment:
+
+```text
+Phase5 = PARTIALLY COMPLETE
+Phase5-CLOSE-1 = satisfied
+Phase5-CLOSE-2 = satisfied
+```
+
+Architect-defined `Phase5-CLOSE-3`:
+
+```text
+halted state
+-> explicit deterministic recovery transition
+-> next allowed cycle resumes execution correctly
+-> blocked state / reasons / audit reflect both halt and recovery consistently
+```
+
+Interpretation:
+
+- guard suppression is now strong enough to treat no-bypass closure as satisfied
+- the next closure step is no longer "can guard stop execution?"
+- the next closure step is "can only a valid recovery restart execution, and is that transition persisted cleanly?"
+
+Current hardest gap:
+
+```text
+recovery determinism
+```
+
+## Architect Re-Judgment After Close-3 Packet
+
+Latest architect judgment:
+
+```text
+Phase5 = PARTIALLY COMPLETE (very close to COMPLETE)
+Phase5-CLOSE-1 = satisfied
+Phase5-CLOSE-2 = satisfied
+Phase5-CLOSE-3 = satisfied
+```
+
+Architect-defined `Phase5-CLOSE-4`:
+
+```text
+same risk evidence + same policy config
+-> same guard decision / same recovery eligibility
+-> same halted-or-running outcome
+across all equivalent runtime entrypoints
+```
+
+Working interpretation:
+
+- the runtime can now halt correctly
+- the runtime can now resume correctly via valid recovery
+- the remaining gap is whether guard/recovery decisions are policy-deterministic across equivalent paths and scopes
+
+Current hardest gap:
+
+```text
+broader risk-governance / policy closure
+```
+
 ## Recommended Execution Order
 
 1. inventory existing risk/guard/runtime-control behavior
 2. get architect judgment for exact closure definition
 3. implement first proof test for `risk breach -> execution suppression`
-4. add verification script
-5. close with completion memo after architect re-judgment
+4. implement no-bypass proof for `Phase5-CLOSE-2`
+5. implement deterministic recovery / resume proof for `Phase5-CLOSE-3`
+6. implement policy-consistency proof for `Phase5-CLOSE-4`
+7. add verification script
+8. close with completion memo after architect re-judgment
 
 ## Exit Condition
 
