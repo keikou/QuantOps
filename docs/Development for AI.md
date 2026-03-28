@@ -45,15 +45,16 @@ Completion references:
 Read in this order when starting fresh:
 
 1. [SprintH_completion_report.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/SprintH_completion_report.md)
-2. [sprinth-finish-plan.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/sprinth-finish-plan.md)
-3. [development-rules-v12-vs-quantops.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/development-rules-v12-vs-quantops.md)
-4. [development-workflow.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/development-workflow.md)
-5. [architecture-read-models.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/architecture-read-models.md)
-6. [api-summary-contracts.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/api-summary-contracts.md)
-7. [ops-runbook.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/ops-runbook.md)
-8. [dev-startup.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/dev-startup.md)
-9. [ci_regression_packs.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/ci_regression_packs.md)
-10. [chatgpt-codex-cowork.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/chatgpt-codex-cowork.md)
+2. [correlation-logging-guide.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/correlation-logging-guide.md)
+3. [sprinth-finish-plan.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/sprinth-finish-plan.md)
+4. [development-rules-v12-vs-quantops.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/development-rules-v12-vs-quantops.md)
+5. [development-workflow.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/development-workflow.md)
+6. [architecture-read-models.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/architecture-read-models.md)
+7. [api-summary-contracts.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/api-summary-contracts.md)
+8. [ops-runbook.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/ops-runbook.md)
+9. [dev-startup.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/dev-startup.md)
+10. [ci_regression_packs.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/ci_regression_packs.md)
+11. [chatgpt-codex-cowork.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/chatgpt-codex-cowork.md)
 
 Read these when touching specific areas:
 
@@ -64,6 +65,9 @@ Read these when touching specific areas:
 - broader background:
   - [timeout-roadmap.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/timeout-roadmap.md)
   - [timeout-improvement-pr-summary.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/timeout-improvement-pr-summary.md)
+- timeout, incident, and page-access tracing:
+  - [correlation-logging-guide.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/correlation-logging-guide.md)
+  - [ops-runbook.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/ops-runbook.md)
 
 ## Quick Mental Model
 
@@ -239,6 +243,15 @@ This is the intended debugging path when you need to answer:
 - which page view triggered an API call
 - which QuantOps request led to a V12 upstream call
 - whether a frontend error and backend failure share the same `trace_id`
+
+Use [correlation-logging-guide.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/correlation-logging-guide.md) first when the problem statement is phrased like:
+
+- "Overview opened slowly"
+- "Portfolio timed out once"
+- "frontend showed timeout but API later looked healthy"
+- "which user action caused this backend error"
+
+That guide is the shortest one-page walkthrough with concrete examples and command snippets.
 
 Current limitation:
 

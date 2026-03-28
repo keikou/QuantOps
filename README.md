@@ -31,14 +31,16 @@ If you are new to this repo, read these first:
 
 1. `docs/SprintH_completion_report.md`
 2. `docs/Development for AI.md`
-3. `docs/sprinth-finish-plan.md`
-4. `docs/development-rules-v12-vs-quantops.md`
-5. `docs/development-workflow.md`
-6. `docs/ops-runbook.md`
-7. `docs/dev-startup.md`
-8. `docs/ci_regression_packs.md`
+3. `docs/correlation-logging-guide.md`
+4. `docs/sprinth-finish-plan.md`
+5. `docs/development-rules-v12-vs-quantops.md`
+6. `docs/development-workflow.md`
+7. `docs/ops-runbook.md`
+8. `docs/dev-startup.md`
+9. `docs/ci_regression_packs.md`
 
 These documents capture the current architecture direction, development rules, startup path, regression surface, and SprintH closeout status.
+`docs/correlation-logging-guide.md` is the shortest practical path for tracing a page access, API timeout, or backend failure across frontend, QuantOps API, and V12 by `trace_id`.
 
 ## Current Implementation
 
@@ -189,9 +191,16 @@ See `docs/ops-runbook.md` for:
 
 - start/stop operations
 - log locations
+- correlation logging and timeout analysis entry points
 - writer closeout checks
 - common local failure modes
 - verified local behavior
+
+See `docs/correlation-logging-guide.md` for:
+
+- where `frontend_events.jsonl`, `quantops_requests.jsonl`, `quantops_upstream_v12.jsonl`, and `v12_requests.jsonl` fit together
+- how to investigate slow page loads, frontend timeouts, and V12 upstream timeouts using `trace_id`
+- how to use `test_bundle/scripts/analyze_correlation_timeouts.py`
 
 ## Useful URLs
 
@@ -204,3 +213,4 @@ See `docs/ops-runbook.md` for:
 - See `safe_for_clean.md` for generated/runtime artifacts that are safe to delete before packaging or publishing
 - Local `.env` files, virtual environments, caches, runtime databases, and runtime snapshots are intentionally excluded from Git
 - For AI handoff and rapid continuation, start with `docs/Development for AI.md`
+- For timeout and incident tracing, follow `docs/correlation-logging-guide.md`
