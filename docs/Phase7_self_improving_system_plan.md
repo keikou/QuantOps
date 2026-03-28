@@ -183,3 +183,28 @@ Architect-confirmed initial hardest gap:
 ```text
 hardest gap = update deploy -> next-cycle measured outcome linkage
 ```
+
+## Current Repo Packet After Close-1 Proof
+
+The repo now also includes a first deterministic evaluation proof:
+
+```text
+same result evidence
+-> deterministic evaluation
+-> explicit governed improvement decision
+```
+
+Implemented in:
+
+- `apps/v12-api/ai_hedge_bot/services/self_improving_service.py`
+- `apps/v12-api/tests/test_phase7_self_improving_closure.py`
+
+Current validation state:
+
+```text
+python -m pytest apps\v12-api\tests\test_phase7_self_improving_closure.py -q
+1 passed
+```
+
+This does not yet claim `Phase7 = PARTIALLY COMPLETE`.
+It prepares the packet for the next architect re-judgment on whether `Phase7-CLOSE-1` is satisfied.

@@ -140,3 +140,40 @@ Architect-confirmed hardest gap:
 ```text
 update deploy -> next-cycle measured outcome linkage
 ```
+
+## Phase7-CLOSE-1 Proof Added
+
+Added:
+
+- `apps/v12-api/ai_hedge_bot/services/self_improving_service.py`
+- `apps/v12-api/tests/test_phase7_self_improving_closure.py`
+
+Current proof:
+
+```text
+same result evidence
+-> deterministic evaluation
+-> explicit governed improvement decision
+```
+
+Concrete assertions now covered:
+
+- the same result evidence yields the same decision
+- the same result evidence yields the same flags
+- the same result evidence yields the same model-state transition
+- the same result evidence yields the same alpha-state transition
+- the governed recommendation is explicit as persisted review plus governance-visible state change
+
+Validation:
+
+- `python -m pytest apps/v12-api/tests/test_phase7_self_improving_closure.py -q`
+- current result: `1 passed`
+
+## Questions For Architect
+
+Please re-judge Phase7 after the close1 deterministic evaluation packet:
+
+1. Does the current packet satisfy `Phase7-CLOSE-1`?
+2. If yes, is `Phase7` still `NOT STARTED AS A CLOSED PHASE`, or has it moved to a partial state?
+3. If another closure blocker remains, what exact invariant should be treated as `Phase7-CLOSE-2`?
+4. Has the hardest gap shifted from evaluation determinism to governed update/deploy linkage?

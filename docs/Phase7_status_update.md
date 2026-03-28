@@ -78,3 +78,17 @@ The first proof should stay narrow:
 result evidence -> deterministic evaluation -> explicit governed improvement decision.
 The hardest gap beyond that is update/deploy linkage into measurable next-cycle outcome.
 ```
+
+## Next Implementation Target
+
+The next implementation target is:
+
+- `apps/v12-api/tests/test_phase7_self_improving_closure.py`
+
+It should prove:
+
+```text
+same result evidence
+-> same evaluation outcome
+-> same explicit governed improvement recommendation
+```
