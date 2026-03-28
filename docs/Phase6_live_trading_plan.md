@@ -227,6 +227,32 @@ Interpretation:
 - the phase has progressed beyond very-early partial
 - the next blocker is path-independent reconciliation / incident / recovery determinism
 
+## Current Repo Packet After Close-5 Proof
+
+The repo now also includes a determinism proof for equivalent ingestion and replay paths:
+
+```text
+same live venue/account evidence
+-> deterministic reconciliation classification
+-> deterministic incident/guard/recovery decision
+across equivalent ingestion/replay paths
+```
+
+Implemented in:
+
+- `apps/v12-api/ai_hedge_bot/services/live_trading_service.py`
+- `apps/v12-api/tests/test_phase6_live_trading_closure.py`
+
+Current validation state:
+
+```text
+python -m pytest apps\v12-api\tests\test_phase6_live_trading_closure.py -q
+6 passed
+```
+
+This does not yet claim `Phase6 = COMPLETE`.
+It prepares the packet for the next architect re-judgment on whether another blocker remains.
+
 ## Recommended Execution Order
 
 1. get architect judgment for exact closure definition

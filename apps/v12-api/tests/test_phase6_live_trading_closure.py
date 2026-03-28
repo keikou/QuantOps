@@ -22,6 +22,44 @@ def _reset_phase6_state() -> None:
             pass
 
 
+def _capture_phase6_artifacts(live_order_id: str) -> dict:
+    reconciliation_rows = CONTAINER.runtime_store.fetchall_dict(
+        """
+        SELECT event_type, status, matched
+        FROM live_reconciliation_events
+        WHERE live_order_id = ?
+        ORDER BY created_at ASC
+        """,
+        [live_order_id],
+    )
+    incident_rows = CONTAINER.runtime_store.fetchall_dict(
+        """
+        SELECT category, severity, status, summary
+        FROM live_incidents
+        ORDER BY created_at ASC
+        """
+    )
+    audit_rows = CONTAINER.runtime_store.fetchall_dict(
+        """
+        SELECT category, event_type, actor
+        FROM audit_logs
+        WHERE category = 'runtime'
+        ORDER BY created_at ASC
+        """
+    )
+    order_row = CONTAINER.runtime_store.fetchone_dict(
+        "SELECT status FROM live_orders WHERE live_order_id = ?",
+        [live_order_id],
+    )
+    return {
+        "reconciliation_rows": reconciliation_rows,
+        "incident_rows": incident_rows,
+        "audit_rows": audit_rows,
+        "order_status": None if order_row is None else order_row["status"],
+        "trading_state": str(LiveTradingService().runtime_service.get_trading_state()["trading_state"]).lower(),
+    }
+
+
 def test_phase6_close1_approved_live_intent_yields_explicit_send_or_block_decision() -> None:
     _reset_phase6_state()
     service = LiveTradingService()
@@ -311,3 +349,75 @@ def test_phase6_close4_valid_recovery_resumes_live_execution_and_keeps_records_c
     )
     assert resumed_live["status"] == "ok"
     assert resumed_live["decision"] == "live_send"
+
+
+def test_phase6_close5_equivalent_ingestion_and_replay_paths_produce_same_outcome() -> None:
+    def run_flow(replay: bool) -> dict:
+        _reset_phase6_state()
+        service = LiveTradingService()
+        service.runtime_service.resume_trading("phase6 close5 reset", actor="test")
+
+        submitted = service.submit_live_order(
+            symbol="BNBUSDT",
+            side="buy",
+            qty=2.0,
+            urgency="high",
+            target_weight=0.28,
+            approved=True,
+            mode=Mode.LIVE,
+        )
+        assert submitted["status"] == "ok"
+
+        if replay:
+            result = service.replay_live_fill(
+                live_order_id=submitted["live_order_id"],
+                venue_order_id=submitted["venue_order_id"],
+                symbol="BNBUSDT",
+                side="buy",
+                fill_qty=1.0,
+                fill_price=610.0,
+                free_balance=6400.0,
+                locked_balance=1500.0,
+                matched=False,
+            )
+        else:
+            result = service.reconcile_live_fill(
+                live_order_id=submitted["live_order_id"],
+                venue_order_id=submitted["venue_order_id"],
+                symbol="BNBUSDT",
+                side="buy",
+                fill_qty=1.0,
+                fill_price=610.0,
+                free_balance=6400.0,
+                locked_balance=1500.0,
+                matched=False,
+            )
+
+        assert result["status"] == "incident"
+
+        recovered = service.recover_live_incident(
+            live_order_id=submitted["live_order_id"],
+            venue_order_id=submitted["venue_order_id"],
+            resolution_note="phase6 close5 recovery",
+            actor="test",
+        )
+        assert recovered["status"] == "ok"
+
+        resumed_live = service.evaluate_live_intent(
+            symbol="BNBUSDT",
+            urgency="high",
+            target_weight=0.28,
+            approved=True,
+            mode=Mode.LIVE,
+        )
+        assert resumed_live["status"] == "ok"
+        return _capture_phase6_artifacts(submitted["live_order_id"])
+
+    ingest_artifacts = run_flow(replay=False)
+    replay_artifacts = run_flow(replay=True)
+
+    assert ingest_artifacts["reconciliation_rows"] == replay_artifacts["reconciliation_rows"]
+    assert ingest_artifacts["incident_rows"] == replay_artifacts["incident_rows"]
+    assert ingest_artifacts["audit_rows"] == replay_artifacts["audit_rows"]
+    assert ingest_artifacts["order_status"] == replay_artifacts["order_status"] == "mismatch"
+    assert ingest_artifacts["trading_state"] == replay_artifacts["trading_state"] == "running"

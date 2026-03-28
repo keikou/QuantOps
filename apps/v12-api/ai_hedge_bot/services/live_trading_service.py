@@ -147,7 +147,7 @@ class LiveTradingService:
             "order_status": "submitted",
         }
 
-    def reconcile_live_fill(
+    def _apply_reconciliation_outcome(
         self,
         *,
         live_order_id: str,
@@ -156,10 +156,11 @@ class LiveTradingService:
         side: str,
         fill_qty: float,
         fill_price: float,
-        asset: str = "USDT",
-        free_balance: float = 0.0,
-        locked_balance: float = 0.0,
-        matched: bool = True,
+        asset: str,
+        free_balance: float,
+        locked_balance: float,
+        matched: bool,
+        source: str,
     ) -> dict:
         now = utc_now_iso()
         fill_status = "filled" if matched else "mismatch"
@@ -183,7 +184,9 @@ class LiveTradingService:
                 "fill_qty": fill_qty,
                 "fill_price": fill_price,
                 "status": fill_status,
-                "metadata_json": CONTAINER.runtime_store.to_json({"matched": matched}),
+                "metadata_json": CONTAINER.runtime_store.to_json(
+                    {"matched": matched, "source": source}
+                ),
             },
         )
         CONTAINER.runtime_store.append(
@@ -216,6 +219,7 @@ class LiveTradingService:
                         "fill_price": fill_price,
                         "free_balance": free_balance,
                         "locked_balance": locked_balance,
+                        "source": source,
                     }
                 ),
             },
@@ -239,6 +243,7 @@ class LiveTradingService:
                             "live_order_id": live_order_id,
                             "venue_order_id": venue_order_id,
                             "guard_state": halt.get("trading_state"),
+                            "source": source,
                         }
                     ),
                 },
@@ -250,6 +255,62 @@ class LiveTradingService:
             "order_status": fill_status,
             "matched": matched,
         }
+
+    def reconcile_live_fill(
+        self,
+        *,
+        live_order_id: str,
+        venue_order_id: str,
+        symbol: str,
+        side: str,
+        fill_qty: float,
+        fill_price: float,
+        asset: str = "USDT",
+        free_balance: float = 0.0,
+        locked_balance: float = 0.0,
+        matched: bool = True,
+    ) -> dict:
+        return self._apply_reconciliation_outcome(
+            live_order_id=live_order_id,
+            venue_order_id=venue_order_id,
+            symbol=symbol,
+            side=side,
+            fill_qty=fill_qty,
+            fill_price=fill_price,
+            asset=asset,
+            free_balance=free_balance,
+            locked_balance=locked_balance,
+            matched=matched,
+            source="ingest",
+        )
+
+    def replay_live_fill(
+        self,
+        *,
+        live_order_id: str,
+        venue_order_id: str,
+        symbol: str,
+        side: str,
+        fill_qty: float,
+        fill_price: float,
+        asset: str = "USDT",
+        free_balance: float = 0.0,
+        locked_balance: float = 0.0,
+        matched: bool = True,
+    ) -> dict:
+        return self._apply_reconciliation_outcome(
+            live_order_id=live_order_id,
+            venue_order_id=venue_order_id,
+            symbol=symbol,
+            side=side,
+            fill_qty=fill_qty,
+            fill_price=fill_price,
+            asset=asset,
+            free_balance=free_balance,
+            locked_balance=locked_balance,
+            matched=matched,
+            source="replay",
+        )
 
     def recover_live_incident(
         self,

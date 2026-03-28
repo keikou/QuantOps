@@ -3,36 +3,23 @@
 Date: `2026-03-29`
 Repo: `QuantOps_github`
 Branch: `main`
-Status: `very_early_partial`
+Status: `partial_complete`
 
-## Architect Verdict
-
-Initial architect judgment:
+## Current State
 
 ```text
-Phase6 = NOT STARTED AS A CLOSED PHASE
+Phase6 = PARTIALLY COMPLETE
 ```
 
-This means the current repo has live-facing prerequisites, but not yet a closure packet that is strong enough to count as phase progress.
+This is the current working state after:
 
-## What Already Exists
+- `Phase6-CLOSE-1` live intent -> explicit route/send-or-block
+- `Phase6-CLOSE-2` live send -> lifecycle persistence -> matched reconciliation
+- `Phase6-CLOSE-3` mismatch -> incident / guard / suppression
+- `Phase6-CLOSE-4` recovery / resume closure
+- `Phase6-CLOSE-5` path-independent reconciliation / incident / recovery determinism proof
 
-Current code and docs already include:
-
-- live orchestrator scaffold
-- live analytics scaffold
-- live dashboard scaffold
-- venue router
-- public market data client
-- live model review references
-- paper / shadow / live mode vocabulary
-- Phase5-complete guard / halt / resume / policy-consistency behavior
-
-So Phase6 is not conceptually empty.
-
-## Architect-Confirmed Closure Definition
-
-Architect accepted the closure direction as:
+## Architect-Confirmed Closure Direction
 
 ```text
 approved live intent
@@ -44,83 +31,7 @@ approved live intent
 -> deterministic recovery / rollback / resume
 ```
 
-This is stricter than simply:
-
-```text
-live mode exists
-```
-
-or:
-
-```text
-venue adapter exists
-```
-
-## Architect-Confirmed Phase6-CLOSE-1
-
-The first invariant should be:
-
-```text
-approved live intent
--> deterministic venue routing decision
--> explicit live-send or live-block reason
-```
-
-Why this is the correct first invariant:
-
-- it proves the transition from internal execution truth into a live-trading decision boundary
-- it keeps the first proof narrow and testable
-- it avoids claiming exchange lifecycle closure before the repo proves send-versus-block semantics explicitly
-
-## Hardest Gap
-
-Architect judgment:
-
-```text
-hardest gap = live lifecycle + reconciliation closure
-```
-
-More exact wording:
-
-```text
-first blocker = account/reconciliation truth
-```
-
-Interpretation:
-
-- venue send alone is not the main blocker
-- the core problem is whether venue results, account state, and internal truth can be kept aligned or surfaced as explicit incidents
-- the live phase will not close without durable reconciliation evidence
-
-## Practical Next Step
-
-The next implementation target is:
-
-- `apps/v12-api/tests/test_phase6_live_trading_closure.py`
-
-And it should prove:
-
-```text
-approved live intent
--> deterministic route/send decision
--> explicit live-send or live-block reason
-```
-
-with a structure that can later expand into:
-
-- live order lifecycle persistence
-- account/fill reconciliation
-- live guard / incident / recovery closure
-
-## Working Conclusion
-
-```text
-Phase6 has started as a planning track, but not yet as a closed-phase proof track.
-The first real blocker is account/reconciliation truth.
-The first proof should stay narrow: live intent -> explicit route/send-or-block decision.
-```
-
-## Phase6-CLOSE-1 Proof Added
+## Phase6-CLOSE-5 Proof Added
 
 Added:
 
@@ -128,284 +39,35 @@ Added:
 - `apps/v12-api/tests/test_phase6_live_trading_closure.py`
 
 What it proves:
-
-```text
-approved live intent
--> deterministic venue routing decision
--> explicit live-send or explicit live-block reason
-```
-
-Concrete behavior now covered:
-
-- approved live intent in non-live mode returns explicit `live_mode_disabled`
-- approved live intent in halted runtime returns explicit `execution_disabled`
-- approved live intent in live mode returns deterministic `live_send`
-- the same live input returns the same route decision repeatedly
-- live send route is explicit as venue/order_type/tif
-
-Validation:
-
-```text
-python -m pytest apps\v12-api\tests\test_phase6_live_trading_closure.py -q
-2 passed
-```
-
-## Architect Re-Judgment After First Proof
-
-Latest architect judgment:
-
-```text
-Phase6 = VERY EARLY / PARTIALLY COMPLETE
-Phase6-CLOSE-1 = satisfied
-```
-
-Architect interpretation:
-
-- Phase6 is no longer `NOT STARTED`
-- the first proof is sufficient to establish the live decision boundary
-- but the phase is still at a very early closure stage
-
-Architect-confirmed current hardest gap:
-
-```text
-hardest gap = live send後の lifecycle / reconciliation closure
-```
-
-More exact wording:
-
-```text
-approved live intent を venue/account truth まで閉じる live reconciliation problem
-```
-
-## Updated Working Conclusion
-
-```text
-Phase6 is now VERY EARLY / PARTIALLY COMPLETE.
-Phase6-CLOSE-1 is satisfied.
-The next closure target is live send -> lifecycle persistence -> reconciliation truth.
-```
-
-## Phase6-CLOSE-2 Proof Added
-
-Added:
-
-- `apps/v12-api/ai_hedge_bot/services/live_trading_service.py`
-- `apps/v12-api/tests/test_phase6_live_trading_closure.py`
-
-What it proves:
-
-```text
-live send
--> durable live order lifecycle state
--> reconciliation evidence
-```
-
-Concrete behavior now covered:
-
-- `submit_live_order()` persists `live_orders` with explicit venue/order_type/tif and `submitted` state
-- submission also persists `live_reconciliation_events` as `order_submitted`
-- `reconcile_live_fill()` advances the order to `filled`
-- fill persistence creates `live_fills`
-- reconciliation persists `live_account_balances`
-- successful reconciliation writes `fill_reconciled`
-- no incident is created on matched reconciliation
-
-Validation:
-
-```text
-python -m pytest apps\v12-api\tests\test_phase6_live_trading_closure.py -q
-3 passed
-```
-
-## Architect Re-Judgment After Close-2 Packet
-
-Latest architect judgment:
-
-```text
-Phase6 = still VERY EARLY / PARTIALLY COMPLETE
-Phase6-CLOSE-2 = satisfied
-```
-
-Architect interpretation:
-
-- the repo now proves `live send -> lifecycle persistence -> matched reconciliation`
-- this is enough to satisfy the second closure invariant
-- but the phase is still early because mismatch / anomaly handling is not closed
-
-Architect-defined next invariant:
-
-```text
-reconciliation mismatch or live anomaly
--> explicit incident / guard decision
--> live trading suppression or safe containment
-```
-
-Stricter phrasing:
-
-```text
-if live order/fill/account truth does not reconcile,
-then the system must persist an explicit reconciliation event,
-raise a live incident or guard state,
-and prevent unsafe continued live execution until resolved or recovered
-```
-
-## Updated Working Conclusion
-
-```text
-Phase6 remains VERY EARLY / PARTIALLY COMPLETE.
-Phase6-CLOSE-1 is satisfied.
-Phase6-CLOSE-2 is satisfied.
-The next closure target is mismatch / anomaly -> incident / guard / suppression.
-```
-
-## Phase6-CLOSE-3 Proof Added
-
-Added:
-
-- `apps/v12-api/ai_hedge_bot/services/live_trading_service.py`
-- `apps/v12-api/tests/test_phase6_live_trading_closure.py`
-
-What it proves:
-
-```text
-reconciliation mismatch or live anomaly
--> explicit incident / guard decision
--> live trading suppression or safe containment
-```
-
-Concrete behavior now covered:
-
-- mismatched reconciliation writes `fill_mismatch`
-- mismatch creates `live_incidents`
-- mismatch triggers runtime halt via guard path
-- later approved live intent is blocked with `execution_disabled`
-- unsafe continued live execution is suppressed after mismatch
-
-Validation:
-
-```text
-python -m pytest apps\v12-api\tests\test_phase6_live_trading_closure.py -q
-4 passed
-```
-
-## Architect Re-Judgment After Close-3 Packet
-
-Latest architect judgment:
-
-```text
-Phase6 = still VERY EARLY / PARTIALLY COMPLETE
-Phase6-CLOSE-3 = satisfied
-```
-
-Architect interpretation:
-
-- mismatch detection now becomes incident and guard suppression
-- the repo now closes the first reconciliation -> incident -> suppression loop
-- the phase is still early because recovery / resume after live anomaly is not yet closed
-
-Architect-defined next invariant:
-
-```text
-mismatch-triggered halt
--> valid recovery / resolution action
--> safe live resume
--> reconciliation / incident / audit state reflect both suppression and recovery consistently
-```
-
-Stricter phrasing:
-
-```text
-only a valid recovery path may clear suppression;
-after recovery, live execution may resume safely;
-and all incident/reconciliation/audit records must remain consistent
-```
-
-## Updated Working Conclusion
-
-```text
-Phase6 remains VERY EARLY / PARTIALLY COMPLETE.
-Phase6-CLOSE-1 is satisfied.
-Phase6-CLOSE-2 is satisfied.
-Phase6-CLOSE-3 is satisfied.
-The next closure target is mismatch-triggered halt -> deterministic live recovery / resume.
-```
-
-## Phase6-CLOSE-4 Proof Added
-
-Added:
-
-- `apps/v12-api/ai_hedge_bot/services/live_trading_service.py`
-- `apps/v12-api/tests/test_phase6_live_trading_closure.py`
-
-What it proves:
-
-```text
-mismatch-triggered halt
--> valid recovery / resolution action
--> safe live resume
--> reconciliation / incident / audit state reflect both suppression and recovery consistently
-```
-
-Concrete behavior now covered:
-
-- mismatch-triggered halt is followed by explicit recovery action
-- recovery marks `live_incidents` as `resolved`
-- recovery appends `recovery_resolved` to `live_reconciliation_events`
-- runtime audit keeps both `kill_switch` and `resume`
-- trading state returns to `running`
-- approved live intent is allowed again after recovery
-
-Validation:
-
-```text
-python -m pytest apps\v12-api\tests\test_phase6_live_trading_closure.py -q
-5 passed
-```
-
-## Architect Re-Judgment After Close-4 Packet
-
-Latest architect judgment:
-
-```text
-Phase6-CLOSE-4 = satisfied
-Phase6 = PARTIALLY COMPLETE
-```
-
-Architect interpretation:
-
-- `VERY EARLY` is no longer the best label
-- Phase6 has advanced to a mid-stage partial state
-- the remaining closure blocker is no longer first recovery/resume itself
-
-Architect-defined next closure blocker:
 
 ```text
 same live venue/account evidence
 -> deterministic reconciliation classification
 -> deterministic incident/guard/recovery decision
-across all equivalent ingestion/replay paths
+across equivalent ingestion/replay paths
 ```
 
-Stricter phrasing:
+Concrete behavior now covered:
+
+- `reconcile_live_fill()` and `replay_live_fill()` use the same reconciliation outcome path
+- the same mismatch evidence produces the same reconciliation classification
+- the same mismatch evidence produces the same incident state
+- the same mismatch evidence produces the same halt/resume transition sequence
+- the same mismatch evidence produces the same runtime audit sequence
+- after the same explicit recovery action, both paths return to `running`
+- approved live intent resumes identically after recovery in both paths
+
+Validation:
 
 ```text
-if the same live order/fill/account evidence is replayed or ingested
-through equivalent paths,
-the system must produce the same:
-1) reconciliation outcome,
-2) incident state,
-3) halt/resume decision,
-4) persisted audit/reconciliation records,
-without divergence caused by cache/ordering/path differences
+python -m pytest apps\v12-api\tests\test_phase6_live_trading_closure.py -q
+6 passed
 ```
 
-## Updated Working Conclusion
+## Working Conclusion
 
 ```text
-Phase6 is now PARTIALLY COMPLETE.
-Phase6-CLOSE-1 is satisfied.
-Phase6-CLOSE-2 is satisfied.
-Phase6-CLOSE-3 is satisfied.
-Phase6-CLOSE-4 is satisfied.
-The next closure blocker is path-independent reconciliation / incident / recovery determinism.
+Phase6 remains PARTIALLY COMPLETE.
+Phase6-CLOSE-1 through Phase6-CLOSE-5 now have repo proof coverage.
+The next step is architect re-judgment on whether another closure blocker remains.
 ```
