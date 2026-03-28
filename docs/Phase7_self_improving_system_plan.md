@@ -144,3 +144,42 @@ Phase7 should move to `COMPLETE` only when the repo can show:
 - measurable next-cycle consequences
 - architect re-judgment
 - final completion memo
+
+## Architect Initial Verdict
+
+Initial architect judgment:
+
+```text
+Phase7 = NOT STARTED AS A CLOSED PHASE
+```
+
+Interpretation:
+
+- the repo has strong prerequisites for self-improvement
+- but it does not yet have a proven closure packet
+- advisory review, experiment, and promotion surfaces are not enough by themselves
+
+Architect-confirmed closure framing:
+
+```text
+result evidence
+-> deterministic evaluation / attribution
+-> explicit governed improvement decision
+-> update or deploy into runtime
+-> next-cycle measured outcome
+-> deterministic keep / reduce / retire / reinforce decision
+```
+
+Architect-confirmed `Phase7-CLOSE-1` starting point:
+
+```text
+result evidence
+-> deterministic evaluation
+-> explicit governed improvement decision
+```
+
+Architect-confirmed initial hardest gap:
+
+```text
+hardest gap = update deploy -> next-cycle measured outcome linkage
+```
