@@ -3,7 +3,7 @@
 Date: `2026-03-29`
 Repo: `QuantOps_github`
 Branch: `main`
-Status: `planning`
+Status: `in_progress`
 
 ## Objective
 
@@ -94,6 +94,32 @@ Current evidence:
 - `apps/v12-api/ai_hedge_bot/research_factory/alpha_decay_monitor.py`
 - `apps/v12-api/ai_hedge_bot/learning/champion_challenger.py`
 
+## Architect-Guided Priority
+
+Current architect judgment:
+
+```text
+Phase4 = PARTIALLY COMPLETE
+```
+
+Architect's closure framing:
+
+```text
+Alpha Factory = alpha lifecycle loop fully closed
+```
+
+Architect's first required invariant:
+
+```text
+alpha -> evaluation -> ranking -> portfolio inclusion -> execution impact
+```
+
+Architect's hardest gap:
+
+```text
+runtime deployment linkage
+```
+
 ## What Is Still Not Proven
 
 These are the likely closure gaps:
@@ -136,7 +162,7 @@ selected/promoted alpha artifacts
 can influence runtime signals or allocation inputs
 ```
 
-This may end up being the hardest closure invariant for Phase4.
+This is now the architect-confirmed hardest closure invariant for Phase4.
 
 ## Proposed Invariants
 
@@ -170,6 +196,8 @@ champion-challenger decisions are persisted and produce a measurable selected wi
 governed alpha state can influence later runtime-facing selection or deployment state
 ```
 
+This should be treated as the first proof target, not a late optional one.
+
 ## Deliverables
 
 ### 1. Status packet for architect
@@ -199,7 +227,7 @@ Suggested file:
 ## Recommended Execution Order
 
 1. inventory what is already implemented
-2. ask architect to judge current completeness and closure gaps
+2. use architect judgment as the starting Definition of Done
 3. implement first proof tests for governance-state transitions
 4. add live verification script
 5. close with completion memo if architect confirms closure
