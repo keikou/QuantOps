@@ -1,0 +1,13 @@
+[GET] http://127.0.0.1:3000/api/proxy/api/v1/auth/me => [200] OK
+[GET] http://127.0.0.1:3000/api/proxy/api/v1/monitoring/system => [200] OK
+[GET] http://127.0.0.1:3000/api/proxy/api/v1/alerts => [200] OK
+[GET] http://127.0.0.1:3000/api/proxy/api/v1/risk/snapshot => [200] OK
+[GET] http://127.0.0.1:3000/api/proxy/api/v1/command-center/execution/latest => [200] OK
+[GET] http://127.0.0.1:3000/api/proxy/api/v1/command-center/runtime/latest => [200] OK
+[GET] http://127.0.0.1:3000/api/proxy/api/v1/execution/view/latest => [200] OK
+[GET] http://127.0.0.1:3000/api/proxy/api/v1/execution/fills?limit=5 => [200] OK
+[GET] http://127.0.0.1:3000/api/proxy/api/v1/execution/orders?limit=5 => [200] OK
+[GET] http://127.0.0.1:3000/api/proxy/api/v1/command-center/runtime/issues?limit=3&window_minutes=5 => [200] OK
+[GET] http://127.0.0.1:3000/api/proxy/api/v1/command-center/runtime/runs?limit=10&window_minutes=5 => [200] OK
+[GET] http://127.0.0.1:3000/api/proxy/api/v1/command-center/execution/latest => [200] OK
+[GET] http://127.0.0.1:3000/api/proxy/api/v1/execution/view/latest => [200] OK

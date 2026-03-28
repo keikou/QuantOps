@@ -1,0 +1,11 @@
+[GET] http://127.0.0.1:3000/api/proxy/api/v1/auth/me => [200] OK
+[GET] http://127.0.0.1:3000/api/proxy/api/v1/monitoring/system => [200] OK
+[GET] http://127.0.0.1:3000/api/proxy/api/v1/alerts => [200] OK
+[GET] http://127.0.0.1:3000/api/proxy/api/v1/risk/snapshot => [200] OK
+[GET] http://127.0.0.1:3000/api/proxy/api/v1/scheduler/jobs => [200] OK
+[GET] http://127.0.0.1:3000/api/proxy/api/v1/monitoring/system => [200] OK
+[GET] http://127.0.0.1:3000/api/proxy/api/v1/alerts => [200] OK
+[GET] http://127.0.0.1:3000/api/proxy/api/v1/scheduler/jobs => [200] OK
+[GET] http://127.0.0.1:3000/api/proxy/api/v1/risk/snapshot => [200] OK
+[GET] http://127.0.0.1:3000/api/proxy/api/v1/monitoring/system => [200] OK
+[GET] http://127.0.0.1:3000/api/proxy/api/v1/alerts => [200] OK

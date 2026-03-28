@@ -288,23 +288,17 @@ class ExecutionService:
 
     async def get_view_latest(self) -> dict:
         async def builder() -> dict:
-            payload = await self.v12_client.get_execution_view_latest()
-            if isinstance(payload, dict) and isinstance(payload.get("planner"), dict) and isinstance(
-                payload.get("state"), dict
-            ):
-                planner = dict(payload.get("planner") or {})
-                state = dict(payload.get("state") or {})
-            else:
-                planner, state = await asyncio.gather(
-                    self.v12_client.get_execution_planner_latest(),
-                    self.v12_client.get_execution_state_latest(),
-                )
-                planner = planner if isinstance(planner, dict) else {}
-                state = state if isinstance(state, dict) else {}
+            planner, state = await asyncio.gather(
+                self.get_planner_latest(),
+                self.get_state_latest(),
+            )
+            planner = planner if isinstance(planner, dict) else {}
+            state = state if isinstance(state, dict) else {}
 
             planner.setdefault("status", "ok")
             planner.setdefault("as_of", utc_now_iso())
-            planner.setdefault("build_status", "live")
+            planner_build_status = str(planner.get("build_status") or "live")
+            planner.setdefault("build_status", planner_build_status)
             planner.setdefault("source_snapshot_time", planner.get("as_of"))
             planner.setdefault("rebuilt_at", utc_now_iso())
             planner.setdefault(
@@ -314,7 +308,8 @@ class ExecutionService:
 
             state.setdefault("status", "ok")
             state.setdefault("as_of", utc_now_iso())
-            state.setdefault("build_status", "live")
+            state_build_status = str(state.get("build_status") or "live")
+            state.setdefault("build_status", state_build_status)
             state.setdefault("source_snapshot_time", state.get("as_of"))
             state.setdefault("rebuilt_at", utc_now_iso())
             state.setdefault(
@@ -330,8 +325,8 @@ class ExecutionService:
             )
             build_status = (
                 "fresh_cache"
-                if planner.get("build_status") == "fresh_cache"
-                and state.get("build_status") == "fresh_cache"
+                if planner_build_status == "fresh_cache"
+                and state_build_status == "fresh_cache"
                 else "live"
             )
             stable_value, live_delta, display_value = self._build_execution_display_contract(

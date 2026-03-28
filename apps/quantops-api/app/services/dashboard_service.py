@@ -4,11 +4,15 @@ import asyncio
 from datetime import datetime, timezone
 import logging
 import time
+from typing import TYPE_CHECKING
 
 from app.clients.v12_client import V12Client, utc_now_iso
 from app.repositories.scheduler_repository import SchedulerRepository
 from app.services.alert_service import AlertService
 from app.services.equity_breakdown import compute_equity_breakdown
+
+if TYPE_CHECKING:
+    from app.services.portfolio_service import PortfolioService
 
 
 class _NullAlertService:
@@ -35,10 +39,12 @@ class DashboardService:
         v12_client: V12Client,
         scheduler_repository: SchedulerRepository,
         alert_service: AlertService | None = None,
+        portfolio_service: 'PortfolioService | None' = None,
     ) -> None:
         self.v12_client = v12_client
         self.scheduler_repository = scheduler_repository
         self.alert_service = alert_service or _NullAlertService()
+        self.portfolio_service = portfolio_service
         self._overview_cache: dict | None = None
         self._overview_refresh_task: asyncio.Task | None = None
         self._overview_inflight_task: asyncio.Task | None = None
@@ -209,13 +215,17 @@ class DashboardService:
         # fast portfolio 型:
         # overview に必要な最小限の upstream だけ使う
         (
-            dashboard_payload,
+            portfolio_overview_payload,
             runtime_payload,
             registry_payload,
         ) = await asyncio.gather(
             self._get_optional_aux_payload(
                 cache_name="portfolio",
-                operation_factory=self.v12_client.get_portfolio_dashboard,
+                operation_factory=(
+                    self.portfolio_service.get_overview
+                    if self.portfolio_service is not None
+                    else self.v12_client.get_portfolio_dashboard
+                ),
                 ttl_seconds=self.OVERVIEW_PORTFOLIO_CACHE_TTL_SECONDS,
                 timeout_seconds=self.OVERVIEW_PRIMARY_TIMEOUT_SECONDS,
             ),
@@ -233,14 +243,15 @@ class DashboardService:
             ),
         )
 
-        portfolio_dashboard = self._as_dict(dashboard_payload)
-        portfolio = portfolio_dashboard
+        portfolio_overview = self._as_dict(portfolio_overview_payload)
         runtime = self._as_dict(runtime_payload)
+        portfolio_dashboard = portfolio_overview
+        portfolio = {"items": portfolio_overview.get("positions") or []}
 
         summary = (
-            portfolio_dashboard.get("summary")
-            if isinstance(portfolio_dashboard.get("summary"), dict)
-            else portfolio_dashboard
+            portfolio_overview.get("summary")
+            if isinstance(portfolio_overview.get("summary"), dict)
+            else portfolio_overview
         )
         summary = summary if isinstance(summary, dict) else {}
         summary_total_equity = self._safe_float(
@@ -270,31 +281,62 @@ class DashboardService:
             total_pnl += self._safe_float(row.get("pnl", row.get("unrealized_pnl", 0.0)))
 
         try:
-            breakdown = compute_equity_breakdown(portfolio_dashboard, portfolio)
+            breakdown = {
+                "balance": round(
+                    self._safe_float(
+                        portfolio_overview.get("balance")
+                        or portfolio_overview.get("cash_balance")
+                        or summary.get("balance")
+                        or summary.get("cash_balance")
+                        or summary.get("cash")
+                        or summary.get("free_cash")
+                        or 0.0
+                    ),
+                    2,
+                ),
+                "used_margin": round(
+                    self._safe_float(
+                        portfolio_overview.get("used_margin")
+                        or summary.get("used_margin")
+                        or 0.0
+                    ),
+                    2,
+                ),
+                "free_margin": round(
+                    self._safe_float(
+                        portfolio_overview.get("free_margin")
+                        or portfolio_overview.get("free_cash")
+                        or summary.get("free_margin")
+                        or summary.get("free_cash")
+                        or summary.get("available_margin")
+                        or 0.0
+                    ),
+                    2,
+                ),
+                "unrealized": round(
+                    self._safe_float(
+                        portfolio_overview.get("unrealized")
+                        or portfolio_overview.get("unrealized_pnl")
+                        or summary.get("unrealized_pnl")
+                        or summary.get("unrealized")
+                        or 0.0
+                    ),
+                    2,
+                ),
+                "total_equity": round(
+                    self._safe_float(
+                        portfolio_overview.get("total_equity")
+                        or portfolio_overview.get("portfolio_value")
+                        or summary.get("total_equity")
+                        or summary.get("portfolio_value")
+                        or 0.0
+                    ),
+                    2,
+                ),
+            }
         except Exception:
             logger.exception("equity_breakdown_failed_dashboard_fast")
-            summary_balance = self._safe_float(
-                summary.get("cash_balance")
-                or summary.get("balance")
-                or summary.get("cash")
-                or summary.get("free_cash")
-                or 0.0
-            )
-            summary_used_margin = self._safe_float(summary.get("used_margin") or 0.0)
-            summary_unrealized = self._safe_float(summary.get("unrealized_pnl") or summary.get("unrealized") or 0.0)
-            summary_total_equity = self._safe_float(
-                summary.get("total_equity")
-                or summary.get("portfolio_value")
-                or (summary_balance + self._safe_float(summary.get("market_value") or 0.0))
-                or 0.0
-            )
-            breakdown = {
-                "balance": round(summary_balance, 2),
-                "used_margin": round(summary_used_margin, 2),
-                "free_margin": round(summary_total_equity - summary_used_margin, 2),
-                "unrealized": round(summary_unrealized, 2),
-                "total_equity": round(summary_total_equity, 2),
-            }
+            breakdown = compute_equity_breakdown(portfolio_dashboard, portfolio)
 
         total_equity = self._safe_float(breakdown.get("total_equity"))
 
@@ -377,19 +419,20 @@ class DashboardService:
             "latest_execution_timestamp": None,
             "as_of": as_of,
             "source_snapshot_time": (
-                summary.get("source_snapshot_time")
+                portfolio_overview.get("source_snapshot_time")
+                or summary.get("source_snapshot_time")
+                or portfolio_overview.get("as_of")
                 or summary.get("as_of")
-                or portfolio_dashboard.get("as_of")
-                or portfolio.get("as_of")
                 or as_of
             ),
             "active_snapshot_version": self._safe_int(
                 summary.get("active_snapshot_version")
-                or (portfolio_dashboard.get("snapshot") or {}).get("active_snapshot_version"),
+                or portfolio_overview.get("active_snapshot_version")
+                or (portfolio_overview.get("snapshot") or {}).get("active_snapshot_version"),
                 default=0,
             ) or None,
             "position_row_count": int(summary.get("position_row_count") or len(items)),
-            "strategy_row_count": int(summary.get("strategy_row_count") or 0),
+            "strategy_row_count": int(summary.get("strategy_row_count") or active_strategies),
         }
 
         duration_ms = round((time.perf_counter() - started) * 1000.0, 2)

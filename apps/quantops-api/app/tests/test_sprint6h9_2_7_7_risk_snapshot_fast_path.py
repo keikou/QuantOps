@@ -4,6 +4,8 @@ import asyncio
 import time
 
 from app.core.deps import get_risk_service
+from app.repositories.duckdb import DuckDBConnectionFactory
+from app.repositories.risk_repository import RiskRepository
 from app.services.risk_service import RiskService
 
 
@@ -140,3 +142,28 @@ def test_refresh_snapshot_summary_only_skips_positions_and_diagnostics() -> None
     assert payload["concentration"] == 0.2
     assert client.positions_calls == 0
     assert client.diagnostics_calls == 0
+
+
+def test_risk_repository_derives_kill_switch_and_halted_state_from_breach(tmp_path) -> None:
+    repo = RiskRepository(DuckDBConnectionFactory(str(tmp_path / "risk-test.duckdb")))
+
+    repo.insert_snapshot(
+        {
+            "gross_exposure": 2.0,
+            "net_exposure": 0.5,
+            "leverage": 2.0,
+            "drawdown": 0.0,
+            "var_95": 0.1,
+            "stress_loss": None,
+            "risk_limit": {},
+            "alert_state": "breach",
+        }
+    )
+
+    latest = repo.latest_snapshot()
+
+    assert latest is not None
+    assert latest["alert_state"] == "breach"
+    assert latest["alert"] == "breach"
+    assert latest["kill_switch"] == "triggered"
+    assert latest["trading_state"] == "halted"

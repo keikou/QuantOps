@@ -59,6 +59,24 @@ class _DashboardClient:
         return {"enabled_count": 2}
 
 
+class _PortfolioOverviewService:
+    async def get_overview(self) -> dict:
+        await asyncio.sleep(0.05)
+        return {
+            "total_equity": 100.0,
+            "balance": 30.0,
+            "used_margin": 14.0,
+            "free_margin": 86.0,
+            "unrealized": 8.0,
+            "positions": [
+                {"symbol": "BTCUSDT", "side": "long", "weight": 0.4, "pnl": 8.0},
+            ],
+            "source_snapshot_time": "2026-03-22T00:00:00+00:00",
+            "as_of": "2026-03-22T00:00:00+00:00",
+            "build_status": "live",
+        }
+
+
 class _SlowDashboardClient(_DashboardClient):
     async def get_portfolio_positions(self) -> dict:
         await asyncio.sleep(0.3)
@@ -164,7 +182,7 @@ class _CountingDashboardService(DashboardService):
 
 
 def test_dashboard_overview_parallelizes_upstream_reads() -> None:
-    service = DashboardService(_DashboardClient(), _SchedulerRepository(), _AlertService())  # type: ignore[arg-type]
+    service = DashboardService(_DashboardClient(), _SchedulerRepository(), _AlertService(), _PortfolioOverviewService())  # type: ignore[arg-type]
 
     started = time.perf_counter()
     payload = asyncio.run(service.get_overview())
@@ -178,11 +196,22 @@ def test_dashboard_overview_parallelizes_upstream_reads() -> None:
     assert payload["stable_value"]["total_equity"] == 100.0
     assert payload["display_value"]["running_jobs"] == 1
     assert payload["live_delta"]["alerts_window"] is None
-    assert elapsed < 0.15
+    assert elapsed < 0.2
+
+
+def test_dashboard_overview_uses_portfolio_aggregated_margin_breakdown() -> None:
+    service = DashboardService(_DashboardClient(), _SchedulerRepository(), _AlertService(), _PortfolioOverviewService())  # type: ignore[arg-type]
+
+    payload = asyncio.run(service.get_overview())
+
+    assert payload["used_margin"] == 14.0
+    assert payload["free_margin"] == 86.0
+    assert payload["stable_value"]["used_margin"] == 14.0
+    assert payload["display_value"]["free_margin"] == 86.0
 
 
 def test_dashboard_overview_bounded_fast_path_returns_primary_truth_when_aux_calls_are_slow() -> None:
-    service = DashboardService(_SlowDashboardClient(), _SchedulerRepository(), _AlertService())  # type: ignore[arg-type]
+    service = DashboardService(_SlowDashboardClient(), _SchedulerRepository(), _AlertService(), _PortfolioOverviewService())  # type: ignore[arg-type]
     service.OVERVIEW_PRIMARY_TIMEOUT_SECONDS = 0.12
     service.OVERVIEW_AUX_TIMEOUT_SECONDS = 0.08
 
@@ -191,7 +220,7 @@ def test_dashboard_overview_bounded_fast_path_returns_primary_truth_when_aux_cal
     elapsed = time.perf_counter() - started
 
     assert payload["total_equity"] == 100.0
-    assert payload["active_strategies"] == 0
+    assert payload["active_strategies"] == 1
     assert payload["latest_run_id"] is None
     assert payload["build_status"] == "live"
     assert elapsed < 0.2

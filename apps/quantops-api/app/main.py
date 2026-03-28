@@ -10,7 +10,13 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.router import api_router
-from app.core.deps import get_execution_service, get_monitoring_service, get_risk_service
+from app.core.deps import (
+    get_command_center_service,
+    get_execution_service,
+    get_monitoring_service,
+    get_portfolio_service,
+    get_risk_service,
+)
 from app.middleware.request_logging import RequestLoggingMiddleware
 from app.core.config import get_settings
 from app.db.init_db import init_db
@@ -19,8 +25,10 @@ GUI_FAST_PATH_WARMUP_DELAY_SECONDS = 3.0
 GUI_FAST_PATH_WARMUP_MAX_WAIT_SECONDS = 15.0
 GUI_FAST_PATH_WARMUP_POLL_SECONDS = 0.5
 GUI_RISK_WARMUP_DELAY_SECONDS = 8.0
+GUI_PORTFOLIO_WARMUP_DELAY_SECONDS = 10.0
 GUI_MONITORING_WARMUP_DELAY_SECONDS = 15.0
-GUI_EXECUTION_WARMUP_DELAY_SECONDS = 24.0
+GUI_EXECUTION_WARMUP_DELAY_SECONDS = 12.0
+GUI_COMMAND_CENTER_WARMUP_DELAY_SECONDS = 14.0
 GUI_FAST_PATH_WARMUP_READY_PATHS = (
     "/system/health",
     "/runtime/status",
@@ -37,6 +45,14 @@ def configure_runtime_logging() -> None:
         runtime_logger = logging.getLogger(logger_name)
         for handler in runtime_logger.handlers:
             handler.setFormatter(formatter)
+
+
+async def _run_warmup_step(name: str, *operations) -> None:
+    results = await asyncio.gather(*operations, return_exceptions=True)
+    runtime_logger = logging.getLogger("uvicorn.error")
+    for result in results:
+        if isinstance(result, Exception):
+            runtime_logger.warning("startup_warmup_step_failed step=%s error=%r", name, result)
 
 
 async def _warm_gui_fast_paths() -> None:
@@ -62,13 +78,33 @@ async def _warm_gui_fast_paths() -> None:
                 await asyncio.sleep(GUI_FAST_PATH_WARMUP_POLL_SECONDS)
         await asyncio.sleep(GUI_RISK_WARMUP_DELAY_SECONDS)
         await get_risk_service().refresh_snapshot(summary_only=True)
-        await asyncio.sleep(max(0.0, GUI_MONITORING_WARMUP_DELAY_SECONDS - GUI_RISK_WARMUP_DELAY_SECONDS))
+        await asyncio.sleep(max(0.0, GUI_PORTFOLIO_WARMUP_DELAY_SECONDS - GUI_RISK_WARMUP_DELAY_SECONDS))
+        portfolio_service = get_portfolio_service()
+        await _run_warmup_step(
+            "portfolio",
+            portfolio_service.get_overview(),
+            portfolio_service.get_metrics(),
+            portfolio_service.get_positions(),
+        )
+        await asyncio.sleep(max(0.0, GUI_MONITORING_WARMUP_DELAY_SECONDS - GUI_PORTFOLIO_WARMUP_DELAY_SECONDS))
         await get_monitoring_service().refresh(summary_only=True)
         await asyncio.sleep(max(0.0, GUI_EXECUTION_WARMUP_DELAY_SECONDS - GUI_MONITORING_WARMUP_DELAY_SECONDS))
         execution_service = get_execution_service()
-        await asyncio.gather(
+        await _run_warmup_step(
+            "execution",
             execution_service.get_planner_latest(),
             execution_service.get_state_latest(),
+            execution_service.get_view_latest(),
+            execution_service.get_orders(limit=5),
+            execution_service.get_fills(limit=5),
+        )
+        await asyncio.sleep(max(0.0, GUI_COMMAND_CENTER_WARMUP_DELAY_SECONDS - GUI_EXECUTION_WARMUP_DELAY_SECONDS))
+        command_center_service = get_command_center_service()
+        await _run_warmup_step(
+            "command_center",
+            command_center_service.get_runtime_latest(),
+            command_center_service.get_runtime_runs(limit=10, window_minutes=5),
+            command_center_service.get_runtime_issues(limit=10, window_minutes=5),
         )
     except Exception:
         logging.getLogger("uvicorn.error").exception("startup_warm_gui_fast_paths_failed")

@@ -36,7 +36,7 @@ class TruthEngineAdapter:
         for table in tables:
             self.engine.store.execute(f"DELETE FROM {table}")
         self.engine.ensure_initial_capital()
-        
+
     def apply_fill(self, fill: dict[str, Any]) -> None:
         now = utc_now_iso()
 
@@ -178,6 +178,8 @@ class TruthEngineAdapter:
         weighted_avg_numerator = 0.0
         total_realized = 0.0
         total_unrealized = 0.0
+        total_gross_exposure = 0.0
+        latest_mark_price = None
 
         for symbol, state in states.items():
             signed_qty = float(state.get("signed_qty", 0.0) or 0.0)
@@ -193,8 +195,19 @@ class TruthEngineAdapter:
                 weighted_avg_numerator += abs(signed_qty) * avg_entry_price
                 mark_price = float(mark_by_symbol.get(symbol, avg_entry_price))
                 total_unrealized += (mark_price - avg_entry_price) * signed_qty
+                total_gross_exposure += abs(signed_qty) * mark_price
+                latest_mark_price = mark_price
 
         weighted_avg = weighted_avg_numerator / total_abs_qty if total_abs_qty > 0 else 0.0
+        fee_rows = self.engine.store.fetchall_dict(
+            """
+            SELECT delta_cash
+            FROM cash_ledger
+            WHERE event_type = 'fee'
+            """
+        )
+        total_fees = round(sum(abs(float(row.get("delta_cash", 0.0) or 0.0)) for row in fee_rows), 8)
+        total_realized = round(total_realized - total_fees, 8)
 
         cash_balance = self.engine.latest_cash_balance()
         total_equity = cash_balance
@@ -209,17 +222,32 @@ class TruthEngineAdapter:
             "avg_price": weighted_avg,
             "realized_pnl": total_realized,
             "unrealized_pnl": total_unrealized,
+            "mark_price": latest_mark_price,
+            "gross_exposure": total_gross_exposure,
+            "position_notional": total_gross_exposure,
+            "exposure": total_gross_exposure,
             "total_equity": total_equity,
         }
+
+    def snapshot(self) -> dict[str, float]:
+        return self.get_state()
 
     def rebuild_from_history(
         self,
         fills: list[dict[str, Any]],
-        marks: list[tuple[str, float, int]],
+        marks: list[tuple[str, float, int] | dict[str, Any]],
     ) -> dict[str, float]:
         fresh = TruthEngineAdapter()
         for fill in fills:
             fresh.apply_fill(fill)
-        for symbol, price, ts in marks:
-            fresh.apply_mark(symbol, price, ts)
+        for mark in marks:
+            if isinstance(mark, dict):
+                fresh.apply_mark(
+                    str(mark.get("symbol") or "BTC"),
+                    float(mark.get("price", mark.get("mark", 0.0)) or 0.0),
+                    int(mark.get("ts", mark.get("timestamp", 0)) or 0),
+                )
+            else:
+                symbol, price, ts = mark
+                fresh.apply_mark(symbol, price, ts)
         return fresh.get_state()

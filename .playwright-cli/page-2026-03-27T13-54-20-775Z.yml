@@ -1,0 +1,151 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - complementary [ref=e3]:
+      - generic [ref=e4]: QuantOps
+      - generic [ref=e5]: Production Console
+      - navigation [ref=e6]:
+        - link "Overview" [ref=e7] [cursor=pointer]:
+          - /url: /
+        - link "Portfolio" [ref=e8] [cursor=pointer]:
+          - /url: /portfolio
+        - link "Strategies" [ref=e9] [cursor=pointer]:
+          - /url: /strategies
+        - link "Execution" [ref=e10] [cursor=pointer]:
+          - /url: /execution
+        - link "Risk" [ref=e11] [cursor=pointer]:
+          - /url: /risk
+        - link "Monitoring" [ref=e12] [cursor=pointer]:
+          - /url: /monitoring
+        - link "Alerts" [ref=e13] [cursor=pointer]:
+          - /url: /alerts
+        - link "Scheduler" [ref=e14] [cursor=pointer]:
+          - /url: /scheduler
+        - link "Research" [ref=e15] [cursor=pointer]:
+          - /url: /research
+        - link "Alpha Factory" [ref=e16] [cursor=pointer]:
+          - /url: /alpha-factory
+        - link "Governance" [ref=e17] [cursor=pointer]:
+          - /url: /governance
+        - link "Config" [ref=e18] [cursor=pointer]:
+          - /url: /config
+        - link "Admin / Audit" [ref=e19] [cursor=pointer]:
+          - /url: /admin
+    - generic [ref=e20]:
+      - banner [ref=e21]:
+        - generic [ref=e22]:
+          - generic [ref=e23]: Sprint5 Dashboard
+          - generic [ref=e24]: QuantOps Command Center
+        - generic [ref=e25]:
+          - combobox [ref=e26]:
+            - option "PAPER" [selected]
+            - option "SHADOW"
+            - option "LIVE"
+          - combobox "Demo role switcher" [ref=e27]:
+            - option "viewer"
+            - option "operator"
+            - option "risk_manager"
+            - option "admin" [selected]
+          - generic [ref=e28]: Local Admin · admin
+          - generic [ref=e29]: System OK
+      - main [ref=e30]:
+        - generic [ref=e31]:
+          - generic [ref=e32]:
+            - heading "Portfolio" [level=1] [ref=e33]
+            - generic [ref=e34]:
+              - generic [ref=e35]: "Overview: OK"
+              - generic [ref=e36]: "Metrics: OK"
+              - generic [ref=e37]: "Positions: OK"
+          - generic [ref=e38]:
+            - generic [ref=e39]:
+              - generic [ref=e40]: Total Equity
+              - generic [ref=e41]: 99,872.28
+            - generic [ref=e42]:
+              - generic [ref=e43]: Balance
+              - generic [ref=e44]: 39,680.19
+            - generic [ref=e45]:
+              - generic [ref=e46]: Used Margin
+              - generic [ref=e47]: 100,207.76
+            - generic [ref=e48]:
+              - generic [ref=e49]: Free Margin
+              - generic [ref=e50]: "-335.49"
+            - generic [ref=e51]:
+              - generic [ref=e52]: Unrealized
+              - generic [ref=e53]: "79.8"
+            - generic [ref=e54]:
+              - generic [ref=e55]: Gross Exposure
+              - generic [ref=e56]: "20.72"
+            - generic [ref=e57]:
+              - generic [ref=e58]: Net Exposure
+              - generic [ref=e59]: "0.6"
+            - generic [ref=e60]:
+              - generic [ref=e61]: Expected Sharpe
+              - generic [ref=e62]: "0.03"
+          - generic [ref=e63]:
+            - generic [ref=e64]: Stable Summary
+            - generic [ref=e65]:
+              - generic [ref=e66]: "Portfolio snapshot: age 0s"
+              - generic [ref=e67]: "Metrics snapshot: age 0s"
+              - generic [ref=e68]: "Positions snapshot: Live | age 15s | snapshot 2026-03-27T13:53:49.989986"
+          - generic [ref=e69]: "Equity formula: Total Equity = Used Margin + Free Margin = Balance + Unrealized | as of 2026-03-27T13:53:49.989986"
+          - table [ref=e71]:
+            - rowgroup [ref=e72]:
+              - row "Symbol Side Qty Avg Mark PnL Primary Alpha Family" [ref=e73]:
+                - columnheader "Symbol" [ref=e74]
+                - columnheader "Side" [ref=e75]
+                - columnheader "Qty" [ref=e76]
+                - columnheader "Avg" [ref=e77]
+                - columnheader "Mark" [ref=e78]
+                - columnheader "PnL" [ref=e79]
+                - columnheader "Primary Alpha Family" [ref=e80]
+            - rowgroup [ref=e81]:
+              - row "BTCUSDT short 0.3017 66451.1978 66252.7650 59.8648 Runtime" [ref=e82]:
+                - cell "BTCUSDT" [ref=e83]
+                - cell "short" [ref=e84]
+                - cell "0.3017" [ref=e85]
+                - cell "66451.1978" [ref=e86]
+                - cell "66252.7650" [ref=e87]
+                - cell "59.8648" [ref=e88]
+                - cell "Runtime" [ref=e89]
+              - row "SOLUSDT long 241.0006 83.0134 82.9350 -18.9031 Runtime" [ref=e90]:
+                - cell "SOLUSDT" [ref=e91]
+                - cell "long" [ref=e92]
+                - cell "241.0006" [ref=e93]
+                - cell "83.0134" [ref=e94]
+                - cell "82.9350" [ref=e95]
+                - cell "-18.9031" [ref=e96]
+                - cell "Runtime" [ref=e97]
+              - row "ETHUSDT long 10.0921 1980.3219 1980.0050 -3.1981 Runtime" [ref=e98]:
+                - cell "ETHUSDT" [ref=e99]
+                - cell "long" [ref=e100]
+                - cell "10.0921" [ref=e101]
+                - cell "1980.3219" [ref=e102]
+                - cell "1980.0050" [ref=e103]
+                - cell "-3.1981" [ref=e104]
+                - cell "Runtime" [ref=e105]
+              - row "DOGEUSDT long 221885.8752 0.0907 0.0900 -157.6072 Runtime" [ref=e106]:
+                - cell "DOGEUSDT" [ref=e107]
+                - cell "long" [ref=e108]
+                - cell "221885.8752" [ref=e109]
+                - cell "0.0907" [ref=e110]
+                - cell "0.0900" [ref=e111]
+                - cell "-157.6072" [ref=e112]
+                - cell "Runtime" [ref=e113]
+              - row "WLDUSDT long 72674.7863 0.2727 0.2748 159.6458 Runtime" [ref=e114]:
+                - cell "WLDUSDT" [ref=e115]
+                - cell "long" [ref=e116]
+                - cell "72674.7863" [ref=e117]
+                - cell "0.2727" [ref=e118]
+                - cell "0.2748" [ref=e119]
+                - cell "159.6458" [ref=e120]
+                - cell "Runtime" [ref=e121]
+              - row "BTC long 2.0000 110.0000 130.0000 40.0000 Runtime" [ref=e122]:
+                - cell "BTC" [ref=e123]
+                - cell "long" [ref=e124]
+                - cell "2.0000" [ref=e125]
+                - cell "110.0000" [ref=e126]
+                - cell "130.0000" [ref=e127]
+                - cell "40.0000" [ref=e128]
+                - cell "Runtime" [ref=e129]
+  - button "Open Next.js Dev Tools" [ref=e135] [cursor=pointer]:
+    - img [ref=e136]
+  - alert [ref=e139]

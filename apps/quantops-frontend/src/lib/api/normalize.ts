@@ -225,7 +225,7 @@ export function normalizePositions(input: any) {
 export function normalizeRisk(input: any) {
   const x = getPayload<any>(input, {});
   const tradingStateRaw = toString(x.tradingState ?? x.trading_state, 'running');
-  const tradingState = tradingStateRaw === 'paused' ? 'paused' : 'running';
+  const tradingState = tradingStateRaw === 'paused' || tradingStateRaw === 'halted' ? tradingStateRaw : 'running';
   const dataStatusRaw = normalizeStatus(x.dataStatus ?? x.data_status, 'unknown');
   const dataStatus: DataStatus | undefined = (
     ['ok', 'loading', 'stale', 'timed_out', 'no_data', 'fallback'].includes(dataStatusRaw)

@@ -103,7 +103,12 @@ class RiskRepository:
             except Exception:
                 risk_limit = {"raw": risk_limit}
 
+        alert_state = row[7] or "unknown"
         state = self.get_trading_state()
+        trading_state = state.get("trading_state", "running")
+        if alert_state == "breach" and trading_state == "running":
+            trading_state = "halted"
+        kill_switch = "triggered" if alert_state == "breach" else "armed" if alert_state == "warning" else "normal"
         return {
             "gross_exposure": row[0] if row[0] is not None else 0.0,
             "net_exposure": row[1] if row[1] is not None else 0.0,
@@ -112,8 +117,10 @@ class RiskRepository:
             "var_95": row[4],
             "stress_loss": row[5],
             "risk_limit": risk_limit if isinstance(risk_limit, dict) else {},
-            "alert_state": row[7] or "unknown",
-            "trading_state": state.get("trading_state", "running"),
+            "alert_state": alert_state,
+            "alert": alert_state,
+            "kill_switch": kill_switch,
+            "trading_state": trading_state,
             "state_note": state.get("note", ""),
             "as_of": row[8] or datetime.now(timezone.utc).isoformat(),
         }

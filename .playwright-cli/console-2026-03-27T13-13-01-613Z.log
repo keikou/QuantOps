@@ -1,0 +1,4 @@
+[    6652ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:3000/favicon.ico:0
+[   11743ms] [WARNING] WebSocket connection to 'ws://127.0.0.1:8010/api/v1/command-center/ws/events' failed: WebSocket is closed before the connection is established. @ webpack-internal:///(app-pages-browser)/./src/lib/api/realtime.ts:115
+[   11800ms] [WARNING] [QuantOps WS] error: Event @ webpack-internal:///(app-pages-browser)/./src/lib/api/realtime.ts:73
+[   20616ms] [ERROR] [QuantOps API] {id: 1774617202226-sp97r3, path: /api/v1/portfolio/metrics, requestUrl: /api/proxy/api/v1/portfolio/metrics, method: GET, page: /} @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/userspace/app/errors/intercept-console-error.js:56

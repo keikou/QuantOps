@@ -153,7 +153,7 @@ export type RiskSnapshot = {
   drawdown: number;
   concentration: number;
   killSwitch: 'normal' | 'armed' | 'triggered';
-  tradingState?: 'running' | 'paused';
+  tradingState?: 'running' | 'paused' | 'halted';
   alert?: string;
   dataStatus?: DataStatus;
   dataSource?: DataSourceStatus;

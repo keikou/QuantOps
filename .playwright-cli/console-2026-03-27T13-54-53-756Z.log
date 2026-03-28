@@ -1,0 +1,7 @@
+Total messages: 5 (Errors: 1, Warnings: 2)
+
+[INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:25630
+[ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:3000/favicon.ico:0
+[WARNING] WebSocket connection to 'ws://127.0.0.1:8010/api/v1/command-center/ws/events' failed: WebSocket is closed before the connection is established. @ webpack-internal:///(app-pages-browser)/./src/lib/api/realtime.ts:115
+[WARNING] [QuantOps WS] error: Event @ webpack-internal:///(app-pages-browser)/./src/lib/api/realtime.ts:73
+[LOG] [QuantOps WS] open: ws://127.0.0.1:8010/api/v1/command-center/ws/events @ webpack-internal:///(app-pages-browser)/./src/lib/api/realtime.ts:62

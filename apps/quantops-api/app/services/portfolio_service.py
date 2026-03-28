@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 from datetime import datetime, timedelta, timezone
 import logging
+import time
 
 from app.clients.v12_client import V12Client, utc_now_iso
 from app.services.equity_breakdown import compute_equity_breakdown
@@ -19,6 +20,8 @@ class PortfolioService:
     METRICS_CACHE_TTL_SECONDS = 5.0
     METRICS_STALE_MAX_AGE_SECONDS = 60.0
     METRICS_EQUITY_HISTORY_LIMIT = 60
+    INFLIGHT_WAIT_TIMEOUT_SECONDS = 2.0
+    INFLIGHT_STALE_AFTER_SECONDS = 8.0
 
     def __init__(self, v12_client: V12Client) -> None:
         self.v12_client = v12_client
@@ -26,14 +29,17 @@ class PortfolioService:
         self._overview_cache_expires_at: datetime | None = None
         self._overview_cache_updated_at: datetime | None = None
         self._overview_inflight_task: asyncio.Task | None = None
+        self._overview_inflight_started_at: float | None = None
         self._positions_cache: dict | None = None
         self._positions_cache_expires_at: datetime | None = None
         self._positions_cache_updated_at: datetime | None = None
         self._positions_inflight_task: asyncio.Task | None = None
+        self._positions_inflight_started_at: float | None = None
         self._metrics_cache: dict | None = None
         self._metrics_cache_expires_at: datetime | None = None
         self._metrics_cache_updated_at: datetime | None = None
         self._metrics_inflight_task: asyncio.Task | None = None
+        self._metrics_inflight_started_at: float | None = None
 
     @staticmethod
     def _safe_float(value: object, default: float = 0.0) -> float:
@@ -254,6 +260,7 @@ class PortfolioService:
         if task is not None and not task.done():
             return
         self._metrics_inflight_task = asyncio.create_task(self._build_metrics_live())
+        self._metrics_inflight_started_at = time.perf_counter()
 
         def _clear_task(finished: asyncio.Task) -> None:
             try:
@@ -263,6 +270,7 @@ class PortfolioService:
             finally:
                 if self._metrics_inflight_task is finished:
                     self._metrics_inflight_task = None
+                    self._metrics_inflight_started_at = None
 
         self._metrics_inflight_task.add_done_callback(_clear_task)
 
@@ -354,6 +362,7 @@ class PortfolioService:
         if task is not None and not task.done():
             return
         self._overview_inflight_task = asyncio.create_task(self._build_overview_live())
+        self._overview_inflight_started_at = time.perf_counter()
 
         def _clear_task(finished: asyncio.Task) -> None:
             try:
@@ -363,6 +372,7 @@ class PortfolioService:
             finally:
                 if self._overview_inflight_task is finished:
                     self._overview_inflight_task = None
+                    self._overview_inflight_started_at = None
 
         self._overview_inflight_task.add_done_callback(_clear_task)
 
@@ -391,6 +401,7 @@ class PortfolioService:
         if task is not None and not task.done():
             return
         self._positions_inflight_task = asyncio.create_task(self._build_positions_live())
+        self._positions_inflight_started_at = time.perf_counter()
 
         def _clear_task(finished: asyncio.Task) -> None:
             try:
@@ -400,8 +411,31 @@ class PortfolioService:
             finally:
                 if self._positions_inflight_task is finished:
                     self._positions_inflight_task = None
+                    self._positions_inflight_started_at = None
 
         self._positions_inflight_task.add_done_callback(_clear_task)
+
+    async def _await_inflight_task(
+        self,
+        *,
+        task: asyncio.Task | None,
+        started_at: float | None,
+        scope: str,
+    ) -> dict | None:
+        if task is None or task.done():
+            return None
+        age_seconds = max(0.0, time.perf_counter() - started_at) if started_at is not None else None
+        if age_seconds is not None and age_seconds > self.INFLIGHT_STALE_AFTER_SECONDS:
+            logger.warning("%s_inflight_task_stale age_seconds=%.3f", scope, age_seconds)
+            return None
+        try:
+            return await asyncio.wait_for(
+                asyncio.shield(task),
+                timeout=self.INFLIGHT_WAIT_TIMEOUT_SECONDS,
+            )
+        except TimeoutError:
+            logger.warning("%s_inflight_task_wait_timeout age_seconds=%s", scope, round(age_seconds, 3) if age_seconds is not None else None)
+            return None
 
     async def get_overview(self) -> dict:
         cached = self._get_cached_overview()
@@ -414,16 +448,23 @@ class PortfolioService:
             return self._decorate_cached_overview_response(stale_cached, build_status='stale_cache')
 
         task = self._overview_inflight_task
-        if task is not None and not task.done():
-            return await task
+        inflight = await self._await_inflight_task(
+            task=task,
+            started_at=self._overview_inflight_started_at,
+            scope="portfolio_overview",
+        )
+        if inflight is not None:
+            return self._decorate_cached_overview_response(inflight, build_status='live')
 
         task = asyncio.create_task(self._build_overview_live())
         self._overview_inflight_task = task
+        self._overview_inflight_started_at = time.perf_counter()
         try:
             return self._decorate_cached_overview_response(await task, build_status='live')
         finally:
             if self._overview_inflight_task is task:
                 self._overview_inflight_task = None
+                self._overview_inflight_started_at = None
 
     async def get_metrics(self) -> dict:
         cached = self._get_cached_metrics()
@@ -436,16 +477,23 @@ class PortfolioService:
             return self._decorate_cached_metrics_response(stale_cached, build_status='stale_cache')
 
         task = self._metrics_inflight_task
-        if task is not None and not task.done():
-            return await task
+        inflight = await self._await_inflight_task(
+            task=task,
+            started_at=self._metrics_inflight_started_at,
+            scope="portfolio_metrics",
+        )
+        if inflight is not None:
+            return self._decorate_cached_metrics_response(inflight, build_status='live')
 
         task = asyncio.create_task(self._build_metrics_live())
         self._metrics_inflight_task = task
+        self._metrics_inflight_started_at = time.perf_counter()
         try:
             return self._decorate_cached_metrics_response(await task, build_status='live')
         finally:
             if self._metrics_inflight_task is task:
                 self._metrics_inflight_task = None
+                self._metrics_inflight_started_at = None
 
     async def get_positions(self) -> dict:
         cached = self._get_cached_positions()
@@ -458,16 +506,23 @@ class PortfolioService:
             return stale_cached
 
         task = self._positions_inflight_task
-        if task is not None and not task.done():
-            return await task
+        inflight = await self._await_inflight_task(
+            task=task,
+            started_at=self._positions_inflight_started_at,
+            scope="portfolio_positions",
+        )
+        if inflight is not None:
+            return inflight
 
         task = asyncio.create_task(self._build_positions_live())
         self._positions_inflight_task = task
+        self._positions_inflight_started_at = time.perf_counter()
         try:
             return await task
         finally:
             if self._positions_inflight_task is task:
                 self._positions_inflight_task = None
+                self._positions_inflight_started_at = None
 
     async def get_positions_debug(self) -> dict:
         payload = await self.v12_client.get_portfolio_positions()

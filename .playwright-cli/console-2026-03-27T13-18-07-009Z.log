@@ -1,0 +1,10 @@
+Total messages: 11 (Errors: 7, Warnings: 2)
+Returning 7 messages for level "error"
+
+[ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:3000/favicon.ico:0
+[ERROR] [QuantOps API] {id: 1774617456263-cig967, path: /api/v1/execution/view/latest, requestUrl: /api/proxy/api/v1/execution/view/latest, method: GET, page: /execution} @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/userspace/app/errors/intercept-console-error.js:56
+[ERROR] [QuantOps API] {id: 1774617465289-5xh0jv, path: /api/v1/execution/view/latest, requestUrl: /api/proxy/api/v1/execution/view/latest, method: GET, page: /execution} @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/userspace/app/errors/intercept-console-error.js:56
+[ERROR] [QuantOps API] {id: 1774617473349-om5ftj, path: /api/v1/execution/fills?limit=5, requestUrl: /api/proxy/api/v1/execution/fills?limit=5, method: GET, page: /execution} @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/userspace/app/errors/intercept-console-error.js:56
+[ERROR] [QuantOps API] {id: 1774617473351-cjo93j, path: /api/v1/execution/orders?limit=5, requestUrl: /api/proxy/api/v1/execution/orders?limit=5, method: GET, page: /execution} @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/userspace/app/errors/intercept-console-error.js:56
+[ERROR] [QuantOps API] {id: 1774617473355-11mzwa, path: /api/v1/command-center/runtime/issues?limit=3&window_minutes=5, requestUrl: /api/proxy/api/v1/command-center/runtime/issues?limit=3&window_minutes=5, method: GET, page: /execution} @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/userspace/app/errors/intercept-console-error.js:56
+[ERROR] [QuantOps API] {id: 1774617473357-7erk1s, path: /api/v1/command-center/runtime/runs?limit=10&window_minutes=5, requestUrl: /api/proxy/api/v1/command-center/runtime/runs?limit=10&window_minutes=5, method: GET, page: /execution} @ webpack-internal:///(app-pages-browser)/./node_modules/next/dist/next-devtools/userspace/app/errors/intercept-console-error.js:56

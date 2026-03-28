@@ -1,0 +1,246 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - complementary [ref=e3]:
+      - generic [ref=e4]: QuantOps
+      - generic [ref=e5]: Production Console
+      - navigation [ref=e6]:
+        - link "Overview" [ref=e7] [cursor=pointer]:
+          - /url: /
+        - link "Portfolio" [ref=e8] [cursor=pointer]:
+          - /url: /portfolio
+        - link "Strategies" [ref=e9] [cursor=pointer]:
+          - /url: /strategies
+        - link "Execution" [ref=e10] [cursor=pointer]:
+          - /url: /execution
+        - link "Risk" [ref=e11] [cursor=pointer]:
+          - /url: /risk
+        - link "Monitoring" [ref=e12] [cursor=pointer]:
+          - /url: /monitoring
+        - link "Alerts" [ref=e13] [cursor=pointer]:
+          - /url: /alerts
+        - link "Scheduler" [ref=e14] [cursor=pointer]:
+          - /url: /scheduler
+        - link "Research" [ref=e15] [cursor=pointer]:
+          - /url: /research
+        - link "Alpha Factory" [ref=e16] [cursor=pointer]:
+          - /url: /alpha-factory
+        - link "Governance" [ref=e17] [cursor=pointer]:
+          - /url: /governance
+        - link "Config" [ref=e18] [cursor=pointer]:
+          - /url: /config
+        - link "Admin / Audit" [ref=e19] [cursor=pointer]:
+          - /url: /admin
+    - generic [ref=e20]:
+      - banner [ref=e21]:
+        - generic [ref=e22]:
+          - generic [ref=e23]: Sprint5 Dashboard
+          - generic [ref=e24]: QuantOps Command Center
+        - generic [ref=e25]:
+          - combobox [ref=e26]:
+            - option "PAPER" [selected]
+            - option "SHADOW"
+            - option "LIVE"
+          - combobox "Demo role switcher" [ref=e27]:
+            - option "viewer"
+            - option "operator"
+            - option "risk_manager"
+            - option "admin" [selected]
+          - generic [ref=e28]: Local Admin · admin
+          - generic [ref=e29]: Overview Focus
+      - generic [ref=e43]:
+        - generic [ref=e44]:
+          - generic [ref=e45]: API refresh failed
+          - generic [ref=e46]: GET /api/v1/portfolio/metrics · timeout
+          - generic [ref=e47]: Request timeout for /api/v1/portfolio/metrics after 8028ms
+          - generic [ref=e48]: page=/ · duration=8028ms · requestId=qo-1774617194198-f3n9gf
+        - button "Dismiss" [ref=e49] [cursor=pointer]
+      - main [ref=e30]:
+        - generic [ref=e50]:
+          - generic [ref=e51]:
+            - heading "Overview" [level=1] [ref=e52]
+            - generic [ref=e53]:
+              - generic [ref=e54]: "Overview: Stale"
+              - generic [ref=e55]: "Metrics: OK"
+              - generic [ref=e56]: "Equity History: OK"
+              - generic [ref=e57]: "Monitoring: OK"
+              - generic [ref=e58]: "Risk: OK"
+          - generic [ref=e59]:
+            - generic [ref=e60]:
+              - generic [ref=e61]: Total Equity
+              - generic [ref=e62]: 99,572.37
+            - generic [ref=e63]:
+              - generic [ref=e64]: Balance
+              - generic [ref=e65]: 39,565.68
+            - generic [ref=e66]:
+              - generic [ref=e67]: Used Margin
+              - generic [ref=e68]: 1,673,002.63
+            - generic [ref=e69]:
+              - generic [ref=e70]: Free Margin
+              - generic [ref=e71]: "-1,573,430.26"
+            - generic [ref=e72]:
+              - generic [ref=e73]: Unrealized
+              - generic [ref=e74]: "-260.35"
+            - generic [ref=e75]:
+              - generic [ref=e76]: Daily PnL
+              - generic [ref=e77]: "-260.35"
+            - generic [ref=e78]:
+              - generic [ref=e79]: Gross Exposure
+              - generic [ref=e80]: "16.77"
+            - generic [ref=e81]:
+              - generic [ref=e82]: Net Exposure
+              - generic [ref=e83]: "0.6"
+            - generic [ref=e84]:
+              - generic [ref=e85]: Fill Rate
+              - generic [ref=e86]: "1"
+            - generic [ref=e87]:
+              - generic [ref=e88]: Expected Sharpe
+              - generic [ref=e89]: "0"
+          - generic [ref=e90]: "Equity formula: Total Equity = Used Margin + Free Margin = Balance + Unrealized | as of 2026-03-27T13:06:53.857667"
+          - generic [ref=e91]:
+            - generic [ref=e92]: Stable Summary
+            - generic [ref=e93]:
+              - generic [ref=e94]: "Overview snapshot: Stale Cache | age 67s | snapshot 2026-03-27T13:12:49.127015"
+              - generic [ref=e95]: "Metrics snapshot: age 0s"
+              - generic [ref=e96]: "Equity history snapshot: Live | age 49s | snapshot 2026-03-27 13:12:49.127015"
+              - generic [ref=e97]: "Position rows: 234"
+              - generic [ref=e98]: "Strategy rows: 66"
+          - generic [ref=e99]:
+            - generic [ref=e100]:
+              - generic [ref=e101]: Runtime Status
+              - generic [ref=e102]:
+                - generic [ref=e103]: Blocked
+                - generic [ref=e104]: "Bridge: No Decision"
+                - generic [ref=e105]: "Reason: No Position Delta"
+                - generic [ref=e106]: Degraded
+                - link "Investigate Run" [ref=e107] [cursor=pointer]:
+                  - /url: /execution/runs/run_20260327130804_bfc63394
+            - generic [ref=e108]:
+              - generic [ref=e109]:
+                - generic [ref=e110]: Current Bridge State
+                - generic [ref=e111]: No Decision
+                - link "View detail" [ref=e113] [cursor=pointer]:
+                  - /url: /execution/runs/run_20260327130804_bfc63394
+              - generic [ref=e114]:
+                - generic [ref=e115]: Latest Reason
+                - generic [ref=e116]: No actionable delta for BTCUSDT.
+                - link "View detail" [ref=e118] [cursor=pointer]:
+                  - /url: /execution/runs/run_20260327130804_bfc63394
+              - generic [ref=e119]:
+                - generic [ref=e120]: Last Fill
+                - generic [ref=e121]: "-"
+                - link "View detail" [ref=e123] [cursor=pointer]:
+                  - /url: /execution/runs/run_20260327130804_bfc63394
+              - generic [ref=e124]:
+                - generic [ref=e125]: Last Portfolio Update
+                - generic [ref=e126]: "-"
+                - link "View detail" [ref=e128] [cursor=pointer]:
+                  - /url: /execution/runs/run_20260327130804_bfc63394
+              - generic [ref=e129]:
+                - generic [ref=e130]: Last Completed Cycle
+                - generic [ref=e131]: "-"
+                - link "View detail" [ref=e133] [cursor=pointer]:
+                  - /url: /execution/runs/run_20260327130804_bfc63394
+              - generic [ref=e134]:
+                - generic [ref=e135]: Degraded State
+                - generic [ref=e136]: "yes"
+                - link "View detail" [ref=e138] [cursor=pointer]:
+                  - /url: /execution/runs/run_20260327130804_bfc63394
+          - generic [ref=e139]:
+            - generic [ref=e141]:
+              - generic [ref=e142]: Equity Trend
+              - img [ref=e145]:
+                - generic [ref=e150]:
+                  - generic [ref=e152]: 2026-03-27 11:50:12.785501
+                  - generic [ref=e154]: 2026-03-27 13:12:49.127015
+                - generic [ref=e156]:
+                  - generic [ref=e158]: "0"
+                  - generic [ref=e160]: "45000"
+                  - generic [ref=e162]: "90000"
+                  - generic [ref=e164]: "135000"
+                  - generic [ref=e166]: "180000"
+            - generic [ref=e169]:
+              - generic [ref=e170]: Live Snapshot
+              - generic [ref=e171]: Monitoring, risk, alerts, jobs, and runtime are displayed as live or cached secondary feeds.
+              - generic [ref=e172]:
+                - generic [ref=e173]: "Active Strategies: 3"
+                - generic [ref=e174]: "Open Alerts: 0"
+                - generic [ref=e175]: "Running Jobs: 5"
+                - generic [ref=e176]: "CPU: 0%"
+                - generic [ref=e177]: "Exchange Latency: 49.5 ms"
+                - generic [ref=e178]: "Data Freshness: 11 sec"
+                - generic [ref=e179]: "Execution State: -"
+                - generic [ref=e180]: "Execution Reason: -"
+                - generic [ref=e181]: "Worker Status: running"
+                - generic [ref=e182]: "Monitoring Status: ok"
+                - generic [ref=e183]: "Risk Status: ok"
+                - generic [ref=e184]: "Risk Trading State: running"
+                - generic [ref=e185]: "Kill Switch: breach"
+          - generic [ref=e186]:
+            - generic [ref=e187]:
+              - generic [ref=e188]:
+                - generic [ref=e189]: Runtime Observability
+                - generic [ref=e190]:
+                  - generic [ref=e191]: Blocked
+                  - link "Open Run Detail" [ref=e192] [cursor=pointer]:
+                    - /url: /execution/runs/run_20260327130804_bfc63394
+              - generic [ref=e193]:
+                - generic [ref=e194]: "Operator message: Planner generated no actionable decisions for this cycle."
+                - generic [ref=e195]: "Latest reason: No actionable delta for BTCUSDT."
+                - generic [ref=e196]: "Blocking component: execution_planner"
+                - generic [ref=e197]:
+                  - text: "Run / Cycle:"
+                  - generic [ref=e198]: run_20260327130804_bfc63394 / cycle_20260327130804_997bc699
+                - generic [ref=e199]: "Last successful fill: -"
+                - generic [ref=e200]: "Last portfolio update: -"
+                - generic [ref=e201]: "Event chain complete: yes"
+                - generic [ref=e202]: "Debug path: /api/v1/command-center/debug/runtime?run_id=run_20260327130804_bfc63394"
+              - generic [ref=e204]: no_position_delta
+            - generic [ref=e205]: Runtime timeline is not available yet.
+          - generic [ref=e206]:
+            - table [ref=e208]:
+              - rowgroup [ref=e209]:
+                - row "Alert Severity Status" [ref=e210]:
+                  - columnheader "Alert" [ref=e211]
+                  - columnheader "Severity" [ref=e212]
+                  - columnheader "Status" [ref=e213]
+              - rowgroup
+            - table [ref=e215]:
+              - rowgroup [ref=e216]:
+                - row "Job Status Updated" [ref=e217]:
+                  - columnheader "Job" [ref=e218]
+                  - columnheader "Status" [ref=e219]
+                  - columnheader "Updated" [ref=e220]
+              - rowgroup [ref=e221]:
+                - row "analytics_refresh running -" [ref=e222]:
+                  - cell "analytics_refresh" [ref=e223]
+                  - cell "running" [ref=e224]
+                  - cell "-" [ref=e225]
+                - row "alert_evaluator running -" [ref=e226]:
+                  - cell "alert_evaluator" [ref=e227]
+                  - cell "running" [ref=e228]
+                  - cell "-" [ref=e229]
+                - row "portfolio_rebalance running -" [ref=e230]:
+                  - cell "portfolio_rebalance" [ref=e231]
+                  - cell "running" [ref=e232]
+                  - cell "-" [ref=e233]
+                - row "risk_snapshot running -" [ref=e234]:
+                  - cell "risk_snapshot" [ref=e235]
+                  - cell "running" [ref=e236]
+                  - cell "-" [ref=e237]
+                - row "signal_cycle running -" [ref=e238]:
+                  - cell "signal_cycle" [ref=e239]
+                  - cell "running" [ref=e240]
+                  - cell "-" [ref=e241]
+  - generic [ref=e36] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e37]:
+      - img [ref=e38]
+    - generic [ref=e242]:
+      - button "Open issues overlay" [ref=e243]:
+        - generic [ref=e244]:
+          - generic [ref=e245]: "0"
+          - generic [ref=e246]: "1"
+        - generic [ref=e247]: Issue
+      - button "Collapse issues badge" [ref=e248]:
+        - img [ref=e249]
+  - alert [ref=e41]
+  - generic [ref=e251]: "180000"

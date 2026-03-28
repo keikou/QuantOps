@@ -62,7 +62,7 @@ def get_analytics_repository() -> AnalyticsRepository:
 
 @lru_cache(maxsize=1)
 def get_dashboard_service() -> DashboardService:
-    return DashboardService(get_v12_client(), get_scheduler_repository(), get_alert_service())
+    return DashboardService(get_v12_client(), get_scheduler_repository(), get_alert_service(), get_portfolio_service())
 
 
 @lru_cache(maxsize=1)

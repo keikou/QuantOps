@@ -1,0 +1,366 @@
+[
+    {
+        "name":  "Overview",
+        "path":  "/",
+        "wait_sec":  15,
+        "console_error_count":  0,
+        "failed_request_count":  0,
+        "server_error_count":  0,
+        "missing_resource_404_count":  0,
+        "has_error_text":  false,
+        "has_no_data_hint":  true,
+        "has_loading_hint":  false,
+        "console_errors":  [
+
+                           ],
+        "failed_requests":  [
+
+                            ],
+        "server_errors":  [
+
+                          ],
+        "missing_404":  [
+
+                        ],
+        "snapshot_file":  "C:\\work_data\\pyWorkSpace\\QuantOpsV12\\QuantOps_github\\.playwright-cli\\page-2026-03-27T12-52-31-974Z.yml",
+        "console_file":  "C:\\work_data\\pyWorkSpace\\QuantOpsV12\\QuantOps_github\\.playwright-cli\\console-2026-03-27T12-48-42-020Z.log",
+        "network_file":  "C:\\work_data\\pyWorkSpace\\QuantOpsV12\\QuantOps_github\\.playwright-cli\\network-2026-03-27T12-52-19-335Z.log",
+        "snapshot_excerpt":  "- generic [active] [ref=e1]:\n  - generic [ref=e2]:\n    - complementary [ref=e3]:\n      - generic [ref=e4]: QuantOps\n      - generic [ref=e5]: Production Console\n      - navigation [ref=e6]:\n        - link \"Overview\" [ref=e7] [cursor=pointer]:\n          - /url: /\n        - link \"Portfolio\" [ref=e8] [cursor=pointer]:\n          - /url: /portfolio\n        - link \"Strategies\" [ref=e9] [cursor=pointer]:\n          - /url: /strategies\n        - link \"Execution\" [ref=e10] [cursor=pointer]:\n          - /url: /execution\n        - link \"Risk\" [ref=e11] [cursor=pointer]:\n          - /url: /risk\n        - link \"Monitoring\" [ref=e12] [cursor=pointer]:\n          - /url: /monitoring\n        - link \"Alerts\" [ref=e13] [cursor=pointer]:\n          - /url: /alerts\n        - link \"Scheduler\" [ref=e14] [cursor=pointer]:\n          - /url: /scheduler\n        - link \"Research\" [ref=e15] [cursor=pointer]:\n          - /url: /research\n        - link \"Alpha Factory\" [ref=e16] [cursor=pointer]:\n          - /url: /alpha-factory\n        - link \"Governance\" [ref=e17] [cursor=pointer]:\n          - /url: /governance\n        - link \"Config\" [ref=e18] [cursor=pointer]:\n          - /url: /config\n        - link \"Admin / Audit\" [ref=e19] [cursor=pointer]:\n          - /url: /admin\n    - generic [ref=e20]:\n      - banner [ref=e21]:\n        - generic [ref=e22]:\n          - generic [ref=e23]: Sprint5 Dashboard\n          - generic [ref=e24]: QuantOps Command Center\n        - generic [ref=e25]:\n          - combobox [ref=e26]:\n            - option \"PAPER\" [selected]\n            - option \"SHADOW\"\n            - option \"LIVE\"\n          - combobox \"Demo role switcher\" [ref=e27]:\n            - option \"viewer\" [selected]\n            - option \"operator\"\n            - option \"risk_manager\"\n            - option \"admin\"\n          - generic [ref=e28]: Local Viewer · viewer\n          - generic [ref=e29]: System OK\n      - main [ref=e30]:\n        - generic [ref=e31]:\n          - generic [ref=e32]:\n            - heading \"Portfolio\" [level=1] [ref=e33]\n            - generic [ref=e34]:\n              - generic [ref=e35]: \"Overview: OK\"\n              - generic [ref=e36]: \"Metrics: OK\"\n              - generic [ref=e37]: \"Positions: No Data\"\n          - generic [ref=e38]:\n            - generic [ref=e39]:\n              - generic [ref=e40]: Total Equity\n              - generic [ref=e41]: \"0\"\n            - generic [ref=e42]:\n              - generic [ref=e43]: Balance\n              - generic [ref=e44]: \"0\"\n            - generic [ref=e45]:\n              - generic [ref=e46]: Used Margin\n              - generic [ref=e47]: \"0\"\n            - generic [ref=e48]:\n              - generic [ref=e49]: Free Margin\n              - generic [ref=e50]: \"0\"\n            - generic [ref=e51]:\n              - generic [ref=e52]: Unrealized\n              - generic [ref=e53]: \"0\"\n            - generic [ref=e54]:\n              - generic [ref=e55]: Gross Exposure\n              - generic [ref=e56]: \"0\"\n            - generic [ref=e57]:\n              - generic [ref=e58]: Net Exposure\n              - generic [ref=e59]: \"0\"\n            - generic [ref=e60]:"
+    },
+    {
+        "name":  "Portfolio",
+        "path":  "/portfolio",
+        "wait_sec":  15,
+        "console_error_count":  0,
+        "failed_request_count":  0,
+        "server_error_count":  0,
+        "missing_resource_404_count":  0,
+        "has_error_text":  false,
+        "has_no_data_hint":  true,
+        "has_loading_hint":  false,
+        "console_errors":  [
+
+                           ],
+        "failed_requests":  [
+
+                            ],
+        "server_errors":  [
+
+                          ],
+        "missing_404":  [
+
+                        ],
+        "snapshot_file":  "C:\\work_data\\pyWorkSpace\\QuantOpsV12\\QuantOps_github\\.playwright-cli\\page-2026-03-27T12-52-31-974Z.yml",
+        "console_file":  "C:\\work_data\\pyWorkSpace\\QuantOpsV12\\QuantOps_github\\.playwright-cli\\console-2026-03-27T12-48-42-020Z.log",
+        "network_file":  "C:\\work_data\\pyWorkSpace\\QuantOpsV12\\QuantOps_github\\.playwright-cli\\network-2026-03-27T12-52-19-335Z.log",
+        "snapshot_excerpt":  "- generic [active] [ref=e1]:\n  - generic [ref=e2]:\n    - complementary [ref=e3]:\n      - generic [ref=e4]: QuantOps\n      - generic [ref=e5]: Production Console\n      - navigation [ref=e6]:\n        - link \"Overview\" [ref=e7] [cursor=pointer]:\n          - /url: /\n        - link \"Portfolio\" [ref=e8] [cursor=pointer]:\n          - /url: /portfolio\n        - link \"Strategies\" [ref=e9] [cursor=pointer]:\n          - /url: /strategies\n        - link \"Execution\" [ref=e10] [cursor=pointer]:\n          - /url: /execution\n        - link \"Risk\" [ref=e11] [cursor=pointer]:\n          - /url: /risk\n        - link \"Monitoring\" [ref=e12] [cursor=pointer]:\n          - /url: /monitoring\n        - link \"Alerts\" [ref=e13] [cursor=pointer]:\n          - /url: /alerts\n        - link \"Scheduler\" [ref=e14] [cursor=pointer]:\n          - /url: /scheduler\n        - link \"Research\" [ref=e15] [cursor=pointer]:\n          - /url: /research\n        - link \"Alpha Factory\" [ref=e16] [cursor=pointer]:\n          - /url: /alpha-factory\n        - link \"Governance\" [ref=e17] [cursor=pointer]:\n          - /url: /governance\n        - link \"Config\" [ref=e18] [cursor=pointer]:\n          - /url: /config\n        - link \"Admin / Audit\" [ref=e19] [cursor=pointer]:\n          - /url: /admin\n    - generic [ref=e20]:\n      - banner [ref=e21]:\n        - generic [ref=e22]:\n          - generic [ref=e23]: Sprint5 Dashboard\n          - generic [ref=e24]: QuantOps Command Center\n        - generic [ref=e25]:\n          - combobox [ref=e26]:\n            - option \"PAPER\" [selected]\n            - option \"SHADOW\"\n            - option \"LIVE\"\n          - combobox \"Demo role switcher\" [ref=e27]:\n            - option \"viewer\" [selected]\n            - option \"operator\"\n            - option \"risk_manager\"\n            - option \"admin\"\n          - generic [ref=e28]: Local Viewer · viewer\n          - generic [ref=e29]: System OK\n      - main [ref=e30]:\n        - generic [ref=e31]:\n          - generic [ref=e32]:\n            - heading \"Portfolio\" [level=1] [ref=e33]\n            - generic [ref=e34]:\n              - generic [ref=e35]: \"Overview: OK\"\n              - generic [ref=e36]: \"Metrics: OK\"\n              - generic [ref=e37]: \"Positions: No Data\"\n          - generic [ref=e38]:\n            - generic [ref=e39]:\n              - generic [ref=e40]: Total Equity\n              - generic [ref=e41]: \"0\"\n            - generic [ref=e42]:\n              - generic [ref=e43]: Balance\n              - generic [ref=e44]: \"0\"\n            - generic [ref=e45]:\n              - generic [ref=e46]: Used Margin\n              - generic [ref=e47]: \"0\"\n            - generic [ref=e48]:\n              - generic [ref=e49]: Free Margin\n              - generic [ref=e50]: \"0\"\n            - generic [ref=e51]:\n              - generic [ref=e52]: Unrealized\n              - generic [ref=e53]: \"0\"\n            - generic [ref=e54]:\n              - generic [ref=e55]: Gross Exposure\n              - generic [ref=e56]: \"0\"\n            - generic [ref=e57]:\n              - generic [ref=e58]: Net Exposure\n              - generic [ref=e59]: \"0\"\n            - generic [ref=e60]:"
+    },
+    {
+        "name":  "Execution",
+        "path":  "/execution",
+        "wait_sec":  15,
+        "console_error_count":  0,
+        "failed_request_count":  0,
+        "server_error_count":  0,
+        "missing_resource_404_count":  0,
+        "has_error_text":  false,
+        "has_no_data_hint":  true,
+        "has_loading_hint":  false,
+        "console_errors":  [
+
+                           ],
+        "failed_requests":  [
+
+                            ],
+        "server_errors":  [
+
+                          ],
+        "missing_404":  [
+
+                        ],
+        "snapshot_file":  "C:\\work_data\\pyWorkSpace\\QuantOpsV12\\QuantOps_github\\.playwright-cli\\page-2026-03-27T12-52-31-974Z.yml",
+        "console_file":  "C:\\work_data\\pyWorkSpace\\QuantOpsV12\\QuantOps_github\\.playwright-cli\\console-2026-03-27T12-48-42-020Z.log",
+        "network_file":  "C:\\work_data\\pyWorkSpace\\QuantOpsV12\\QuantOps_github\\.playwright-cli\\network-2026-03-27T12-52-19-335Z.log",
+        "snapshot_excerpt":  "- generic [active] [ref=e1]:\n  - generic [ref=e2]:\n    - complementary [ref=e3]:\n      - generic [ref=e4]: QuantOps\n      - generic [ref=e5]: Production Console\n      - navigation [ref=e6]:\n        - link \"Overview\" [ref=e7] [cursor=pointer]:\n          - /url: /\n        - link \"Portfolio\" [ref=e8] [cursor=pointer]:\n          - /url: /portfolio\n        - link \"Strategies\" [ref=e9] [cursor=pointer]:\n          - /url: /strategies\n        - link \"Execution\" [ref=e10] [cursor=pointer]:\n          - /url: /execution\n        - link \"Risk\" [ref=e11] [cursor=pointer]:\n          - /url: /risk\n        - link \"Monitoring\" [ref=e12] [cursor=pointer]:\n          - /url: /monitoring\n        - link \"Alerts\" [ref=e13] [cursor=pointer]:\n          - /url: /alerts\n        - link \"Scheduler\" [ref=e14] [cursor=pointer]:\n          - /url: /scheduler\n        - link \"Research\" [ref=e15] [cursor=pointer]:\n          - /url: /research\n        - link \"Alpha Factory\" [ref=e16] [cursor=pointer]:\n          - /url: /alpha-factory\n        - link \"Governance\" [ref=e17] [cursor=pointer]:\n          - /url: /governance\n        - link \"Config\" [ref=e18] [cursor=pointer]:\n          - /url: /config\n        - link \"Admin / Audit\" [ref=e19] [cursor=pointer]:\n          - /url: /admin\n    - generic [ref=e20]:\n      - banner [ref=e21]:\n        - generic [ref=e22]:\n          - generic [ref=e23]: Sprint5 Dashboard\n          - generic [ref=e24]: QuantOps Command Center\n        - generic [ref=e25]:\n          - combobox [ref=e26]:\n            - option \"PAPER\" [selected]\n            - option \"SHADOW\"\n            - option \"LIVE\"\n          - combobox \"Demo role switcher\" [ref=e27]:\n            - option \"viewer\" [selected]\n            - option \"operator\"\n            - option \"risk_manager\"\n            - option \"admin\"\n          - generic [ref=e28]: Local Viewer · viewer\n          - generic [ref=e29]: System OK\n      - main [ref=e30]:\n        - generic [ref=e31]:\n          - generic [ref=e32]:\n            - heading \"Portfolio\" [level=1] [ref=e33]\n            - generic [ref=e34]:\n              - generic [ref=e35]: \"Overview: OK\"\n              - generic [ref=e36]: \"Metrics: OK\"\n              - generic [ref=e37]: \"Positions: No Data\"\n          - generic [ref=e38]:\n            - generic [ref=e39]:\n              - generic [ref=e40]: Total Equity\n              - generic [ref=e41]: \"0\"\n            - generic [ref=e42]:\n              - generic [ref=e43]: Balance\n              - generic [ref=e44]: \"0\"\n            - generic [ref=e45]:\n              - generic [ref=e46]: Used Margin\n              - generic [ref=e47]: \"0\"\n            - generic [ref=e48]:\n              - generic [ref=e49]: Free Margin\n              - generic [ref=e50]: \"0\"\n            - generic [ref=e51]:\n              - generic [ref=e52]: Unrealized\n              - generic [ref=e53]: \"0\"\n            - generic [ref=e54]:\n              - generic [ref=e55]: Gross Exposure\n              - generic [ref=e56]: \"0\"\n            - generic [ref=e57]:\n              - generic [ref=e58]: Net Exposure\n              - generic [ref=e59]: \"0\"\n            - generic [ref=e60]:"
+    },
+    {
+        "name":  "Strategies",
+        "path":  "/strategies",
+        "wait_sec":  5,
+        "console_error_count":  0,
+        "failed_request_count":  0,
+        "server_error_count":  0,
+        "missing_resource_404_count":  0,
+        "has_error_text":  false,
+        "has_no_data_hint":  true,
+        "has_loading_hint":  false,
+        "console_errors":  [
+
+                           ],
+        "failed_requests":  [
+
+                            ],
+        "server_errors":  [
+
+                          ],
+        "missing_404":  [
+
+                        ],
+        "snapshot_file":  "C:\\work_data\\pyWorkSpace\\QuantOpsV12\\QuantOps_github\\.playwright-cli\\page-2026-03-27T12-52-31-974Z.yml",
+        "console_file":  "C:\\work_data\\pyWorkSpace\\QuantOpsV12\\QuantOps_github\\.playwright-cli\\console-2026-03-27T12-48-42-020Z.log",
+        "network_file":  "C:\\work_data\\pyWorkSpace\\QuantOpsV12\\QuantOps_github\\.playwright-cli\\network-2026-03-27T12-52-19-335Z.log",
+        "snapshot_excerpt":  "- generic [active] [ref=e1]:\n  - generic [ref=e2]:\n    - complementary [ref=e3]:\n      - generic [ref=e4]: QuantOps\n      - generic [ref=e5]: Production Console\n      - navigation [ref=e6]:\n        - link \"Overview\" [ref=e7] [cursor=pointer]:\n          - /url: /\n        - link \"Portfolio\" [ref=e8] [cursor=pointer]:\n          - /url: /portfolio\n        - link \"Strategies\" [ref=e9] [cursor=pointer]:\n          - /url: /strategies\n        - link \"Execution\" [ref=e10] [cursor=pointer]:\n          - /url: /execution\n        - link \"Risk\" [ref=e11] [cursor=pointer]:\n          - /url: /risk\n        - link \"Monitoring\" [ref=e12] [cursor=pointer]:\n          - /url: /monitoring\n        - link \"Alerts\" [ref=e13] [cursor=pointer]:\n          - /url: /alerts\n        - link \"Scheduler\" [ref=e14] [cursor=pointer]:\n          - /url: /scheduler\n        - link \"Research\" [ref=e15] [cursor=pointer]:\n          - /url: /research\n        - link \"Alpha Factory\" [ref=e16] [cursor=pointer]:\n          - /url: /alpha-factory\n        - link \"Governance\" [ref=e17] [cursor=pointer]:\n          - /url: /governance\n        - link \"Config\" [ref=e18] [cursor=pointer]:\n          - /url: /config\n        - link \"Admin / Audit\" [ref=e19] [cursor=pointer]:\n          - /url: /admin\n    - generic [ref=e20]:\n      - banner [ref=e21]:\n        - generic [ref=e22]:\n          - generic [ref=e23]: Sprint5 Dashboard\n          - generic [ref=e24]: QuantOps Command Center\n        - generic [ref=e25]:\n          - combobox [ref=e26]:\n            - option \"PAPER\" [selected]\n            - option \"SHADOW\"\n            - option \"LIVE\"\n          - combobox \"Demo role switcher\" [ref=e27]:\n            - option \"viewer\" [selected]\n            - option \"operator\"\n            - option \"risk_manager\"\n            - option \"admin\"\n          - generic [ref=e28]: Local Viewer · viewer\n          - generic [ref=e29]: System OK\n      - main [ref=e30]:\n        - generic [ref=e31]:\n          - generic [ref=e32]:\n            - heading \"Portfolio\" [level=1] [ref=e33]\n            - generic [ref=e34]:\n              - generic [ref=e35]: \"Overview: OK\"\n              - generic [ref=e36]: \"Metrics: OK\"\n              - generic [ref=e37]: \"Positions: No Data\"\n          - generic [ref=e38]:\n            - generic [ref=e39]:\n              - generic [ref=e40]: Total Equity\n              - generic [ref=e41]: \"0\"\n            - generic [ref=e42]:\n              - generic [ref=e43]: Balance\n              - generic [ref=e44]: \"0\"\n            - generic [ref=e45]:\n              - generic [ref=e46]: Used Margin\n              - generic [ref=e47]: \"0\"\n            - generic [ref=e48]:\n              - generic [ref=e49]: Free Margin\n              - generic [ref=e50]: \"0\"\n            - generic [ref=e51]:\n              - generic [ref=e52]: Unrealized\n              - generic [ref=e53]: \"0\"\n            - generic [ref=e54]:\n              - generic [ref=e55]: Gross Exposure\n              - generic [ref=e56]: \"0\"\n            - generic [ref=e57]:\n              - generic [ref=e58]: Net Exposure\n              - generic [ref=e59]: \"0\"\n            - generic [ref=e60]:"
+    },
+    {
+        "name":  "Risk",
+        "path":  "/risk",
+        "wait_sec":  5,
+        "console_error_count":  0,
+        "failed_request_count":  0,
+        "server_error_count":  0,
+        "missing_resource_404_count":  0,
+        "has_error_text":  false,
+        "has_no_data_hint":  true,
+        "has_loading_hint":  false,
+        "console_errors":  [
+
+                           ],
+        "failed_requests":  [
+
+                            ],
+        "server_errors":  [
+
+                          ],
+        "missing_404":  [
+
+                        ],
+        "snapshot_file":  "C:\\work_data\\pyWorkSpace\\QuantOpsV12\\QuantOps_github\\.playwright-cli\\page-2026-03-27T12-52-31-974Z.yml",
+        "console_file":  "C:\\work_data\\pyWorkSpace\\QuantOpsV12\\QuantOps_github\\.playwright-cli\\console-2026-03-27T12-48-42-020Z.log",
+        "network_file":  "C:\\work_data\\pyWorkSpace\\QuantOpsV12\\QuantOps_github\\.playwright-cli\\network-2026-03-27T12-52-19-335Z.log",
+        "snapshot_excerpt":  "- generic [active] [ref=e1]:\n  - generic [ref=e2]:\n    - complementary [ref=e3]:\n      - generic [ref=e4]: QuantOps\n      - generic [ref=e5]: Production Console\n      - navigation [ref=e6]:\n        - link \"Overview\" [ref=e7] [cursor=pointer]:\n          - /url: /\n        - link \"Portfolio\" [ref=e8] [cursor=pointer]:\n          - /url: /portfolio\n        - link \"Strategies\" [ref=e9] [cursor=pointer]:\n          - /url: /strategies\n        - link \"Execution\" [ref=e10] [cursor=pointer]:\n          - /url: /execution\n        - link \"Risk\" [ref=e11] [cursor=pointer]:\n          - /url: /risk\n        - link \"Monitoring\" [ref=e12] [cursor=pointer]:\n          - /url: /monitoring\n        - link \"Alerts\" [ref=e13] [cursor=pointer]:\n          - /url: /alerts\n        - link \"Scheduler\" [ref=e14] [cursor=pointer]:\n          - /url: /scheduler\n        - link \"Research\" [ref=e15] [cursor=pointer]:\n          - /url: /research\n        - link \"Alpha Factory\" [ref=e16] [cursor=pointer]:\n          - /url: /alpha-factory\n        - link \"Governance\" [ref=e17] [cursor=pointer]:\n          - /url: /governance\n        - link \"Config\" [ref=e18] [cursor=pointer]:\n          - /url: /config\n        - link \"Admin / Audit\" [ref=e19] [cursor=pointer]:\n          - /url: /admin\n    - generic [ref=e20]:\n      - banner [ref=e21]:\n        - generic [ref=e22]:\n          - generic [ref=e23]: Sprint5 Dashboard\n          - generic [ref=e24]: QuantOps Command Center\n        - generic [ref=e25]:\n          - combobox [ref=e26]:\n            - option \"PAPER\" [selected]\n            - option \"SHADOW\"\n            - option \"LIVE\"\n          - combobox \"Demo role switcher\" [ref=e27]:\n            - option \"viewer\" [selected]\n            - option \"operator\"\n            - option \"risk_manager\"\n            - option \"admin\"\n          - generic [ref=e28]: Local Viewer · viewer\n          - generic [ref=e29]: System OK\n      - main [ref=e30]:\n        - generic [ref=e31]:\n          - generic [ref=e32]:\n            - heading \"Portfolio\" [level=1] [ref=e33]\n            - generic [ref=e34]:\n              - generic [ref=e35]: \"Overview: OK\"\n              - generic [ref=e36]: \"Metrics: OK\"\n              - generic [ref=e37]: \"Positions: No Data\"\n          - generic [ref=e38]:\n            - generic [ref=e39]:\n              - generic [ref=e40]: Total Equity\n              - generic [ref=e41]: \"0\"\n            - generic [ref=e42]:\n              - generic [ref=e43]: Balance\n              - generic [ref=e44]: \"0\"\n            - generic [ref=e45]:\n              - generic [ref=e46]: Used Margin\n              - generic [ref=e47]: \"0\"\n            - generic [ref=e48]:\n              - generic [ref=e49]: Free Margin\n              - generic [ref=e50]: \"0\"\n            - generic [ref=e51]:\n              - generic [ref=e52]: Unrealized\n              - generic [ref=e53]: \"0\"\n            - generic [ref=e54]:\n              - generic [ref=e55]: Gross Exposure\n              - generic [ref=e56]: \"0\"\n            - generic [ref=e57]:\n              - generic [ref=e58]: Net Exposure\n              - generic [ref=e59]: \"0\"\n            - generic [ref=e60]:"
+    },
+    {
+        "name":  "Monitoring",
+        "path":  "/monitoring",
+        "wait_sec":  5,
+        "console_error_count":  0,
+        "failed_request_count":  0,
+        "server_error_count":  0,
+        "missing_resource_404_count":  0,
+        "has_error_text":  false,
+        "has_no_data_hint":  true,
+        "has_loading_hint":  false,
+        "console_errors":  [
+
+                           ],
+        "failed_requests":  [
+
+                            ],
+        "server_errors":  [
+
+                          ],
+        "missing_404":  [
+
+                        ],
+        "snapshot_file":  "C:\\work_data\\pyWorkSpace\\QuantOpsV12\\QuantOps_github\\.playwright-cli\\page-2026-03-27T12-52-31-974Z.yml",
+        "console_file":  "C:\\work_data\\pyWorkSpace\\QuantOpsV12\\QuantOps_github\\.playwright-cli\\console-2026-03-27T12-48-42-020Z.log",
+        "network_file":  "C:\\work_data\\pyWorkSpace\\QuantOpsV12\\QuantOps_github\\.playwright-cli\\network-2026-03-27T12-52-19-335Z.log",
+        "snapshot_excerpt":  "- generic [active] [ref=e1]:\n  - generic [ref=e2]:\n    - complementary [ref=e3]:\n      - generic [ref=e4]: QuantOps\n      - generic [ref=e5]: Production Console\n      - navigation [ref=e6]:\n        - link \"Overview\" [ref=e7] [cursor=pointer]:\n          - /url: /\n        - link \"Portfolio\" [ref=e8] [cursor=pointer]:\n          - /url: /portfolio\n        - link \"Strategies\" [ref=e9] [cursor=pointer]:\n          - /url: /strategies\n        - link \"Execution\" [ref=e10] [cursor=pointer]:\n          - /url: /execution\n        - link \"Risk\" [ref=e11] [cursor=pointer]:\n          - /url: /risk\n        - link \"Monitoring\" [ref=e12] [cursor=pointer]:\n          - /url: /monitoring\n        - link \"Alerts\" [ref=e13] [cursor=pointer]:\n          - /url: /alerts\n        - link \"Scheduler\" [ref=e14] [cursor=pointer]:\n          - /url: /scheduler\n        - link \"Research\" [ref=e15] [cursor=pointer]:\n          - /url: /research\n        - link \"Alpha Factory\" [ref=e16] [cursor=pointer]:\n          - /url: /alpha-factory\n        - link \"Governance\" [ref=e17] [cursor=pointer]:\n          - /url: /governance\n        - link \"Config\" [ref=e18] [cursor=pointer]:\n          - /url: /config\n        - link \"Admin / Audit\" [ref=e19] [cursor=pointer]:\n          - /url: /admin\n    - generic [ref=e20]:\n      - banner [ref=e21]:\n        - generic [ref=e22]:\n          - generic [ref=e23]: Sprint5 Dashboard\n          - generic [ref=e24]: QuantOps Command Center\n        - generic [ref=e25]:\n          - combobox [ref=e26]:\n            - option \"PAPER\" [selected]\n            - option \"SHADOW\"\n            - option \"LIVE\"\n          - combobox \"Demo role switcher\" [ref=e27]:\n            - option \"viewer\" [selected]\n            - option \"operator\"\n            - option \"risk_manager\"\n            - option \"admin\"\n          - generic [ref=e28]: Local Viewer · viewer\n          - generic [ref=e29]: System OK\n      - main [ref=e30]:\n        - generic [ref=e31]:\n          - generic [ref=e32]:\n            - heading \"Portfolio\" [level=1] [ref=e33]\n            - generic [ref=e34]:\n              - generic [ref=e35]: \"Overview: OK\"\n              - generic [ref=e36]: \"Metrics: OK\"\n              - generic [ref=e37]: \"Positions: No Data\"\n          - generic [ref=e38]:\n            - generic [ref=e39]:\n              - generic [ref=e40]: Total Equity\n              - generic [ref=e41]: \"0\"\n            - generic [ref=e42]:\n              - generic [ref=e43]: Balance\n              - generic [ref=e44]: \"0\"\n            - generic [ref=e45]:\n              - generic [ref=e46]: Used Margin\n              - generic [ref=e47]: \"0\"\n            - generic [ref=e48]:\n              - generic [ref=e49]: Free Margin\n              - generic [ref=e50]: \"0\"\n            - generic [ref=e51]:\n              - generic [ref=e52]: Unrealized\n              - generic [ref=e53]: \"0\"\n            - generic [ref=e54]:\n              - generic [ref=e55]: Gross Exposure\n              - generic [ref=e56]: \"0\"\n            - generic [ref=e57]:\n              - generic [ref=e58]: Net Exposure\n              - generic [ref=e59]: \"0\"\n            - generic [ref=e60]:"
+    },
+    {
+        "name":  "Alerts",
+        "path":  "/alerts",
+        "wait_sec":  5,
+        "console_error_count":  0,
+        "failed_request_count":  0,
+        "server_error_count":  0,
+        "missing_resource_404_count":  0,
+        "has_error_text":  false,
+        "has_no_data_hint":  true,
+        "has_loading_hint":  false,
+        "console_errors":  [
+
+                           ],
+        "failed_requests":  [
+
+                            ],
+        "server_errors":  [
+
+                          ],
+        "missing_404":  [
+
+                        ],
+        "snapshot_file":  "C:\\work_data\\pyWorkSpace\\QuantOpsV12\\QuantOps_github\\.playwright-cli\\page-2026-03-27T12-52-31-974Z.yml",
+        "console_file":  "C:\\work_data\\pyWorkSpace\\QuantOpsV12\\QuantOps_github\\.playwright-cli\\console-2026-03-27T12-48-42-020Z.log",
+        "network_file":  "C:\\work_data\\pyWorkSpace\\QuantOpsV12\\QuantOps_github\\.playwright-cli\\network-2026-03-27T12-52-19-335Z.log",
+        "snapshot_excerpt":  "- generic [active] [ref=e1]:\n  - generic [ref=e2]:\n    - complementary [ref=e3]:\n      - generic [ref=e4]: QuantOps\n      - generic [ref=e5]: Production Console\n      - navigation [ref=e6]:\n        - link \"Overview\" [ref=e7] [cursor=pointer]:\n          - /url: /\n        - link \"Portfolio\" [ref=e8] [cursor=pointer]:\n          - /url: /portfolio\n        - link \"Strategies\" [ref=e9] [cursor=pointer]:\n          - /url: /strategies\n        - link \"Execution\" [ref=e10] [cursor=pointer]:\n          - /url: /execution\n        - link \"Risk\" [ref=e11] [cursor=pointer]:\n          - /url: /risk\n        - link \"Monitoring\" [ref=e12] [cursor=pointer]:\n          - /url: /monitoring\n        - link \"Alerts\" [ref=e13] [cursor=pointer]:\n          - /url: /alerts\n        - link \"Scheduler\" [ref=e14] [cursor=pointer]:\n          - /url: /scheduler\n        - link \"Research\" [ref=e15] [cursor=pointer]:\n          - /url: /research\n        - link \"Alpha Factory\" [ref=e16] [cursor=pointer]:\n          - /url: /alpha-factory\n        - link \"Governance\" [ref=e17] [cursor=pointer]:\n          - /url: /governance\n        - link \"Config\" [ref=e18] [cursor=pointer]:\n          - /url: /config\n        - link \"Admin / Audit\" [ref=e19] [cursor=pointer]:\n          - /url: /admin\n    - generic [ref=e20]:\n      - banner [ref=e21]:\n        - generic [ref=e22]:\n          - generic [ref=e23]: Sprint5 Dashboard\n          - generic [ref=e24]: QuantOps Command Center\n        - generic [ref=e25]:\n          - combobox [ref=e26]:\n            - option \"PAPER\" [selected]\n            - option \"SHADOW\"\n            - option \"LIVE\"\n          - combobox \"Demo role switcher\" [ref=e27]:\n            - option \"viewer\" [selected]\n            - option \"operator\"\n            - option \"risk_manager\"\n            - option \"admin\"\n          - generic [ref=e28]: Local Viewer · viewer\n          - generic [ref=e29]: System OK\n      - main [ref=e30]:\n        - generic [ref=e31]:\n          - generic [ref=e32]:\n            - heading \"Portfolio\" [level=1] [ref=e33]\n            - generic [ref=e34]:\n              - generic [ref=e35]: \"Overview: OK\"\n              - generic [ref=e36]: \"Metrics: OK\"\n              - generic [ref=e37]: \"Positions: No Data\"\n          - generic [ref=e38]:\n            - generic [ref=e39]:\n              - generic [ref=e40]: Total Equity\n              - generic [ref=e41]: \"0\"\n            - generic [ref=e42]:\n              - generic [ref=e43]: Balance\n              - generic [ref=e44]: \"0\"\n            - generic [ref=e45]:\n              - generic [ref=e46]: Used Margin\n              - generic [ref=e47]: \"0\"\n            - generic [ref=e48]:\n              - generic [ref=e49]: Free Margin\n              - generic [ref=e50]: \"0\"\n            - generic [ref=e51]:\n              - generic [ref=e52]: Unrealized\n              - generic [ref=e53]: \"0\"\n            - generic [ref=e54]:\n              - generic [ref=e55]: Gross Exposure\n              - generic [ref=e56]: \"0\"\n            - generic [ref=e57]:\n              - generic [ref=e58]: Net Exposure\n              - generic [ref=e59]: \"0\"\n            - generic [ref=e60]:"
+    },
+    {
+        "name":  "Scheduler",
+        "path":  "/scheduler",
+        "wait_sec":  5,
+        "console_error_count":  0,
+        "failed_request_count":  0,
+        "server_error_count":  0,
+        "missing_resource_404_count":  0,
+        "has_error_text":  false,
+        "has_no_data_hint":  true,
+        "has_loading_hint":  false,
+        "console_errors":  [
+
+                           ],
+        "failed_requests":  [
+
+                            ],
+        "server_errors":  [
+
+                          ],
+        "missing_404":  [
+
+                        ],
+        "snapshot_file":  "C:\\work_data\\pyWorkSpace\\QuantOpsV12\\QuantOps_github\\.playwright-cli\\page-2026-03-27T12-52-31-974Z.yml",
+        "console_file":  "C:\\work_data\\pyWorkSpace\\QuantOpsV12\\QuantOps_github\\.playwright-cli\\console-2026-03-27T12-48-42-020Z.log",
+        "network_file":  "C:\\work_data\\pyWorkSpace\\QuantOpsV12\\QuantOps_github\\.playwright-cli\\network-2026-03-27T12-52-19-335Z.log",
+        "snapshot_excerpt":  "- generic [active] [ref=e1]:\n  - generic [ref=e2]:\n    - complementary [ref=e3]:\n      - generic [ref=e4]: QuantOps\n      - generic [ref=e5]: Production Console\n      - navigation [ref=e6]:\n        - link \"Overview\" [ref=e7] [cursor=pointer]:\n          - /url: /\n        - link \"Portfolio\" [ref=e8] [cursor=pointer]:\n          - /url: /portfolio\n        - link \"Strategies\" [ref=e9] [cursor=pointer]:\n          - /url: /strategies\n        - link \"Execution\" [ref=e10] [cursor=pointer]:\n          - /url: /execution\n        - link \"Risk\" [ref=e11] [cursor=pointer]:\n          - /url: /risk\n        - link \"Monitoring\" [ref=e12] [cursor=pointer]:\n          - /url: /monitoring\n        - link \"Alerts\" [ref=e13] [cursor=pointer]:\n          - /url: /alerts\n        - link \"Scheduler\" [ref=e14] [cursor=pointer]:\n          - /url: /scheduler\n        - link \"Research\" [ref=e15] [cursor=pointer]:\n          - /url: /research\n        - link \"Alpha Factory\" [ref=e16] [cursor=pointer]:\n          - /url: /alpha-factory\n        - link \"Governance\" [ref=e17] [cursor=pointer]:\n          - /url: /governance\n        - link \"Config\" [ref=e18] [cursor=pointer]:\n          - /url: /config\n        - link \"Admin / Audit\" [ref=e19] [cursor=pointer]:\n          - /url: /admin\n    - generic [ref=e20]:\n      - banner [ref=e21]:\n        - generic [ref=e22]:\n          - generic [ref=e23]: Sprint5 Dashboard\n          - generic [ref=e24]: QuantOps Command Center\n        - generic [ref=e25]:\n          - combobox [ref=e26]:\n            - option \"PAPER\" [selected]\n            - option \"SHADOW\"\n            - option \"LIVE\"\n          - combobox \"Demo role switcher\" [ref=e27]:\n            - option \"viewer\" [selected]\n            - option \"operator\"\n            - option \"risk_manager\"\n            - option \"admin\"\n          - generic [ref=e28]: Local Viewer · viewer\n          - generic [ref=e29]: System OK\n      - main [ref=e30]:\n        - generic [ref=e31]:\n          - generic [ref=e32]:\n            - heading \"Portfolio\" [level=1] [ref=e33]\n            - generic [ref=e34]:\n              - generic [ref=e35]: \"Overview: OK\"\n              - generic [ref=e36]: \"Metrics: OK\"\n              - generic [ref=e37]: \"Positions: No Data\"\n          - generic [ref=e38]:\n            - generic [ref=e39]:\n              - generic [ref=e40]: Total Equity\n              - generic [ref=e41]: \"0\"\n            - generic [ref=e42]:\n              - generic [ref=e43]: Balance\n              - generic [ref=e44]: \"0\"\n            - generic [ref=e45]:\n              - generic [ref=e46]: Used Margin\n              - generic [ref=e47]: \"0\"\n            - generic [ref=e48]:\n              - generic [ref=e49]: Free Margin\n              - generic [ref=e50]: \"0\"\n            - generic [ref=e51]:\n              - generic [ref=e52]: Unrealized\n              - generic [ref=e53]: \"0\"\n            - generic [ref=e54]:\n              - generic [ref=e55]: Gross Exposure\n              - generic [ref=e56]: \"0\"\n            - generic [ref=e57]:\n              - generic [ref=e58]: Net Exposure\n              - generic [ref=e59]: \"0\"\n            - generic [ref=e60]:"
+    },
+    {
+        "name":  "Research",
+        "path":  "/research",
+        "wait_sec":  5,
+        "console_error_count":  0,
+        "failed_request_count":  0,
+        "server_error_count":  0,
+        "missing_resource_404_count":  0,
+        "has_error_text":  false,
+        "has_no_data_hint":  true,
+        "has_loading_hint":  false,
+        "console_errors":  [
+
+                           ],
+        "failed_requests":  [
+
+                            ],
+        "server_errors":  [
+
+                          ],
+        "missing_404":  [
+
+                        ],
+        "snapshot_file":  "C:\\work_data\\pyWorkSpace\\QuantOpsV12\\QuantOps_github\\.playwright-cli\\page-2026-03-27T12-52-31-974Z.yml",
+        "console_file":  "C:\\work_data\\pyWorkSpace\\QuantOpsV12\\QuantOps_github\\.playwright-cli\\console-2026-03-27T12-48-42-020Z.log",
+        "network_file":  "C:\\work_data\\pyWorkSpace\\QuantOpsV12\\QuantOps_github\\.playwright-cli\\network-2026-03-27T12-52-19-335Z.log",
+        "snapshot_excerpt":  "- generic [active] [ref=e1]:\n  - generic [ref=e2]:\n    - complementary [ref=e3]:\n      - generic [ref=e4]: QuantOps\n      - generic [ref=e5]: Production Console\n      - navigation [ref=e6]:\n        - link \"Overview\" [ref=e7] [cursor=pointer]:\n          - /url: /\n        - link \"Portfolio\" [ref=e8] [cursor=pointer]:\n          - /url: /portfolio\n        - link \"Strategies\" [ref=e9] [cursor=pointer]:\n          - /url: /strategies\n        - link \"Execution\" [ref=e10] [cursor=pointer]:\n          - /url: /execution\n        - link \"Risk\" [ref=e11] [cursor=pointer]:\n          - /url: /risk\n        - link \"Monitoring\" [ref=e12] [cursor=pointer]:\n          - /url: /monitoring\n        - link \"Alerts\" [ref=e13] [cursor=pointer]:\n          - /url: /alerts\n        - link \"Scheduler\" [ref=e14] [cursor=pointer]:\n          - /url: /scheduler\n        - link \"Research\" [ref=e15] [cursor=pointer]:\n          - /url: /research\n        - link \"Alpha Factory\" [ref=e16] [cursor=pointer]:\n          - /url: /alpha-factory\n        - link \"Governance\" [ref=e17] [cursor=pointer]:\n          - /url: /governance\n        - link \"Config\" [ref=e18] [cursor=pointer]:\n          - /url: /config\n        - link \"Admin / Audit\" [ref=e19] [cursor=pointer]:\n          - /url: /admin\n    - generic [ref=e20]:\n      - banner [ref=e21]:\n        - generic [ref=e22]:\n          - generic [ref=e23]: Sprint5 Dashboard\n          - generic [ref=e24]: QuantOps Command Center\n        - generic [ref=e25]:\n          - combobox [ref=e26]:\n            - option \"PAPER\" [selected]\n            - option \"SHADOW\"\n            - option \"LIVE\"\n          - combobox \"Demo role switcher\" [ref=e27]:\n            - option \"viewer\" [selected]\n            - option \"operator\"\n            - option \"risk_manager\"\n            - option \"admin\"\n          - generic [ref=e28]: Local Viewer · viewer\n          - generic [ref=e29]: System OK\n      - main [ref=e30]:\n        - generic [ref=e31]:\n          - generic [ref=e32]:\n            - heading \"Portfolio\" [level=1] [ref=e33]\n            - generic [ref=e34]:\n              - generic [ref=e35]: \"Overview: OK\"\n              - generic [ref=e36]: \"Metrics: OK\"\n              - generic [ref=e37]: \"Positions: No Data\"\n          - generic [ref=e38]:\n            - generic [ref=e39]:\n              - generic [ref=e40]: Total Equity\n              - generic [ref=e41]: \"0\"\n            - generic [ref=e42]:\n              - generic [ref=e43]: Balance\n              - generic [ref=e44]: \"0\"\n            - generic [ref=e45]:\n              - generic [ref=e46]: Used Margin\n              - generic [ref=e47]: \"0\"\n            - generic [ref=e48]:\n              - generic [ref=e49]: Free Margin\n              - generic [ref=e50]: \"0\"\n            - generic [ref=e51]:\n              - generic [ref=e52]: Unrealized\n              - generic [ref=e53]: \"0\"\n            - generic [ref=e54]:\n              - generic [ref=e55]: Gross Exposure\n              - generic [ref=e56]: \"0\"\n            - generic [ref=e57]:\n              - generic [ref=e58]: Net Exposure\n              - generic [ref=e59]: \"0\"\n            - generic [ref=e60]:"
+    },
+    {
+        "name":  "Alpha Factory",
+        "path":  "/alpha-factory",
+        "wait_sec":  5,
+        "console_error_count":  0,
+        "failed_request_count":  0,
+        "server_error_count":  0,
+        "missing_resource_404_count":  0,
+        "has_error_text":  false,
+        "has_no_data_hint":  true,
+        "has_loading_hint":  false,
+        "console_errors":  [
+
+                           ],
+        "failed_requests":  [
+
+                            ],
+        "server_errors":  [
+
+                          ],
+        "missing_404":  [
+
+                        ],
+        "snapshot_file":  "C:\\work_data\\pyWorkSpace\\QuantOpsV12\\QuantOps_github\\.playwright-cli\\page-2026-03-27T12-52-31-974Z.yml",
+        "console_file":  "C:\\work_data\\pyWorkSpace\\QuantOpsV12\\QuantOps_github\\.playwright-cli\\console-2026-03-27T12-48-42-020Z.log",
+        "network_file":  "C:\\work_data\\pyWorkSpace\\QuantOpsV12\\QuantOps_github\\.playwright-cli\\network-2026-03-27T12-52-19-335Z.log",
+        "snapshot_excerpt":  "- generic [active] [ref=e1]:\n  - generic [ref=e2]:\n    - complementary [ref=e3]:\n      - generic [ref=e4]: QuantOps\n      - generic [ref=e5]: Production Console\n      - navigation [ref=e6]:\n        - link \"Overview\" [ref=e7] [cursor=pointer]:\n          - /url: /\n        - link \"Portfolio\" [ref=e8] [cursor=pointer]:\n          - /url: /portfolio\n        - link \"Strategies\" [ref=e9] [cursor=pointer]:\n          - /url: /strategies\n        - link \"Execution\" [ref=e10] [cursor=pointer]:\n          - /url: /execution\n        - link \"Risk\" [ref=e11] [cursor=pointer]:\n          - /url: /risk\n        - link \"Monitoring\" [ref=e12] [cursor=pointer]:\n          - /url: /monitoring\n        - link \"Alerts\" [ref=e13] [cursor=pointer]:\n          - /url: /alerts\n        - link \"Scheduler\" [ref=e14] [cursor=pointer]:\n          - /url: /scheduler\n        - link \"Research\" [ref=e15] [cursor=pointer]:\n          - /url: /research\n        - link \"Alpha Factory\" [ref=e16] [cursor=pointer]:\n          - /url: /alpha-factory\n        - link \"Governance\" [ref=e17] [cursor=pointer]:\n          - /url: /governance\n        - link \"Config\" [ref=e18] [cursor=pointer]:\n          - /url: /config\n        - link \"Admin / Audit\" [ref=e19] [cursor=pointer]:\n          - /url: /admin\n    - generic [ref=e20]:\n      - banner [ref=e21]:\n        - generic [ref=e22]:\n          - generic [ref=e23]: Sprint5 Dashboard\n          - generic [ref=e24]: QuantOps Command Center\n        - generic [ref=e25]:\n          - combobox [ref=e26]:\n            - option \"PAPER\" [selected]\n            - option \"SHADOW\"\n            - option \"LIVE\"\n          - combobox \"Demo role switcher\" [ref=e27]:\n            - option \"viewer\" [selected]\n            - option \"operator\"\n            - option \"risk_manager\"\n            - option \"admin\"\n          - generic [ref=e28]: Local Viewer · viewer\n          - generic [ref=e29]: System OK\n      - main [ref=e30]:\n        - generic [ref=e31]:\n          - generic [ref=e32]:\n            - heading \"Portfolio\" [level=1] [ref=e33]\n            - generic [ref=e34]:\n              - generic [ref=e35]: \"Overview: OK\"\n              - generic [ref=e36]: \"Metrics: OK\"\n              - generic [ref=e37]: \"Positions: No Data\"\n          - generic [ref=e38]:\n            - generic [ref=e39]:\n              - generic [ref=e40]: Total Equity\n              - generic [ref=e41]: \"0\"\n            - generic [ref=e42]:\n              - generic [ref=e43]: Balance\n              - generic [ref=e44]: \"0\"\n            - generic [ref=e45]:\n              - generic [ref=e46]: Used Margin\n              - generic [ref=e47]: \"0\"\n            - generic [ref=e48]:\n              - generic [ref=e49]: Free Margin\n              - generic [ref=e50]: \"0\"\n            - generic [ref=e51]:\n              - generic [ref=e52]: Unrealized\n              - generic [ref=e53]: \"0\"\n            - generic [ref=e54]:\n              - generic [ref=e55]: Gross Exposure\n              - generic [ref=e56]: \"0\"\n            - generic [ref=e57]:\n              - generic [ref=e58]: Net Exposure\n              - generic [ref=e59]: \"0\"\n            - generic [ref=e60]:"
+    },
+    {
+        "name":  "Governance",
+        "path":  "/governance",
+        "wait_sec":  5,
+        "console_error_count":  0,
+        "failed_request_count":  0,
+        "server_error_count":  0,
+        "missing_resource_404_count":  0,
+        "has_error_text":  false,
+        "has_no_data_hint":  true,
+        "has_loading_hint":  false,
+        "console_errors":  [
+
+                           ],
+        "failed_requests":  [
+
+                            ],
+        "server_errors":  [
+
+                          ],
+        "missing_404":  [
+
+                        ],
+        "snapshot_file":  "C:\\work_data\\pyWorkSpace\\QuantOpsV12\\QuantOps_github\\.playwright-cli\\page-2026-03-27T12-52-31-974Z.yml",
+        "console_file":  "C:\\work_data\\pyWorkSpace\\QuantOpsV12\\QuantOps_github\\.playwright-cli\\console-2026-03-27T12-48-42-020Z.log",
+        "network_file":  "C:\\work_data\\pyWorkSpace\\QuantOpsV12\\QuantOps_github\\.playwright-cli\\network-2026-03-27T12-52-19-335Z.log",
+        "snapshot_excerpt":  "- generic [active] [ref=e1]:\n  - generic [ref=e2]:\n    - complementary [ref=e3]:\n      - generic [ref=e4]: QuantOps\n      - generic [ref=e5]: Production Console\n      - navigation [ref=e6]:\n        - link \"Overview\" [ref=e7] [cursor=pointer]:\n          - /url: /\n        - link \"Portfolio\" [ref=e8] [cursor=pointer]:\n          - /url: /portfolio\n        - link \"Strategies\" [ref=e9] [cursor=pointer]:\n          - /url: /strategies\n        - link \"Execution\" [ref=e10] [cursor=pointer]:\n          - /url: /execution\n        - link \"Risk\" [ref=e11] [cursor=pointer]:\n          - /url: /risk\n        - link \"Monitoring\" [ref=e12] [cursor=pointer]:\n          - /url: /monitoring\n        - link \"Alerts\" [ref=e13] [cursor=pointer]:\n          - /url: /alerts\n        - link \"Scheduler\" [ref=e14] [cursor=pointer]:\n          - /url: /scheduler\n        - link \"Research\" [ref=e15] [cursor=pointer]:\n          - /url: /research\n        - link \"Alpha Factory\" [ref=e16] [cursor=pointer]:\n          - /url: /alpha-factory\n        - link \"Governance\" [ref=e17] [cursor=pointer]:\n          - /url: /governance\n        - link \"Config\" [ref=e18] [cursor=pointer]:\n          - /url: /config\n        - link \"Admin / Audit\" [ref=e19] [cursor=pointer]:\n          - /url: /admin\n    - generic [ref=e20]:\n      - banner [ref=e21]:\n        - generic [ref=e22]:\n          - generic [ref=e23]: Sprint5 Dashboard\n          - generic [ref=e24]: QuantOps Command Center\n        - generic [ref=e25]:\n          - combobox [ref=e26]:\n            - option \"PAPER\" [selected]\n            - option \"SHADOW\"\n            - option \"LIVE\"\n          - combobox \"Demo role switcher\" [ref=e27]:\n            - option \"viewer\" [selected]\n            - option \"operator\"\n            - option \"risk_manager\"\n            - option \"admin\"\n          - generic [ref=e28]: Local Viewer · viewer\n          - generic [ref=e29]: System OK\n      - main [ref=e30]:\n        - generic [ref=e31]:\n          - generic [ref=e32]:\n            - heading \"Portfolio\" [level=1] [ref=e33]\n            - generic [ref=e34]:\n              - generic [ref=e35]: \"Overview: OK\"\n              - generic [ref=e36]: \"Metrics: OK\"\n              - generic [ref=e37]: \"Positions: No Data\"\n          - generic [ref=e38]:\n            - generic [ref=e39]:\n              - generic [ref=e40]: Total Equity\n              - generic [ref=e41]: \"0\"\n            - generic [ref=e42]:\n              - generic [ref=e43]: Balance\n              - generic [ref=e44]: \"0\"\n            - generic [ref=e45]:\n              - generic [ref=e46]: Used Margin\n              - generic [ref=e47]: \"0\"\n            - generic [ref=e48]:\n              - generic [ref=e49]: Free Margin\n              - generic [ref=e50]: \"0\"\n            - generic [ref=e51]:\n              - generic [ref=e52]: Unrealized\n              - generic [ref=e53]: \"0\"\n            - generic [ref=e54]:\n              - generic [ref=e55]: Gross Exposure\n              - generic [ref=e56]: \"0\"\n            - generic [ref=e57]:\n              - generic [ref=e58]: Net Exposure\n              - generic [ref=e59]: \"0\"\n            - generic [ref=e60]:"
+    },
+    {
+        "name":  "Config",
+        "path":  "/config",
+        "wait_sec":  5,
+        "console_error_count":  0,
+        "failed_request_count":  0,
+        "server_error_count":  0,
+        "missing_resource_404_count":  0,
+        "has_error_text":  false,
+        "has_no_data_hint":  true,
+        "has_loading_hint":  false,
+        "console_errors":  [
+
+                           ],
+        "failed_requests":  [
+
+                            ],
+        "server_errors":  [
+
+                          ],
+        "missing_404":  [
+
+                        ],
+        "snapshot_file":  "C:\\work_data\\pyWorkSpace\\QuantOpsV12\\QuantOps_github\\.playwright-cli\\page-2026-03-27T12-52-31-974Z.yml",
+        "console_file":  "C:\\work_data\\pyWorkSpace\\QuantOpsV12\\QuantOps_github\\.playwright-cli\\console-2026-03-27T12-48-42-020Z.log",
+        "network_file":  "C:\\work_data\\pyWorkSpace\\QuantOpsV12\\QuantOps_github\\.playwright-cli\\network-2026-03-27T12-52-19-335Z.log",
+        "snapshot_excerpt":  "- generic [active] [ref=e1]:\n  - generic [ref=e2]:\n    - complementary [ref=e3]:\n      - generic [ref=e4]: QuantOps\n      - generic [ref=e5]: Production Console\n      - navigation [ref=e6]:\n        - link \"Overview\" [ref=e7] [cursor=pointer]:\n          - /url: /\n        - link \"Portfolio\" [ref=e8] [cursor=pointer]:\n          - /url: /portfolio\n        - link \"Strategies\" [ref=e9] [cursor=pointer]:\n          - /url: /strategies\n        - link \"Execution\" [ref=e10] [cursor=pointer]:\n          - /url: /execution\n        - link \"Risk\" [ref=e11] [cursor=pointer]:\n          - /url: /risk\n        - link \"Monitoring\" [ref=e12] [cursor=pointer]:\n          - /url: /monitoring\n        - link \"Alerts\" [ref=e13] [cursor=pointer]:\n          - /url: /alerts\n        - link \"Scheduler\" [ref=e14] [cursor=pointer]:\n          - /url: /scheduler\n        - link \"Research\" [ref=e15] [cursor=pointer]:\n          - /url: /research\n        - link \"Alpha Factory\" [ref=e16] [cursor=pointer]:\n          - /url: /alpha-factory\n        - link \"Governance\" [ref=e17] [cursor=pointer]:\n          - /url: /governance\n        - link \"Config\" [ref=e18] [cursor=pointer]:\n          - /url: /config\n        - link \"Admin / Audit\" [ref=e19] [cursor=pointer]:\n          - /url: /admin\n    - generic [ref=e20]:\n      - banner [ref=e21]:\n        - generic [ref=e22]:\n          - generic [ref=e23]: Sprint5 Dashboard\n          - generic [ref=e24]: QuantOps Command Center\n        - generic [ref=e25]:\n          - combobox [ref=e26]:\n            - option \"PAPER\" [selected]\n            - option \"SHADOW\"\n            - option \"LIVE\"\n          - combobox \"Demo role switcher\" [ref=e27]:\n            - option \"viewer\" [selected]\n            - option \"operator\"\n            - option \"risk_manager\"\n            - option \"admin\"\n          - generic [ref=e28]: Local Viewer · viewer\n          - generic [ref=e29]: System OK\n      - main [ref=e30]:\n        - generic [ref=e31]:\n          - generic [ref=e32]:\n            - heading \"Portfolio\" [level=1] [ref=e33]\n            - generic [ref=e34]:\n              - generic [ref=e35]: \"Overview: OK\"\n              - generic [ref=e36]: \"Metrics: OK\"\n              - generic [ref=e37]: \"Positions: No Data\"\n          - generic [ref=e38]:\n            - generic [ref=e39]:\n              - generic [ref=e40]: Total Equity\n              - generic [ref=e41]: \"0\"\n            - generic [ref=e42]:\n              - generic [ref=e43]: Balance\n              - generic [ref=e44]: \"0\"\n            - generic [ref=e45]:\n              - generic [ref=e46]: Used Margin\n              - generic [ref=e47]: \"0\"\n            - generic [ref=e48]:\n              - generic [ref=e49]: Free Margin\n              - generic [ref=e50]: \"0\"\n            - generic [ref=e51]:\n              - generic [ref=e52]: Unrealized\n              - generic [ref=e53]: \"0\"\n            - generic [ref=e54]:\n              - generic [ref=e55]: Gross Exposure\n              - generic [ref=e56]: \"0\"\n            - generic [ref=e57]:\n              - generic [ref=e58]: Net Exposure\n              - generic [ref=e59]: \"0\"\n            - generic [ref=e60]:"
+    },
+    {
+        "name":  "Admin / Audit",
+        "path":  "/admin",
+        "wait_sec":  5,
+        "console_error_count":  0,
+        "failed_request_count":  0,
+        "server_error_count":  0,
+        "missing_resource_404_count":  0,
+        "has_error_text":  false,
+        "has_no_data_hint":  true,
+        "has_loading_hint":  false,
+        "console_errors":  [
+
+                           ],
+        "failed_requests":  [
+
+                            ],
+        "server_errors":  [
+
+                          ],
+        "missing_404":  [
+
+                        ],
+        "snapshot_file":  "C:\\work_data\\pyWorkSpace\\QuantOpsV12\\QuantOps_github\\.playwright-cli\\page-2026-03-27T12-52-31-974Z.yml",
+        "console_file":  "C:\\work_data\\pyWorkSpace\\QuantOpsV12\\QuantOps_github\\.playwright-cli\\console-2026-03-27T12-48-42-020Z.log",
+        "network_file":  "C:\\work_data\\pyWorkSpace\\QuantOpsV12\\QuantOps_github\\.playwright-cli\\network-2026-03-27T12-52-19-335Z.log",
+        "snapshot_excerpt":  "- generic [active] [ref=e1]:\n  - generic [ref=e2]:\n    - complementary [ref=e3]:\n      - generic [ref=e4]: QuantOps\n      - generic [ref=e5]: Production Console\n      - navigation [ref=e6]:\n        - link \"Overview\" [ref=e7] [cursor=pointer]:\n          - /url: /\n        - link \"Portfolio\" [ref=e8] [cursor=pointer]:\n          - /url: /portfolio\n        - link \"Strategies\" [ref=e9] [cursor=pointer]:\n          - /url: /strategies\n        - link \"Execution\" [ref=e10] [cursor=pointer]:\n          - /url: /execution\n        - link \"Risk\" [ref=e11] [cursor=pointer]:\n          - /url: /risk\n        - link \"Monitoring\" [ref=e12] [cursor=pointer]:\n          - /url: /monitoring\n        - link \"Alerts\" [ref=e13] [cursor=pointer]:\n          - /url: /alerts\n        - link \"Scheduler\" [ref=e14] [cursor=pointer]:\n          - /url: /scheduler\n        - link \"Research\" [ref=e15] [cursor=pointer]:\n          - /url: /research\n        - link \"Alpha Factory\" [ref=e16] [cursor=pointer]:\n          - /url: /alpha-factory\n        - link \"Governance\" [ref=e17] [cursor=pointer]:\n          - /url: /governance\n        - link \"Config\" [ref=e18] [cursor=pointer]:\n          - /url: /config\n        - link \"Admin / Audit\" [ref=e19] [cursor=pointer]:\n          - /url: /admin\n    - generic [ref=e20]:\n      - banner [ref=e21]:\n        - generic [ref=e22]:\n          - generic [ref=e23]: Sprint5 Dashboard\n          - generic [ref=e24]: QuantOps Command Center\n        - generic [ref=e25]:\n          - combobox [ref=e26]:\n            - option \"PAPER\" [selected]\n            - option \"SHADOW\"\n            - option \"LIVE\"\n          - combobox \"Demo role switcher\" [ref=e27]:\n            - option \"viewer\" [selected]\n            - option \"operator\"\n            - option \"risk_manager\"\n            - option \"admin\"\n          - generic [ref=e28]: Local Viewer · viewer\n          - generic [ref=e29]: System OK\n      - main [ref=e30]:\n        - generic [ref=e31]:\n          - generic [ref=e32]:\n            - heading \"Portfolio\" [level=1] [ref=e33]\n            - generic [ref=e34]:\n              - generic [ref=e35]: \"Overview: OK\"\n              - generic [ref=e36]: \"Metrics: OK\"\n              - generic [ref=e37]: \"Positions: No Data\"\n          - generic [ref=e38]:\n            - generic [ref=e39]:\n              - generic [ref=e40]: Total Equity\n              - generic [ref=e41]: \"0\"\n            - generic [ref=e42]:\n              - generic [ref=e43]: Balance\n              - generic [ref=e44]: \"0\"\n            - generic [ref=e45]:\n              - generic [ref=e46]: Used Margin\n              - generic [ref=e47]: \"0\"\n            - generic [ref=e48]:\n              - generic [ref=e49]: Free Margin\n              - generic [ref=e50]: \"0\"\n            - generic [ref=e51]:\n              - generic [ref=e52]: Unrealized\n              - generic [ref=e53]: \"0\"\n            - generic [ref=e54]:\n              - generic [ref=e55]: Gross Exposure\n              - generic [ref=e56]: \"0\"\n            - generic [ref=e57]:\n              - generic [ref=e58]: Net Exposure\n              - generic [ref=e59]: \"0\"\n            - generic [ref=e60]:"
+    }
+]

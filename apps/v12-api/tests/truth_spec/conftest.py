@@ -11,7 +11,7 @@ import pytest
 # Adjust these defaults to your repo.
 DEFAULT_ENGINE_CLASS = os.getenv(
     "TRUTH_ENGINE_CLASS",
-    "quantops.truth.engine.TruthEngine",
+    "tests.truth_layer.truth_engine_adapter.TruthEngineAdapter",
 )
 DEFAULT_SYMBOL = os.getenv("TRUTH_TEST_SYMBOL", "BTC")
 DEFAULT_STARTING_CASH = float(os.getenv("TRUTH_TEST_STARTING_CASH", "10000"))

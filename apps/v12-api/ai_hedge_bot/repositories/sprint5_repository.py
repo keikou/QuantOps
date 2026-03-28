@@ -147,6 +147,11 @@ class Sprint5Repository:
             SELECT
                 snapshot_time,
                 cash_balance,
+                free_cash,
+                used_margin,
+                collateral_equity,
+                available_margin,
+                margin_utilization,
                 gross_exposure,
                 net_exposure,
                 long_exposure,
@@ -154,6 +159,7 @@ class Sprint5Repository:
                 market_value,
                 unrealized_pnl,
                 realized_pnl,
+                fees_paid,
                 total_equity,
                 drawdown,
                 peak_equity
@@ -176,6 +182,22 @@ class Sprint5Repository:
         available_margin = free_cash
         collateral_equity = total
         margin_utilization = used_margin / max(collateral_equity, 1e-9)
+
+        stored_used_margin = row.get("used_margin")
+        stored_free_cash = row.get("free_cash")
+        stored_available_margin = row.get("available_margin")
+        stored_collateral_equity = row.get("collateral_equity")
+        stored_margin_utilization = row.get("margin_utilization")
+        if stored_used_margin is not None:
+            used_margin = float(stored_used_margin or 0.0)
+        if stored_free_cash is not None:
+            free_cash = float(stored_free_cash or 0.0)
+        if stored_available_margin is not None:
+            available_margin = float(stored_available_margin or 0.0)
+        if stored_collateral_equity is not None:
+            collateral_equity = float(stored_collateral_equity or 0.0)
+        if stored_margin_utilization is not None:
+            margin_utilization = float(stored_margin_utilization or 0.0)
 
         return {
             **row,

@@ -1,0 +1,522 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - complementary [ref=e3]:
+      - generic [ref=e4]: QuantOps
+      - generic [ref=e5]: Production Console
+      - navigation [ref=e6]:
+        - link "Overview" [ref=e7] [cursor=pointer]:
+          - /url: /
+        - link "Portfolio" [ref=e8] [cursor=pointer]:
+          - /url: /portfolio
+        - link "Strategies" [ref=e9] [cursor=pointer]:
+          - /url: /strategies
+        - link "Execution" [ref=e10] [cursor=pointer]:
+          - /url: /execution
+        - link "Risk" [ref=e11] [cursor=pointer]:
+          - /url: /risk
+        - link "Monitoring" [ref=e12] [cursor=pointer]:
+          - /url: /monitoring
+        - link "Alerts" [ref=e13] [cursor=pointer]:
+          - /url: /alerts
+        - link "Scheduler" [ref=e14] [cursor=pointer]:
+          - /url: /scheduler
+        - link "Research" [ref=e15] [cursor=pointer]:
+          - /url: /research
+        - link "Alpha Factory" [ref=e16] [cursor=pointer]:
+          - /url: /alpha-factory
+        - link "Governance" [ref=e17] [cursor=pointer]:
+          - /url: /governance
+        - link "Config" [ref=e18] [cursor=pointer]:
+          - /url: /config
+        - link "Admin / Audit" [ref=e19] [cursor=pointer]:
+          - /url: /admin
+    - generic [ref=e20]:
+      - banner [ref=e21]:
+        - generic [ref=e22]:
+          - generic [ref=e23]: Sprint5 Dashboard
+          - generic [ref=e24]: QuantOps Command Center
+        - generic [ref=e25]:
+          - combobox [ref=e26]:
+            - option "PAPER" [selected]
+            - option "SHADOW"
+            - option "LIVE"
+          - combobox "Demo role switcher" [ref=e27]:
+            - option "viewer"
+            - option "operator"
+            - option "risk_manager"
+            - option "admin" [selected]
+          - generic [ref=e28]: Local Admin · admin
+          - generic [ref=e29]: System OK
+      - generic [ref=e43]:
+        - generic [ref=e44]:
+          - generic [ref=e45]: API refresh failed
+          - generic [ref=e46]: GET /api/v1/command-center/runtime/runs?limit=10&window_minutes=5 · timeout
+          - generic [ref=e47]: Request timeout for /api/v1/command-center/runtime/runs?limit=10&window_minutes=5 after 8009ms
+          - generic [ref=e48]: page=/execution · duration=8009ms · requestId=qo-1774617465348-jkx5vt
+        - button "Dismiss" [ref=e49] [cursor=pointer]
+      - main [ref=e30]:
+        - generic [ref=e50]:
+          - generic [ref=e51]:
+            - heading "Execution" [level=1] [ref=e52]
+            - generic [ref=e53]:
+              - generic [ref=e54]: "Summary: OK"
+              - generic [ref=e55]: "Runtime: Stale"
+              - generic [ref=e56]: "Planner: Timed Out"
+              - generic [ref=e57]: "State: Timed Out"
+          - generic [ref=e58]:
+            - generic [ref=e59]:
+              - generic [ref=e60]:
+                - generic [ref=e61]: Stable Summary
+                - generic [ref=e62]: Read-model backed status used for KPI and operator health.
+              - generic [ref=e63]:
+                - generic [ref=e64]: Filled
+                - generic [ref=e65]: "Bridge: Filled"
+                - generic [ref=e66]: "Reason: No Position Delta"
+                - generic [ref=e67]: Degraded
+                - link "Investigate Run" [ref=e68] [cursor=pointer]:
+                  - /url: /execution/runs/run_20260327131359_8a11bdbb
+            - generic [ref=e69]:
+              - generic [ref=e70]:
+                - generic [ref=e71]: Current Bridge State
+                - generic [ref=e72]: Filled
+                - link "View detail" [ref=e74] [cursor=pointer]:
+                  - /url: /execution/runs/run_20260327131359_8a11bdbb
+              - generic [ref=e75]:
+                - generic [ref=e76]: Latest Reason
+                - generic [ref=e77]: No actionable delta for ETHUSDT.
+                - link "View detail" [ref=e79] [cursor=pointer]:
+                  - /url: /execution/runs/run_20260327131359_8a11bdbb
+              - generic [ref=e80]:
+                - generic [ref=e81]: Last Fill
+                - generic [ref=e82]: "-"
+                - link "View detail" [ref=e84] [cursor=pointer]:
+                  - /url: /execution/runs/run_20260327131359_8a11bdbb
+              - generic [ref=e85]:
+                - generic [ref=e86]: Last Portfolio Update
+                - generic [ref=e87]: "-"
+                - link "View detail" [ref=e89] [cursor=pointer]:
+                  - /url: /execution/runs/run_20260327131359_8a11bdbb
+              - generic [ref=e90]:
+                - generic [ref=e91]: Last Completed Cycle
+                - generic [ref=e92]: "-"
+                - link "View detail" [ref=e94] [cursor=pointer]:
+                  - /url: /execution/runs/run_20260327131359_8a11bdbb
+              - generic [ref=e95]:
+                - generic [ref=e96]: Degraded State
+                - generic [ref=e97]: "yes"
+                - link "View detail" [ref=e99] [cursor=pointer]:
+                  - /url: /execution/runs/run_20260327131359_8a11bdbb
+          - generic [ref=e100]:
+            - generic [ref=e101]:
+              - generic [ref=e102]: Fill Rate
+              - generic [ref=e103]: "1"
+            - generic [ref=e104]:
+              - generic [ref=e105]: Avg Slippage (bps)
+              - generic [ref=e106]: "1.51"
+            - generic [ref=e107]:
+              - generic [ref=e108]: Latency P50 (ms)
+              - generic [ref=e109]: "39"
+            - generic [ref=e110]:
+              - generic [ref=e111]: Venue Score
+              - generic [ref=e112]: "0.99"
+            - generic [ref=e113]:
+              - generic [ref=e114]: Execution State
+              - generic [ref=e115]: "-"
+            - generic [ref=e116]:
+              - generic [ref=e117]: Reason
+              - generic [ref=e118]: "-"
+          - generic [ref=e119]:
+            - generic [ref=e120]: Execution observability
+            - generic [ref=e121]:
+              - generic [ref=e122]: "Trading state: -"
+              - generic [ref=e123]: "Primary reason: -"
+              - generic [ref=e124]: "Runtime snapshot: Stale Cache | age 197s | snapshot 2026-03-27 13:14:10.148666"
+              - generic [ref=e125]: "Planner snapshot: -"
+              - generic [ref=e126]: "State snapshot: -"
+              - generic [ref=e127]: "Planner age: -"
+              - generic [ref=e128]: "Last execution age: -"
+              - generic [ref=e129]: "Last fill age: -"
+              - generic [ref=e130]:
+                - text: "Submitted / Open orders:"
+                - generic [ref=e131]: "- / -"
+          - generic [ref=e132]:
+            - generic [ref=e133]:
+              - generic [ref=e134]:
+                - generic [ref=e135]: Runtime Observability
+                - generic [ref=e136]:
+                  - generic [ref=e137]: Filled
+                  - link "Open Run Detail" [ref=e138] [cursor=pointer]:
+                    - /url: /execution/runs/run_20260327131359_8a11bdbb
+              - generic [ref=e139]:
+                - generic [ref=e140]: "Operator message: Planner, execution bridge, and fills are connected for this cycle."
+                - generic [ref=e141]: "Latest reason: No actionable delta for ETHUSDT."
+                - generic [ref=e142]: "Blocking component: execution_planner"
+                - generic [ref=e143]:
+                  - text: "Run / Cycle:"
+                  - generic [ref=e144]: run_20260327131359_8a11bdbb / cycle_20260327131359_10288633
+                - generic [ref=e145]: "Last successful fill: -"
+                - generic [ref=e146]: "Last portfolio update: -"
+                - generic [ref=e147]: "Event chain complete: yes"
+                - generic [ref=e148]: "Debug path: /api/v1/command-center/debug/runtime?run_id=run_20260327131359_8a11bdbb"
+              - generic [ref=e150]: no_position_delta
+            - generic [ref=e151]:
+              - generic [ref=e152]: Bridge Counters
+              - generic [ref=e153]:
+                - generic [ref=e154]: "Operator state: filled"
+                - generic [ref=e155]: "Planner status: unknown"
+                - generic [ref=e156]: "Planned count: 1"
+                - generic [ref=e157]: "Submitted count: 1"
+                - generic [ref=e158]: "Blocked count: 4"
+                - generic [ref=e159]: "Filled count: 1"
+                - generic [ref=e160]: "Latest transition: 2026-03-27 13:14:10.148666"
+          - generic [ref=e161]: Runtime timeline is not available yet.
+          - generic [ref=e162]:
+            - generic [ref=e163]:
+              - generic [ref=e164]:
+                - generic [ref=e165]: Live Feed
+                - generic [ref=e166]: Recent runs, issues, fills, and orders update separately from the stable summary cards.
+              - generic [ref=e167]:
+                - generic [ref=e168]: "Runs live: OK"
+                - generic [ref=e169]: "Issues live: OK"
+                - generic [ref=e170]: "Fills live: OK"
+                - generic [ref=e171]: "Orders live: OK"
+            - generic [ref=e172]:
+              - generic [ref=e173]: "Runs snapshot: Fresh Cache | age 0s | snapshot 2026-03-27T13:17:56.577029+00:00"
+              - generic [ref=e174]: "Issues snapshot: Fresh Cache | age 0s | snapshot 2026-03-27T13:17:56.455018+00:00"
+              - generic [ref=e175]: "Fills snapshot: Fresh Cache | age 25s | snapshot 2026-03-27T13:17:31.639518"
+              - generic [ref=e176]: "Orders snapshot: Fresh Cache | age 25s | snapshot 2026-03-27T13:17:31.639518"
+            - generic [ref=e177]:
+              - generic [ref=e178]:
+                - generic [ref=e179]: Stable Filled
+                - generic [ref=e180]: "1"
+              - generic [ref=e181]:
+                - generic [ref=e182]: Recent Fills
+                - generic [ref=e183]: "5"
+              - generic [ref=e184]:
+                - generic [ref=e185]: Recent Runs
+                - generic [ref=e186]: "5"
+              - generic [ref=e187]:
+                - generic [ref=e188]: Recent Issues
+                - generic [ref=e189]: "1"
+            - generic [ref=e190]:
+              - generic [ref=e191]:
+                - text: "Fills display:"
+                - generic [ref=e192]: stable 1 | recent 5 | delta +4
+              - generic [ref=e193]:
+                - text: "Orders window:"
+                - generic [ref=e194]: stable submitted 1 | recent top 3
+              - generic [ref=e195]:
+                - text: "Runs window:"
+                - generic [ref=e196]: recent 5 within 5m (cap 10)
+              - generic [ref=e197]:
+                - text: "Issues window:"
+                - generic [ref=e198]: recent 1 across last 3 buckets
+          - generic [ref=e199]:
+            - generic [ref=e201]:
+              - generic [ref=e202]: Active Runtime Issues
+              - generic [ref=e203]: Diagnosis rollups highlight repeating runtime patterns and the next operator check.
+            - generic [ref=e204]:
+              - button "Missing Price" [ref=e205] [cursor=pointer]
+              - button "Risk Guard" [ref=e206] [cursor=pointer]
+              - button "Execution Bridge" [ref=e207] [cursor=pointer]
+              - button "Fill Capture Gap" [ref=e208] [cursor=pointer]
+              - button "Incomplete Chain" [ref=e209] [cursor=pointer]
+              - button "Persistent Issues" [ref=e210] [cursor=pointer]
+              - button "Retryable Issues" [ref=e211] [cursor=pointer]
+            - 'button "Unknown Runtime Gap 3 medium | investigate | repeating | down Review the run detail evidence and raw event chain to locate the first missing truth point. Component: unknown Seen in 3 of last 3 runs Example run: run_20260327131731_96d0e284" [ref=e351] [cursor=pointer]':
+              - generic [ref=e352]:
+                - generic [ref=e353]: Unknown Runtime Gap
+                - generic [ref=e354]: "3"
+              - generic [ref=e355]: medium | investigate | repeating | down
+              - generic [ref=e356]: Review the run detail evidence and raw event chain to locate the first missing truth point.
+              - generic [ref=e357]: "Component: unknown"
+              - generic [ref=e358]: Seen in 3 of last 3 runs
+              - generic [ref=e359]: "Example run: run_20260327131731_96d0e284"
+          - generic [ref=e214]:
+            - generic [ref=e215]:
+              - generic [ref=e216]:
+                - generic [ref=e217]: Recent Runtime Runs
+                - generic [ref=e218]: Historical triage across the latest runs, using the same semantics as run detail. Recent window is capped for lower latency.
+              - generic [ref=e219]:
+                - button "All" [ref=e220] [cursor=pointer]
+                - button "Blocked" [ref=e221] [cursor=pointer]
+                - button "Degraded" [ref=e222] [cursor=pointer]
+                - button "Submitted-No-Fill" [ref=e223] [cursor=pointer]
+                - button "Failed" [ref=e224] [cursor=pointer]
+                - button "Filled" [ref=e225] [cursor=pointer]
+                - button "Missing Price" [ref=e226] [cursor=pointer]
+                - button "Risk Guard" [ref=e227] [cursor=pointer]
+                - button "Incomplete Chain" [ref=e228] [cursor=pointer]
+                - button "No Artifact" [ref=e229] [cursor=pointer]
+            - generic [ref=e230]:
+              - generic [ref=e231]:
+                - generic [ref=e232]: Reason Code
+                - textbox "Reason Code" [ref=e233]:
+                  - /placeholder: MISSING_PRICE
+              - generic [ref=e234]:
+                - generic [ref=e235]: Blocking Component
+                - textbox "Blocking Component" [ref=e236]:
+                  - /placeholder: execution_planner
+            - table [ref=e238]:
+              - rowgroup [ref=e239]:
+                - row "Run Start Operator Bridge Reason Plans / Orders / Fills Diagnosis Flags Detail" [ref=e240]:
+                  - columnheader "Run" [ref=e241]
+                  - columnheader "Start" [ref=e242]
+                  - columnheader "Operator" [ref=e243]
+                  - columnheader "Bridge" [ref=e244]
+                  - columnheader "Reason" [ref=e245]
+                  - columnheader "Plans / Orders / Fills" [ref=e246]
+                  - columnheader "Diagnosis" [ref=e247]
+                  - columnheader "Flags" [ref=e248]
+                  - columnheader "Detail" [ref=e249]
+              - rowgroup [ref=e250]:
+                - row "run_20260327131731_96d0e284 2026-03-27T13:17:41.794117 2026-03-27T13:17:31.596148 Blocked No Decision - - 0 / 0 / 0 Unknown Runtime Gap investigate Normal Chain complete Open" [ref=e360]:
+                  - cell "run_20260327131731_96d0e284 2026-03-27T13:17:41.794117" [ref=e361]:
+                    - generic [ref=e362]: run_20260327131731_96d0e284
+                    - generic [ref=e363]: 2026-03-27T13:17:41.794117
+                  - cell "2026-03-27T13:17:31.596148" [ref=e364]
+                  - cell "Blocked" [ref=e365]
+                  - cell "No Decision" [ref=e366]
+                  - cell "- -" [ref=e367]:
+                    - generic [ref=e368]: "-"
+                    - generic [ref=e369]: "-"
+                  - cell "0 / 0 / 0" [ref=e370]
+                  - cell "Unknown Runtime Gap investigate" [ref=e371]:
+                    - generic [ref=e372]: Unknown Runtime Gap
+                    - generic [ref=e373]: investigate
+                  - cell "Normal Chain complete" [ref=e374]:
+                    - generic [ref=e375]: Normal
+                    - generic [ref=e376]: Chain complete
+                  - cell "Open" [ref=e377]:
+                    - link "Open" [ref=e378] [cursor=pointer]:
+                      - /url: /execution/runs/run_20260327131731_96d0e284
+                - row "run_20260327131620_34821898 2026-03-27T13:16:31.489106 2026-03-27T13:16:20.830068 Blocked No Decision - - 0 / 0 / 0 Unknown Runtime Gap investigate Normal Chain complete Open" [ref=e379]:
+                  - cell "run_20260327131620_34821898 2026-03-27T13:16:31.489106" [ref=e380]:
+                    - generic [ref=e381]: run_20260327131620_34821898
+                    - generic [ref=e382]: 2026-03-27T13:16:31.489106
+                  - cell "2026-03-27T13:16:20.830068" [ref=e383]
+                  - cell "Blocked" [ref=e384]
+                  - cell "No Decision" [ref=e385]
+                  - cell "- -" [ref=e386]:
+                    - generic [ref=e387]: "-"
+                    - generic [ref=e388]: "-"
+                  - cell "0 / 0 / 0" [ref=e389]
+                  - cell "Unknown Runtime Gap investigate" [ref=e390]:
+                    - generic [ref=e391]: Unknown Runtime Gap
+                    - generic [ref=e392]: investigate
+                  - cell "Normal Chain complete" [ref=e393]:
+                    - generic [ref=e394]: Normal
+                    - generic [ref=e395]: Chain complete
+                  - cell "Open" [ref=e396]:
+                    - link "Open" [ref=e397] [cursor=pointer]:
+                      - /url: /execution/runs/run_20260327131620_34821898
+                - row "run_20260327131510_ddabdef4 2026-03-27T13:15:20.762655 2026-03-27T13:15:10.304862 Blocked No Decision - - 0 / 0 / 0 Unknown Runtime Gap investigate Normal Chain complete Open" [ref=e398]:
+                  - cell "run_20260327131510_ddabdef4 2026-03-27T13:15:20.762655" [ref=e399]:
+                    - generic [ref=e400]: run_20260327131510_ddabdef4
+                    - generic [ref=e401]: 2026-03-27T13:15:20.762655
+                  - cell "2026-03-27T13:15:10.304862" [ref=e402]
+                  - cell "Blocked" [ref=e403]
+                  - cell "No Decision" [ref=e404]
+                  - cell "- -" [ref=e405]:
+                    - generic [ref=e406]: "-"
+                    - generic [ref=e407]: "-"
+                  - cell "0 / 0 / 0" [ref=e408]
+                  - cell "Unknown Runtime Gap investigate" [ref=e409]:
+                    - generic [ref=e410]: Unknown Runtime Gap
+                    - generic [ref=e411]: investigate
+                  - cell "Normal Chain complete" [ref=e412]:
+                    - generic [ref=e413]: Normal
+                    - generic [ref=e414]: Chain complete
+                  - cell "Open" [ref=e415]:
+                    - link "Open" [ref=e416] [cursor=pointer]:
+                      - /url: /execution/runs/run_20260327131510_ddabdef4
+                - row "run_20260327131359_8a11bdbb 2026-03-27T13:14:10.148666 2026-03-27T13:13:59.845641 Blocked No Decision - - 0 / 0 / 0 Unknown Runtime Gap investigate Normal Chain complete Open" [ref=e417]:
+                  - cell "run_20260327131359_8a11bdbb 2026-03-27T13:14:10.148666" [ref=e418]:
+                    - generic [ref=e419]: run_20260327131359_8a11bdbb
+                    - generic [ref=e420]: 2026-03-27T13:14:10.148666
+                  - cell "2026-03-27T13:13:59.845641" [ref=e421]
+                  - cell "Blocked" [ref=e422]
+                  - cell "No Decision" [ref=e423]
+                  - cell "- -" [ref=e424]:
+                    - generic [ref=e425]: "-"
+                    - generic [ref=e426]: "-"
+                  - cell "0 / 0 / 0" [ref=e427]
+                  - cell "Unknown Runtime Gap investigate" [ref=e428]:
+                    - generic [ref=e429]: Unknown Runtime Gap
+                    - generic [ref=e430]: investigate
+                  - cell "Normal Chain complete" [ref=e431]:
+                    - generic [ref=e432]: Normal
+                    - generic [ref=e433]: Chain complete
+                  - cell "Open" [ref=e434]:
+                    - link "Open" [ref=e435] [cursor=pointer]:
+                      - /url: /execution/runs/run_20260327131359_8a11bdbb
+                - row "run_20260327131249_c78b6fec 2026-03-27T13:12:59.741391 2026-03-27T13:12:49.093265 Blocked No Decision - - 0 / 0 / 0 Unknown Runtime Gap investigate Normal Chain complete Open" [ref=e436]:
+                  - cell "run_20260327131249_c78b6fec 2026-03-27T13:12:59.741391" [ref=e437]:
+                    - generic [ref=e438]: run_20260327131249_c78b6fec
+                    - generic [ref=e439]: 2026-03-27T13:12:59.741391
+                  - cell "2026-03-27T13:12:49.093265" [ref=e440]
+                  - cell "Blocked" [ref=e441]
+                  - cell "No Decision" [ref=e442]
+                  - cell "- -" [ref=e443]:
+                    - generic [ref=e444]: "-"
+                    - generic [ref=e445]: "-"
+                  - cell "0 / 0 / 0" [ref=e446]
+                  - cell "Unknown Runtime Gap investigate" [ref=e447]:
+                    - generic [ref=e448]: Unknown Runtime Gap
+                    - generic [ref=e449]: investigate
+                  - cell "Normal Chain complete" [ref=e450]:
+                    - generic [ref=e451]: Normal
+                    - generic [ref=e452]: Chain complete
+                  - cell "Open" [ref=e453]:
+                    - link "Open" [ref=e454] [cursor=pointer]:
+                      - /url: /execution/runs/run_20260327131249_c78b6fec
+          - table [ref=e254]:
+            - rowgroup [ref=e255]:
+              - row "Symbol Side Qty Fill Price Slippage Latency Status" [ref=e256]:
+                - columnheader "Symbol" [ref=e257]
+                - columnheader "Side" [ref=e258]
+                - columnheader "Qty" [ref=e259]
+                - columnheader "Fill Price" [ref=e260]
+                - columnheader "Slippage" [ref=e261]
+                - columnheader "Latency" [ref=e262]
+                - columnheader "Status" [ref=e263]
+            - rowgroup [ref=e264]:
+              - row "BTCUSDT buy 0.00056618 66496.4242884 0.8 20 filled" [ref=e455]:
+                - cell "BTCUSDT" [ref=e456]
+                - cell "buy" [ref=e457]
+                - cell "0.00056618" [ref=e458]
+                - cell "66496.4242884" [ref=e459]
+                - cell "0.8" [ref=e460]
+                - cell "20" [ref=e461]
+                - cell "filled" [ref=e462]
+              - row "DOGEUSDT sell 347.39053089 0.0899842 1.2 27 filled" [ref=e463]:
+                - cell "DOGEUSDT" [ref=e464]
+                - cell "sell" [ref=e465]
+                - cell "347.39053089" [ref=e466]
+                - cell "0.0899842" [ref=e467]
+                - cell "1.2" [ref=e468]
+                - cell "27" [ref=e469]
+                - cell "filled" [ref=e470]
+              - row "WLDUSDT sell 106.6351327 0.27398423 2.4 48 filled" [ref=e471]:
+                - cell "WLDUSDT" [ref=e472]
+                - cell "sell" [ref=e473]
+                - cell "106.6351327" [ref=e474]
+                - cell "0.27398423" [ref=e475]
+                - cell "2.4" [ref=e476]
+                - cell "48" [ref=e477]
+                - cell "filled" [ref=e478]
+              - row "SOLUSDT sell 0.41156194 83.048387 2 41 filled" [ref=e479]:
+                - cell "SOLUSDT" [ref=e480]
+                - cell "sell" [ref=e481]
+                - cell "0.41156194" [ref=e482]
+                - cell "83.048387" [ref=e483]
+                - cell "2" [ref=e484]
+                - cell "41" [ref=e485]
+                - cell "filled" [ref=e486]
+              - row "DOGEUSDT buy 356.15458781 0.0900458 1.2 27 filled" [ref=e487]:
+                - cell "DOGEUSDT" [ref=e488]
+                - cell "buy" [ref=e489]
+                - cell "356.15458781" [ref=e490]
+                - cell "0.0900458" [ref=e491]
+                - cell "1.2" [ref=e492]
+                - cell "27" [ref=e493]
+                - cell "filled" [ref=e494]
+          - table [ref=e274]:
+            - rowgroup [ref=e275]:
+              - row "Order ID Plan ID Symbol Side Qty Venue Algo Status" [ref=e276]:
+                - columnheader "Order ID" [ref=e277]
+                - columnheader "Plan ID" [ref=e278]
+                - columnheader "Symbol" [ref=e279]
+                - columnheader "Side" [ref=e280]
+                - columnheader "Qty" [ref=e281]
+                - columnheader "Venue" [ref=e282]
+                - columnheader "Algo" [ref=e283]
+                - columnheader "Status" [ref=e284]
+            - rowgroup [ref=e285]:
+              - row "cycle_20260327131738_9e6cf6d2_child_1 - BTCUSDT buy 0.00056618 - - filled" [ref=e495]:
+                - cell "cycle_20260327131738_9e6cf6d2_child_1" [ref=e496]
+                - cell "-" [ref=e288]
+                - cell "BTCUSDT" [ref=e497]
+                - cell "buy" [ref=e498]
+                - cell "0.00056618" [ref=e499]
+                - cell "-" [ref=e292]
+                - cell "-" [ref=e293]
+                - cell "filled" [ref=e500]
+              - row "cycle_20260327131738_6655e872_child_1 - DOGEUSDT sell 347.39053089 - - filled" [ref=e501]:
+                - cell "cycle_20260327131738_6655e872_child_1" [ref=e502]
+                - cell "-" [ref=e503]
+                - cell "DOGEUSDT" [ref=e504]
+                - cell "sell" [ref=e505]
+                - cell "347.39053089" [ref=e506]
+                - cell "-" [ref=e507]
+                - cell "-" [ref=e508]
+                - cell "filled" [ref=e509]
+              - row "cycle_20260327131406_ca005778_child_1 cycle_20260327131406_ca005778 WLDUSDT sell 106.6351327 paper_simulator aggressive_limit submitted" [ref=e510]:
+                - cell "cycle_20260327131406_ca005778_child_1" [ref=e511]
+                - cell "cycle_20260327131406_ca005778" [ref=e512]
+                - cell "WLDUSDT" [ref=e513]
+                - cell "sell" [ref=e514]
+                - cell "106.6351327" [ref=e515]
+                - cell "paper_simulator" [ref=e516]
+                - cell "aggressive_limit" [ref=e517]
+                - cell "submitted" [ref=e518]
+          - generic [ref=e295]:
+            - generic [ref=e296]:
+              - heading "Execution Planner" [level=2] [ref=e297]
+              - generic [ref=e298]: Latest plan as of - | Latest activity -
+            - generic [ref=e299]:
+              - generic [ref=e300]:
+                - generic [ref=e301]: Trading State
+                - generic [ref=e302]: "-"
+              - generic [ref=e303]:
+                - generic [ref=e304]: Active Plans
+                - generic [ref=e305]: "-"
+              - generic [ref=e306]:
+                - generic [ref=e307]: Visible Plans
+                - generic [ref=e308]: "-"
+              - generic [ref=e309]:
+                - generic [ref=e310]: Expired Plans
+                - generic [ref=e311]: "-"
+              - generic [ref=e312]:
+                - generic [ref=e313]: Top Algo / Route
+                - generic [ref=e314]: "- / -"
+              - generic [ref=e315]:
+                - generic [ref=e316]: Open Orders
+                - generic [ref=e317]: "-"
+            - table [ref=e319]:
+              - rowgroup [ref=e320]:
+                - row "Symbol Side Algo Route Activity Plan Age Last Exec Age Orders/Fills Status" [ref=e321]:
+                  - columnheader "Symbol" [ref=e322]
+                  - columnheader "Side" [ref=e323]
+                  - columnheader "Algo" [ref=e324]
+                  - columnheader "Route" [ref=e325]
+                  - columnheader "Activity" [ref=e326]
+                  - columnheader "Plan Age" [ref=e327]
+                  - columnheader "Last Exec Age" [ref=e328]
+                  - columnheader "Orders/Fills" [ref=e329]
+                  - columnheader "Status" [ref=e330]
+              - rowgroup [ref=e331]:
+                - row "- - - - - - - - no plans" [ref=e332]:
+                  - cell "-" [ref=e333]
+                  - cell "-" [ref=e334]
+                  - cell "-" [ref=e335]
+                  - cell "-" [ref=e336]
+                  - cell "-" [ref=e337]
+                  - cell "-" [ref=e338]
+                  - cell "-" [ref=e339]
+                  - cell "-" [ref=e340]
+                  - cell "no plans" [ref=e341]
+  - generic [ref=e36] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e37]:
+      - img [ref=e38]
+    - generic [ref=e342]:
+      - button "Open issues overlay" [ref=e343]:
+        - generic [ref=e519]:
+          - generic [ref=e520]: "4"
+          - generic [ref=e521]: "5"
+        - generic [ref=e347]:
+          - text: Issue
+          - generic [ref=e522]: s
+      - button "Collapse issues badge" [ref=e348]:
+        - img [ref=e349]
+  - alert [ref=e41]
