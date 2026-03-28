@@ -228,3 +228,86 @@ def test_phase6_close3_reconciliation_mismatch_raises_incident_and_suppresses_li
     assert blocked["status"] == "blocked"
     assert blocked["reason_code"] == "execution_disabled"
     assert blocked["trading_state"] == "halted"
+
+
+def test_phase6_close4_valid_recovery_resumes_live_execution_and_keeps_records_consistent() -> None:
+    _reset_phase6_state()
+    service = LiveTradingService()
+    service.runtime_service.resume_trading("phase6 close4 reset", actor="test")
+
+    submitted = service.submit_live_order(
+        symbol="SOLUSDT",
+        side="buy",
+        qty=3.0,
+        urgency="high",
+        target_weight=0.25,
+        approved=True,
+        mode=Mode.LIVE,
+    )
+    assert submitted["status"] == "ok"
+
+    mismatch = service.reconcile_live_fill(
+        live_order_id=submitted["live_order_id"],
+        venue_order_id=submitted["venue_order_id"],
+        symbol="SOLUSDT",
+        side="buy",
+        fill_qty=1.0,
+        fill_price=150.0,
+        free_balance=7000.0,
+        locked_balance=2000.0,
+        matched=False,
+    )
+    assert mismatch["status"] == "incident"
+    assert str(service.runtime_service.get_trading_state()["trading_state"]).lower() == "halted"
+
+    recovered = service.recover_live_incident(
+        live_order_id=submitted["live_order_id"],
+        venue_order_id=submitted["venue_order_id"],
+        resolution_note="manual reconciliation confirmed",
+        actor="test",
+    )
+    assert recovered["status"] == "ok"
+    assert recovered["trading_state"] == "running"
+
+    incident = CONTAINER.runtime_store.fetchone_dict(
+        "SELECT status FROM live_incidents ORDER BY created_at DESC LIMIT 1"
+    )
+    assert incident is not None
+    assert incident["status"] == "resolved"
+
+    recovery_event = CONTAINER.runtime_store.fetchone_dict(
+        """
+        SELECT event_type, status
+        FROM live_reconciliation_events
+        WHERE live_order_id = ?
+        ORDER BY created_at DESC
+        LIMIT 1
+        """,
+        [submitted["live_order_id"]],
+    )
+    assert recovery_event is not None
+    assert recovery_event["event_type"] == "recovery_resolved"
+    assert recovery_event["status"] == "resolved"
+
+    audit_rows = CONTAINER.runtime_store.fetchall_dict(
+        """
+        SELECT event_type
+        FROM audit_logs
+        WHERE category = 'runtime'
+        ORDER BY created_at DESC
+        LIMIT 5
+        """
+    )
+    event_types = {str(row["event_type"]) for row in audit_rows}
+    assert "kill_switch" in event_types
+    assert "resume" in event_types
+
+    resumed_live = service.evaluate_live_intent(
+        symbol="BTCUSDT",
+        urgency="high",
+        target_weight=0.30,
+        approved=True,
+        mode=Mode.LIVE,
+    )
+    assert resumed_live["status"] == "ok"
+    assert resumed_live["decision"] == "live_send"

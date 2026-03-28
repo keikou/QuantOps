@@ -329,3 +329,35 @@ Phase6-CLOSE-2 is satisfied.
 Phase6-CLOSE-3 is satisfied.
 The next closure target is mismatch-triggered halt -> deterministic live recovery / resume.
 ```
+
+## Phase6-CLOSE-4 Proof Added
+
+Added:
+
+- `apps/v12-api/ai_hedge_bot/services/live_trading_service.py`
+- `apps/v12-api/tests/test_phase6_live_trading_closure.py`
+
+What it proves:
+
+```text
+mismatch-triggered halt
+-> valid recovery / resolution action
+-> safe live resume
+-> reconciliation / incident / audit state reflect both suppression and recovery consistently
+```
+
+Concrete behavior now covered:
+
+- mismatch-triggered halt is followed by explicit recovery action
+- recovery marks `live_incidents` as `resolved`
+- recovery appends `recovery_resolved` to `live_reconciliation_events`
+- runtime audit keeps both `kill_switch` and `resume`
+- trading state returns to `running`
+- approved live intent is allowed again after recovery
+
+Validation:
+
+```text
+python -m pytest apps\v12-api\tests\test_phase6_live_trading_closure.py -q
+5 passed
+```

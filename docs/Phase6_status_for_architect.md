@@ -267,6 +267,44 @@ after recovery, live execution may resume safely;
 and all incident/reconciliation/audit records must remain consistent
 ```
 
+### 8. Fourth Phase6 proof now exists
+
+Added:
+
+- `apps/v12-api/ai_hedge_bot/services/live_trading_service.py`
+- `apps/v12-api/tests/test_phase6_live_trading_closure.py`
+
+Current proof:
+
+```text
+mismatch-triggered halt
+-> valid recovery / resolution action
+-> safe live resume
+-> reconciliation / incident / audit state reflect both suppression and recovery consistently
+```
+
+Concrete assertions now covered:
+
+- mismatch-triggered halt is followed by explicit recovery action
+- recovery marks `live_incidents` as `resolved`
+- recovery appends `recovery_resolved` to `live_reconciliation_events`
+- runtime audit keeps both `kill_switch` and `resume`
+- trading state returns to `running`
+- approved live intent is allowed again after recovery
+
+Validation:
+
+- `python -m pytest apps/v12-api/tests/test_phase6_live_trading_closure.py -q`
+
+## Questions For Architect
+
+Please re-judge Phase6 after the recovery / resume proof packet:
+
+1. Does the current packet satisfy `Phase6-CLOSE-4`?
+2. If yes, is Phase6 still `VERY EARLY / PARTIALLY COMPLETE`, or has it moved further?
+3. If another closure blocker remains, what exact invariant should be treated as `Phase6-CLOSE-5`?
+4. If not a closure blocker, what remaining work is merely hardening / acceptance-strengthening?
+
 ## Likely Closure Definition
 
 Current working hypothesis:

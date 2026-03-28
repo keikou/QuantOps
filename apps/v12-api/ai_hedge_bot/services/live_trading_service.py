@@ -250,3 +250,47 @@ class LiveTradingService:
             "order_status": fill_status,
             "matched": matched,
         }
+
+    def recover_live_incident(
+        self,
+        *,
+        live_order_id: str,
+        venue_order_id: str,
+        resolution_note: str,
+        actor: str = "live_reconciliation_recovery",
+    ) -> dict:
+        now = utc_now_iso()
+        CONTAINER.runtime_store.execute(
+            """
+            UPDATE live_incidents
+            SET status = 'resolved'
+            WHERE details_json LIKE ?
+            """,
+            [f'%{live_order_id}%'],
+        )
+        CONTAINER.runtime_store.append(
+            "live_reconciliation_events",
+            {
+                "reconciliation_event_id": new_cycle_id(),
+                "created_at": now,
+                "live_order_id": live_order_id,
+                "venue_order_id": venue_order_id,
+                "event_type": "recovery_resolved",
+                "status": "resolved",
+                "matched": True,
+                "details_json": CONTAINER.runtime_store.to_json(
+                    {"resolution_note": resolution_note, "actor": actor}
+                ),
+            },
+        )
+        resumed = self.runtime_service.resume_trading(
+            note=resolution_note,
+            actor=actor,
+        )
+        return {
+            "status": "ok",
+            "live_order_id": live_order_id,
+            "venue_order_id": venue_order_id,
+            "trading_state": resumed.get("trading_state"),
+            "resolution_note": resolution_note,
+        }
