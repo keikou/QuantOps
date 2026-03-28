@@ -177,3 +177,18 @@ Please re-judge Phase7 after the close1 deterministic evaluation packet:
 2. If yes, is `Phase7` still `NOT STARTED AS A CLOSED PHASE`, or has it moved to a partial state?
 3. If another closure blocker remains, what exact invariant should be treated as `Phase7-CLOSE-2`?
 4. Has the hardest gap shifted from evaluation determinism to governed update/deploy linkage?
+
+## Architect Re-Judgment After Close-1 Packet
+
+```text
+Phase7-CLOSE-1 = satisfied
+Phase7 = PARTIALLY COMPLETE
+```
+
+Architect-defined exact `Phase7-CLOSE-2` invariant:
+
+```text
+governed improvement decision
+-> persisted approved update/deploy state
+-> next cycle actually runs with the updated model/alpha/weight state
+```

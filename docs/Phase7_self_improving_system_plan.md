@@ -208,3 +208,26 @@ python -m pytest apps\v12-api\tests\test_phase7_self_improving_closure.py -q
 
 This does not yet claim `Phase7 = PARTIALLY COMPLETE`.
 It prepares the packet for the next architect re-judgment on whether `Phase7-CLOSE-1` is satisfied.
+
+## Architect Re-Judgment After Close-1 Packet
+
+Latest architect judgment:
+
+```text
+Phase7-CLOSE-1 = satisfied
+Phase7 = PARTIALLY COMPLETE
+```
+
+Interpretation:
+
+- Phase7 is no longer `NOT STARTED AS A CLOSED PHASE`
+- the first self-improving loop invariant is now proven
+- the next blocker is governed deploy/update linkage into the next cycle
+
+Architect-defined next invariant:
+
+```text
+governed improvement decision
+-> persisted approved update/deploy state
+-> next cycle actually runs with the updated model/alpha/weight state
+```

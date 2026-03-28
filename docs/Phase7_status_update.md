@@ -3,7 +3,7 @@
 Date: `2026-03-29`
 Repo: `QuantOps_github`
 Branch: `main`
-Status: `not_started_as_closed_phase`
+Status: `partially_complete`
 
 ## Architect Initial Verdict
 
@@ -73,10 +73,9 @@ same result evidence
 ## Working Conclusion
 
 ```text
-Phase7 is not started as a closed phase.
-The first proof should stay narrow:
-result evidence -> deterministic evaluation -> explicit governed improvement decision.
-The hardest gap beyond that is update/deploy linkage into measurable next-cycle outcome.
+Phase7-CLOSE-1 is satisfied.
+Phase7 is now PARTIALLY COMPLETE.
+The hardest gap beyond this first proof remains update/deploy linkage into measurable next-cycle outcome.
 ```
 
 ## Next Implementation Target
@@ -91,4 +90,29 @@ It should prove:
 same result evidence
 -> same evaluation outcome
 -> same explicit governed improvement recommendation
+```
+
+## Architect Re-Judgment After Close-1 Packet
+
+Latest architect judgment:
+
+```text
+Phase7-CLOSE-1 = satisfied
+Phase7 = PARTIALLY COMPLETE
+```
+
+Architect-defined exact `Phase7-CLOSE-2` invariant:
+
+```text
+governed improvement decision
+-> persisted approved update/deploy state
+-> next cycle actually runs with the updated model/alpha/weight state
+```
+
+Stricter phrasing:
+
+```text
+if a governed improvement decision is approved,
+the system must persist that update decision into runtime-visible deployed state,
+and the next cycle must actually execute using that updated state rather than the previous one
 ```
