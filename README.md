@@ -1,4 +1,4 @@
-# QuantOps Sprint6H-9.2.11
+# QuantOps V12
 
 QuantOps is a local integrated trading operations workspace composed of three main applications:
 
@@ -6,7 +6,14 @@ QuantOps is a local integrated trading operations workspace composed of three ma
 - `apps/quantops-api`: the QuantOps control-plane and aggregation API
 - `apps/quantops-frontend`: the Next.js operator GUI
 
-The current version focuses on runtime observability, recent-runs operational triage, and operator diagnosis workflows on top of the stabilized local stack: canonical runtime events/reasons, planner and execution-bridge diagnostics, command-center runtime aggregation, run-detail drilldown, runtime diagnostic bundles, recent-runs indexing, diagnosis-based issue rollups, recurrence/trend semantics, and structured run-stage timeline forensics.
+The current `main` branch reflects the post-SprintH state:
+
+- broad timeout mitigation is complete
+- main GUI paths are stabilized on summary/read-model style routes
+- QuantOps summary contracts explicitly distinguish stable and display semantics
+- writer observability and incremental writer behavior are in place
+- startup and stop scripts are verified and documented
+- SprintH closeout docs and AI/developer onboarding docs are now part of the repo
 
 ## Project Summary
 
@@ -17,6 +24,21 @@ This repository provides a local full-stack environment for:
 - an operator-facing dashboard for Overview, Execution, Portfolio, Risk, Monitoring, Alerts, Scheduler, Strategies, Governance, Config, and Admin flows
 
 The repo also contains `source_of_truth/` reference implementations and supporting tools used during the sprint history.
+
+## Start Here
+
+If you are new to this repo, read these first:
+
+1. `docs/SprintH_completion_report.md`
+2. `docs/Development for AI.md`
+3. `docs/sprinth-finish-plan.md`
+4. `docs/development-rules-v12-vs-quantops.md`
+5. `docs/development-workflow.md`
+6. `docs/ops-runbook.md`
+7. `docs/dev-startup.md`
+8. `docs/ci_regression_packs.md`
+
+These documents capture the current architecture direction, development rules, startup path, regression surface, and SprintH closeout status.
 
 ## Current Implementation
 
@@ -91,16 +113,16 @@ The repo also contains `source_of_truth/` reference implementations and supporti
 - runtime event/reason truth store and by-run diagnostics routes
 - planner truth and execution-bridge diagnostics routes used by QuantOps run-detail pages
 
-## TODO
+## Current Status
 
-- add runtime rollups / clustering summaries above Recent Runs
-- add trend/incident-style summaries for top reason codes and blocking components
-- continue operator UX cleanup around artifact presentation, evidence portability, and summary-to-detail navigation
-- expand end-to-end validation for live GUI flows and slow first-load paths
-- harden remaining write flows and permission gating
-- add more build/test automation across the three-app stack
-- review and reduce duplicated historical/reference content under `source_of_truth/`
-- continue cleanup of legacy sprint-era docs and backup files where no longer needed
+SprintH is complete.
+
+The major remaining items are optional follow-up work, not SprintH blockers. The clearest remaining optional question is whether `source_fill_watermark` should ever be promoted into a broader public read-model contract.
+
+See:
+
+- `docs/SprintH_completion_report.md`
+- `docs/sprinth-finish-plan.md`
 
 ## CI And Regression Packs
 
@@ -110,7 +132,8 @@ The repo also contains `source_of_truth/` reference implementations and supporti
 - GitHub Actions optional local-stack smoke workflow: `.github/workflows/optional-local-stack-smoke.yml`
 - QuantOps API regression pack runner: `test_bundle/scripts/run_quantops_api_regression_pack.ps1`
 - Regression pack documentation: `docs/ci_regression_packs.md`
-- Developer startup/runbook: `docs/dev-startup.md`
+- Developer startup notes: `docs/dev-startup.md`
+- Operations runbook: `docs/ops-runbook.md`
 
 ## How To Run
 
@@ -124,9 +147,9 @@ run_all.cmd
 
 This opens three windows:
 
-- V12 API: `http://localhost:8000`
-- QuantOps API: `http://localhost:8010`
-- QuantOps Frontend: `http://localhost:3000`
+- V12 API: `http://127.0.0.1:8000`
+- QuantOps API: `http://127.0.0.1:8010`
+- QuantOps Frontend: `http://127.0.0.1:3000`
 
 ### Individual startup
 
@@ -162,13 +185,22 @@ See `docs/dev-startup.md` for:
 - heavy-route timeout budgets
 - smoke-check commands
 
+See `docs/ops-runbook.md` for:
+
+- start/stop operations
+- log locations
+- writer closeout checks
+- common local failure modes
+- verified local behavior
+
 ## Useful URLs
 
-- Frontend: [http://localhost:3000](http://localhost:3000)
-- V12 API: [http://localhost:8000](http://localhost:8000)
-- QuantOps API: [http://localhost:8010](http://localhost:8010)
+- Frontend: [http://127.0.0.1:3000](http://127.0.0.1:3000)
+- V12 API: [http://127.0.0.1:8000](http://127.0.0.1:8000)
+- QuantOps API: [http://127.0.0.1:8010](http://127.0.0.1:8010)
 
 ## Repository Notes
 
 - See `safe_for_clean.md` for generated/runtime artifacts that are safe to delete before packaging or publishing
 - Local `.env` files, virtual environments, caches, runtime databases, and runtime snapshots are intentionally excluded from Git
+- For AI handoff and rapid continuation, start with `docs/Development for AI.md`
