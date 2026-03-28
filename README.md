@@ -159,7 +159,10 @@ This opens three windows:
 start_v12_api.cmd
 start_quantops_api.cmd
 start_frontend.cmd
+start_frontend_prod_fast.cmd
 ```
+
+`start_frontend_prod_fast.cmd` is the one-click frontend fast path when you already have a valid production build under `apps/quantops-frontend/.next`.
 
 ### Local startup smoke
 
@@ -176,6 +179,7 @@ It also runs a paper cycle, validates runtime observability truth for the return
 - `start_v12_api.cmd` creates `apps/v12-api/.venv` if needed, installs requirements once, and starts Uvicorn on port `8000`
 - `start_quantops_api.cmd` creates `apps/quantops-api/.venv` if needed, installs requirements once, runs DB migration, and starts Uvicorn on port `8010`
 - `start_frontend.cmd` installs frontend dependencies if `node_modules` is missing, then starts Next.js on port `3000`
+- `start_frontend_prod_fast.cmd` starts the frontend production server without running a build step, so it should be used only when the existing `.next` output is already present and trusted
 
 ### Developer runbook
 

@@ -37,11 +37,15 @@ Use `127.0.0.1`, not `localhost`, to match the verified local configuration.
 - [start_quantops_api.cmd](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/start_quantops_api.cmd)
 - [start_frontend.cmd](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/start_frontend.cmd)
 - [start_frontend_prod.cmd](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/start_frontend_prod.cmd)
+- [start_frontend_prod_fast.cmd](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/start_frontend_prod_fast.cmd)
+  - one-click fast frontend startup without a build step
 
 ### Important note on frontend production
 
 - [start_frontend_prod.cmd](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/start_frontend_prod.cmd) with `--skip-build` requires an existing `.next` build.
 - If `.next` does not exist, use the normal script without `--skip-build`.
+- [start_frontend_prod_fast.cmd](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/start_frontend_prod_fast.cmd) is the direct fast-start variant for the same idea: start the production server immediately and rely on the existing `.next` output.
+- Use it only when the frontend has already been built and you want the shortest one-click restart path.
 
 ## Stop Scripts
 
