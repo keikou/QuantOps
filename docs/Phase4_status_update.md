@@ -208,3 +208,60 @@ It now has both:
 The next step is architect re-judgment to determine whether the remaining blocker is
 only final lifecycle closure or whether another invariant is still missing.
 ```
+
+## Latest Architect Re-Judgment
+
+Latest verdict after the second proof packet:
+
+```text
+Phase4 = PARTIALLY COMPLETE, but now late-stage partial and very close to closure
+```
+
+Architect's exact remaining closure target:
+
+```text
+persisted governance outcome from cycle N
+-> deterministically changes next-cycle alpha eligibility / ranking / runtime reuse
+-> next-cycle portfolio inclusion and execution plan reflect that persisted state
+```
+
+Equivalent strict phrasing:
+
+```text
+if alpha A is rolled back / retired / reduced in cycle N,
+then in cycle N+1 the runtime overlay, portfolio inclusion,
+and execution plan must exclude or downweight A according to policy,
+without relying on ad hoc test injection
+```
+
+And the positive mirror:
+
+```text
+if alpha A remains approved / promoted after cycle N evidence,
+then cycle N+1 must reuse that persisted state and allow A
+to remain eligible for ranking, inclusion, and deployment
+```
+
+## Updated Hardest Gap
+
+The hardest remaining gap is now:
+
+```text
+lifecycle closure / next-cycle reuse / governance determinism
+```
+
+This means:
+
+- runtime linkage is no longer the hardest problem
+- governance reaction visibility is no longer the hardest problem
+- the remaining closure blocker is deterministic reuse of persisted lifecycle state in the next cycle
+
+## Phase4-CLOSE-3
+
+Architect-defined next invariant:
+
+```text
+governance outcome persisted in cycle N
+must deterministically control next-cycle alpha reuse / exclusion
+in ranking, portfolio inclusion, and execution planning
+```

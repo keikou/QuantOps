@@ -224,6 +224,16 @@ updated governance state
 -> next-cycle selection / deployment reuse
 ```
 
+Architect has now made that stricter:
+
+```text
+persisted governance outcome from cycle N
+-> deterministically changes next-cycle alpha eligibility / ranking / runtime reuse
+-> next-cycle portfolio inclusion and execution plan reflect that persisted state
+```
+
+This should now be treated as `Phase4-CLOSE-3`.
+
 ## Deliverables
 
 ### 1. Status packet for architect
@@ -255,7 +265,7 @@ Suggested file:
 1. inventory what is already implemented
 2. use architect judgment as the starting Definition of Done
 3. implement first proof tests for runtime-linkage and governance-state transitions
-4. re-ask architect for the next closure invariant
+4. prove `Phase4-CLOSE-3`
 5. add live verification script / completion memo when closure is confirmed
 
 ## Exit Condition
