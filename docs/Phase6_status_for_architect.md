@@ -179,6 +179,32 @@ Please re-judge Phase6 after the lifecycle / reconciliation proof packet:
 3. If yes, what exact invariant should be treated as `Phase6-CLOSE-3`?
 4. Has the hardest gap shifted from basic lifecycle persistence to reconciliation drift / incident closure?
 
+## Architect Re-Judgment After Close-2 Packet
+
+Latest architect judgment:
+
+```text
+Phase6 = still VERY EARLY / PARTIALLY COMPLETE
+Phase6-CLOSE-2 = satisfied
+```
+
+Architect-defined next invariant:
+
+```text
+reconciliation mismatch or live anomaly
+-> explicit incident / guard decision
+-> live trading suppression or safe containment
+```
+
+Stricter phrasing:
+
+```text
+if live order/fill/account truth does not reconcile,
+then the system must persist an explicit reconciliation event,
+raise a live incident or guard state,
+and prevent unsafe continued live execution until resolved or recovered
+```
+
 ## Likely Closure Definition
 
 Current working hypothesis:
