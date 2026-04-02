@@ -164,6 +164,7 @@ class OrchestrationService:
             'portfolio_gross_exposure': portfolio_summary['gross_exposure'],
             'total_equity': equity.get('total_equity', 0.0),
             'cash_balance': equity.get('cash_balance', 0.0),
+            'runtime_governance_linkage': signal_summary.get('runtime_governance_linkage'),
         })
         writer_metrics = {
             'run_id': result['run_id'],
@@ -328,6 +329,24 @@ class OrchestrationService:
             'top_symbol': max(signals, key=lambda x: x['score'])['symbol'] if signals else None,
             'avg_score': round(sum(float(s['score']) for s in signals) / max(len(signals), 1), 6),
         }
+        linked_signal = next(
+            (
+                signal for signal in signals
+                if bool((signal.get('metadata') or {}).get('runtime_alpha_linked'))
+            ),
+            None,
+        )
+        runtime_governance_linkage = None
+        if linked_signal:
+            metadata = linked_signal.get('metadata') or {}
+            runtime_governance_linkage = {
+                'symbol': linked_signal.get('symbol'),
+                'alpha_id': metadata.get('runtime_alpha_id'),
+                'model_id': metadata.get('runtime_model_id'),
+                'decision_source': metadata.get('runtime_decision_source'),
+                'governance_state': metadata.get('runtime_governance_state'),
+                'decision': metadata.get('runtime_alpha_action'),
+            }
         self._repo.create_alpha_signal_snapshot({
             'snapshot_id': new_cycle_id(),
             'created_at': created_at,
@@ -335,9 +354,18 @@ class OrchestrationService:
             'mode': mode,
             'signal_count': len(signals),
             'symbols_json': CONTAINER.runtime_store.to_json([s['symbol'] for s in signals]),
-            'summary_json': CONTAINER.runtime_store.to_json(summary),
+            'summary_json': CONTAINER.runtime_store.to_json(
+                {
+                    **summary,
+                    'runtime_governance_linkage': runtime_governance_linkage,
+                }
+            ),
         })
-        return {'signal_count': len(signals), 'signals': signals}
+        return {
+            'signal_count': len(signals),
+            'signals': signals,
+            'runtime_governance_linkage': runtime_governance_linkage,
+        }
 
     def _record_portfolio_runtime(self, result: dict, mode: str) -> dict:
         created_at = result['timestamp']

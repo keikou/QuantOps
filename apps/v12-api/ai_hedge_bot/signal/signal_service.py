@@ -16,11 +16,13 @@ class SignalService:
             """
             SELECT
                 p.alpha_id,
+                p.source_run_id,
                 reg.alpha_family,
                 reg.factor_type,
                 lib.state AS governance_state,
                 COALESCE(r.rank_score, 0.0) AS rank_score,
-                COALESCE(r.recommended_action, p.decision) AS recommended_action
+                COALESCE(r.recommended_action, p.decision) AS recommended_action,
+                mr.model_id
             FROM alpha_promotions p
             LEFT JOIN (
                 SELECT alpha_id, alpha_family, factor_type
@@ -63,6 +65,25 @@ class SignalService:
                 WHERE rn = 1
             ) r
                 ON r.alpha_id = p.alpha_id
+            LEFT JOIN (
+                SELECT experiment_id, model_id
+                FROM (
+                    SELECT
+                        experiment_id,
+                        model_id,
+                        created_at,
+                        ROW_NUMBER() OVER (PARTITION BY experiment_id ORDER BY created_at DESC) AS rn
+                    FROM model_registry
+                ) t
+                WHERE rn = 1
+            ) mr
+                ON mr.experiment_id = (
+                    SELECT experiment_id
+                    FROM experiment_tracker e
+                    WHERE e.alpha_id = p.alpha_id
+                    ORDER BY e.created_at DESC
+                    LIMIT 1
+                )
             WHERE lower(coalesce(p.decision, '')) = 'promote'
             ORDER BY p.created_at DESC
             LIMIT 1
@@ -93,6 +114,8 @@ class SignalService:
         boost = min(0.24, 0.08 + float(row.get("rank_score", 0.0) or 0.0) * 0.12)
         return {
             "alpha_id": alpha_id,
+            "model_id": str(row.get("model_id") or ""),
+            "decision_source": str(row.get("source_run_id") or ""),
             "preferred_symbol": preferred_symbol,
             "boost": boost,
             "recommended_action": str(row.get("recommended_action") or "promote"),
@@ -127,9 +150,15 @@ class SignalService:
                 metadata["runtime_alpha_linked"] = True
                 metadata["runtime_alpha_action"] = overlay["recommended_action"]
                 metadata["runtime_alpha_boost"] = round(float(overlay["boost"]), 6)
+                metadata["runtime_alpha_id"] = str(overlay["alpha_id"] or "")
+                metadata["runtime_model_id"] = str(overlay.get("model_id") or "")
+                metadata["runtime_decision_source"] = str(overlay.get("decision_source") or "")
+                metadata["runtime_governance_state"] = str(overlay.get("governance_state") or "")
             elif overlay:
                 metadata["runtime_alpha_linked"] = False
                 metadata["selected_runtime_alpha"] = str(overlay["alpha_id"] or "")
+                metadata["selected_runtime_model_id"] = str(overlay.get("model_id") or "")
+                metadata["selected_runtime_decision_source"] = str(overlay.get("decision_source") or "")
             score = round(max(0.05, min(0.95, raw_score)), 4)
             side = Side.LONG if math.sin(phase + idx) >= 0 else Side.SHORT
 

@@ -426,3 +426,359 @@ class Sprint5Repository:
         payload['status'] = 'ok'
         payload['as_of'] = quality.get('created_at')
         return payload
+
+    def execution_quality_by_mode(self) -> dict[str, Any]:
+        rows = self.store.fetchall_dict(
+            """
+            WITH latest_per_mode AS (
+                SELECT mode, MAX(created_at) AS latest_created_at
+                FROM execution_quality_snapshots
+                GROUP BY mode
+            )
+            SELECT q.snapshot_id, q.created_at, q.run_id, q.cycle_id, q.mode, q.order_count, q.fill_count, q.fill_rate,
+                   q.avg_slippage_bps, q.latency_ms_p50, q.latency_ms_p95
+            FROM execution_quality_snapshots q
+            INNER JOIN latest_per_mode lm
+                ON q.mode = lm.mode AND q.created_at = lm.latest_created_at
+            ORDER BY q.mode ASC
+            """
+        )
+        items: list[dict[str, Any]] = []
+        for row in rows:
+            mode = str(row.get('mode') or 'unknown')
+            run_id = row.get('run_id')
+            route_rows = self.store.fetchall_dict(
+                """
+                SELECT route
+                FROM execution_plans
+                WHERE run_id = ?
+                """,
+                [run_id],
+            )
+            route_mix: dict[str, int] = {}
+            for route_row in route_rows:
+                route_key = str(route_row.get('route') or 'unknown')
+                route_mix[route_key] = route_mix.get(route_key, 0) + 1
+            items.append(
+                {
+                    'snapshot_id': row.get('snapshot_id'),
+                    'created_at': row.get('created_at'),
+                    'as_of': row.get('created_at'),
+                    'run_id': run_id,
+                    'cycle_id': row.get('cycle_id'),
+                    'mode': mode,
+                    'order_count': int(row.get('order_count', 0) or 0),
+                    'fill_count': int(row.get('fill_count', 0) or 0),
+                    'fill_rate': float(row.get('fill_rate', 0.0) or 0.0),
+                    'avg_slippage_bps': float(row.get('avg_slippage_bps', 0.0) or 0.0),
+                    'latency_ms_p50': float(row.get('latency_ms_p50', 0.0) or 0.0),
+                    'latency_ms_p95': float(row.get('latency_ms_p95', 0.0) or 0.0),
+                    'route_mix': route_mix,
+                }
+            )
+        return {
+            'status': 'ok',
+            'items': items,
+            'mode_count': len(items),
+            'as_of': max((item.get('as_of') for item in items if item.get('as_of')), default=None),
+        }
+
+    def execution_latency_by_mode_route(self) -> dict[str, Any]:
+        rows = self.store.fetchall_dict(
+            """
+            WITH latest_per_mode AS (
+                SELECT mode, MAX(created_at) AS latest_created_at
+                FROM execution_quality_snapshots
+                GROUP BY mode
+            ),
+            latest_runs AS (
+                SELECT q.mode, q.run_id, q.cycle_id
+                FROM execution_quality_snapshots q
+                INNER JOIN latest_per_mode lm
+                    ON q.mode = lm.mode AND q.created_at = lm.latest_created_at
+            )
+            SELECT lr.mode,
+                   lr.run_id,
+                   lr.cycle_id,
+                   COALESCE(p.route, 'unknown') AS route,
+                   COUNT(*) AS fill_count,
+                   AVG(COALESCE(f.latency_ms, 0.0)) AS avg_latency_ms,
+                   MIN(COALESCE(f.latency_ms, 0.0)) AS latency_ms_p50,
+                   MAX(COALESCE(f.latency_ms, 0.0)) AS latency_ms_p95
+            FROM latest_runs lr
+            INNER JOIN execution_fills f
+                ON f.run_id = lr.run_id
+            LEFT JOIN execution_plans p
+                ON p.plan_id = f.plan_id
+            GROUP BY lr.mode, lr.run_id, lr.cycle_id, COALESCE(p.route, 'unknown')
+            ORDER BY lr.mode ASC, route ASC
+            """
+        )
+        items = [
+            {
+                'mode': str(row.get('mode') or 'unknown'),
+                'run_id': row.get('run_id'),
+                'cycle_id': row.get('cycle_id'),
+                'route': str(row.get('route') or 'unknown'),
+                'fill_count': int(row.get('fill_count', 0) or 0),
+                'avg_latency_ms': float(row.get('avg_latency_ms', 0.0) or 0.0),
+                'latency_ms_p50': float(row.get('latency_ms_p50', 0.0) or 0.0),
+                'latency_ms_p95': float(row.get('latency_ms_p95', 0.0) or 0.0),
+            }
+            for row in rows
+        ]
+        return {
+            'status': 'ok',
+            'items': items,
+            'row_count': len(items),
+            'as_of': max((item.get('run_id') for item in items if item.get('run_id')), default=None),
+        }
+
+    def latest_execution_pnl_linkage(self) -> dict[str, Any]:
+        quality = self.latest_execution_quality_summary()
+        overview = self.latest_portfolio_overview_summary()
+        overview_summary = dict(overview.get('summary') or {})
+        overview_snapshot = dict(overview.get('snapshot') or {})
+        quality_run_id = quality.get('run_id')
+        portfolio_run_id = overview_snapshot.get('run_id')
+        realized_pnl = float(overview_summary.get('realized_pnl', 0.0) or 0.0)
+        unrealized_pnl = float(overview_summary.get('unrealized_pnl', 0.0) or 0.0)
+        fees_paid = float(overview_summary.get('fees_paid', 0.0) or 0.0)
+        gross_pnl = realized_pnl + unrealized_pnl
+        net_pnl_after_fees = gross_pnl - fees_paid
+        return {
+            'status': 'ok',
+            'run_id': quality_run_id,
+            'cycle_id': quality.get('cycle_id'),
+            'mode': quality.get('mode'),
+            'execution_quality': {
+                'order_count': int(quality.get('order_count', 0) or 0),
+                'fill_count': int(quality.get('fill_count', 0) or 0),
+                'fill_rate': float(quality.get('fill_rate', 0.0) or 0.0),
+                'avg_slippage_bps': float(quality.get('avg_slippage_bps', 0.0) or 0.0),
+                'latency_ms_p50': float(quality.get('latency_ms_p50', 0.0) or 0.0),
+                'latency_ms_p95': float(quality.get('latency_ms_p95', 0.0) or 0.0),
+            },
+            'portfolio_pnl': {
+                'portfolio_run_id': portfolio_run_id,
+                'total_equity': float(overview_summary.get('total_equity', 0.0) or 0.0),
+                'realized_pnl': realized_pnl,
+                'unrealized_pnl': unrealized_pnl,
+                'gross_pnl': gross_pnl,
+                'fees_paid': fees_paid,
+                'net_pnl_after_fees': net_pnl_after_fees,
+                'drawdown': float(overview_summary.get('drawdown', 0.0) or 0.0),
+            },
+            'linkage': {
+                'portfolio_snapshot_run_id': portfolio_run_id,
+                'run_id_match': bool(quality_run_id and portfolio_run_id and quality_run_id == portfolio_run_id),
+                'has_execution_quality': bool(quality.get('run_id') or quality.get('as_of')),
+                'has_portfolio_pnl': bool(overview_summary),
+            },
+            'as_of': quality.get('as_of') or overview.get('as_of'),
+        }
+
+    def latest_execution_drag_breakdown(self) -> dict[str, Any]:
+        row = self.store.fetchone_dict(
+            """
+            SELECT run_id, created_at, gross_alpha_pnl_usd, net_shadow_pnl_usd,
+                   execution_drag_usd, slippage_drag_usd, fee_drag_usd, latency_drag_usd
+            FROM shadow_pnl_snapshots
+            ORDER BY created_at DESC
+            LIMIT 1
+            """
+        ) or {}
+        quality = self.latest_execution_quality_summary()
+        if not row:
+            return {
+                'status': 'ok',
+                'run_id': quality.get('run_id'),
+                'mode': quality.get('mode'),
+                'drag': {
+                    'gross_alpha_pnl_usd': 0.0,
+                    'net_shadow_pnl_usd': 0.0,
+                    'execution_drag_usd': 0.0,
+                    'slippage_drag_usd': 0.0,
+                    'fee_drag_usd': 0.0,
+                    'latency_drag_usd': 0.0,
+                    'component_sum_usd': 0.0,
+                },
+                'linkage': {
+                    'quality_run_id': quality.get('run_id'),
+                    'drag_run_id': None,
+                    'run_id_match': False,
+                },
+                'as_of': quality.get('as_of'),
+            }
+        gross_alpha_pnl = float(row.get('gross_alpha_pnl_usd', 0.0) or 0.0)
+        net_shadow_pnl = float(row.get('net_shadow_pnl_usd', 0.0) or 0.0)
+        execution_drag = float(row.get('execution_drag_usd', 0.0) or 0.0)
+        slippage_drag = float(row.get('slippage_drag_usd', 0.0) or 0.0)
+        fee_drag = float(row.get('fee_drag_usd', 0.0) or 0.0)
+        latency_drag = float(row.get('latency_drag_usd', 0.0) or 0.0)
+        component_sum = slippage_drag + fee_drag + latency_drag
+        return {
+            'status': 'ok',
+            'run_id': row.get('run_id'),
+            'mode': quality.get('mode'),
+            'drag': {
+                'gross_alpha_pnl_usd': gross_alpha_pnl,
+                'net_shadow_pnl_usd': net_shadow_pnl,
+                'execution_drag_usd': execution_drag,
+                'slippage_drag_usd': slippage_drag,
+                'fee_drag_usd': fee_drag,
+                'latency_drag_usd': latency_drag,
+                'component_sum_usd': component_sum,
+            },
+            'linkage': {
+                'quality_run_id': quality.get('run_id'),
+                'drag_run_id': row.get('run_id'),
+                'run_id_match': bool(quality.get('run_id') and quality.get('run_id') == row.get('run_id')),
+            },
+            'as_of': row.get('created_at') or quality.get('as_of'),
+        }
+
+    def latest_execution_symbol_leakage(self) -> dict[str, Any]:
+        drag_payload = self.latest_execution_drag_breakdown()
+        drag = dict(drag_payload.get('drag') or {})
+        run_id = drag_payload.get('run_id')
+        mode = drag_payload.get('mode')
+        fills = self.store.fetchall_dict(
+            """
+            SELECT symbol, fill_qty, fill_price, slippage_bps, latency_ms, fee_bps
+            FROM execution_fills
+            WHERE run_id = ?
+            ORDER BY symbol ASC
+            """,
+            [run_id],
+        ) if run_id else []
+        symbol_rows: dict[str, dict[str, Any]] = {}
+        total_notional = 0.0
+        for fill in fills:
+            symbol = str(fill.get('symbol') or 'unknown')
+            fill_qty = abs(float(fill.get('fill_qty', 0.0) or 0.0))
+            fill_price = float(fill.get('fill_price', 0.0) or 0.0)
+            notional = fill_qty * fill_price
+            total_notional += notional
+            row = symbol_rows.setdefault(
+                symbol,
+                {
+                    'symbol': symbol,
+                    'fill_count': 0,
+                    'gross_notional_usd': 0.0,
+                    'avg_slippage_bps': 0.0,
+                    'avg_latency_ms': 0.0,
+                    'avg_fee_bps': 0.0,
+                },
+            )
+            row['fill_count'] += 1
+            row['gross_notional_usd'] += notional
+            row['avg_slippage_bps'] += float(fill.get('slippage_bps', 0.0) or 0.0)
+            row['avg_latency_ms'] += float(fill.get('latency_ms', 0.0) or 0.0)
+            row['avg_fee_bps'] += float(fill.get('fee_bps', 0.0) or 0.0)
+        items: list[dict[str, Any]] = []
+        total_slippage_drag = float(drag.get('slippage_drag_usd', 0.0) or 0.0)
+        total_fee_drag = float(drag.get('fee_drag_usd', 0.0) or 0.0)
+        total_latency_drag = float(drag.get('latency_drag_usd', 0.0) or 0.0)
+        total_execution_drag = float(drag.get('execution_drag_usd', 0.0) or 0.0)
+        for symbol in sorted(symbol_rows):
+            row = symbol_rows[symbol]
+            fill_count = max(int(row['fill_count']), 1)
+            row['avg_slippage_bps'] = float(row['avg_slippage_bps']) / fill_count
+            row['avg_latency_ms'] = float(row['avg_latency_ms']) / fill_count
+            row['avg_fee_bps'] = float(row['avg_fee_bps']) / fill_count
+            share = (float(row['gross_notional_usd']) / total_notional) if total_notional > 1e-9 else 0.0
+            row['notional_share'] = share
+            row['slippage_drag_usd'] = total_slippage_drag * share
+            row['fee_drag_usd'] = total_fee_drag * share
+            row['latency_drag_usd'] = total_latency_drag * share
+            row['execution_drag_usd'] = total_execution_drag * share
+            items.append(row)
+        return {
+            'status': 'ok',
+            'run_id': run_id,
+            'mode': mode,
+            'items': items,
+            'totals': {
+                'gross_notional_usd': total_notional,
+                'slippage_drag_usd': total_slippage_drag,
+                'fee_drag_usd': total_fee_drag,
+                'latency_drag_usd': total_latency_drag,
+                'execution_drag_usd': total_execution_drag,
+            },
+            'as_of': drag_payload.get('as_of'),
+        }
+
+    def latest_execution_route_leakage(self) -> dict[str, Any]:
+        drag_payload = self.latest_execution_drag_breakdown()
+        drag = dict(drag_payload.get('drag') or {})
+        run_id = drag_payload.get('run_id')
+        mode = drag_payload.get('mode')
+        fills = self.store.fetchall_dict(
+            """
+            SELECT f.symbol, f.fill_qty, f.fill_price, f.slippage_bps, f.latency_ms, f.fee_bps,
+                   COALESCE(p.route, 'unknown') AS route
+            FROM execution_fills f
+            LEFT JOIN execution_plans p
+                ON p.plan_id = f.plan_id
+            WHERE f.run_id = ?
+            ORDER BY route ASC, f.symbol ASC
+            """,
+            [run_id],
+        ) if run_id else []
+        route_rows: dict[str, dict[str, Any]] = {}
+        total_notional = 0.0
+        for fill in fills:
+            route = str(fill.get('route') or 'unknown')
+            fill_qty = abs(float(fill.get('fill_qty', 0.0) or 0.0))
+            fill_price = float(fill.get('fill_price', 0.0) or 0.0)
+            notional = fill_qty * fill_price
+            total_notional += notional
+            row = route_rows.setdefault(
+                route,
+                {
+                    'route': route,
+                    'fill_count': 0,
+                    'gross_notional_usd': 0.0,
+                    'avg_slippage_bps': 0.0,
+                    'avg_latency_ms': 0.0,
+                    'avg_fee_bps': 0.0,
+                },
+            )
+            row['fill_count'] += 1
+            row['gross_notional_usd'] += notional
+            row['avg_slippage_bps'] += float(fill.get('slippage_bps', 0.0) or 0.0)
+            row['avg_latency_ms'] += float(fill.get('latency_ms', 0.0) or 0.0)
+            row['avg_fee_bps'] += float(fill.get('fee_bps', 0.0) or 0.0)
+        items: list[dict[str, Any]] = []
+        total_slippage_drag = float(drag.get('slippage_drag_usd', 0.0) or 0.0)
+        total_fee_drag = float(drag.get('fee_drag_usd', 0.0) or 0.0)
+        total_latency_drag = float(drag.get('latency_drag_usd', 0.0) or 0.0)
+        total_execution_drag = float(drag.get('execution_drag_usd', 0.0) or 0.0)
+        for route in sorted(route_rows):
+            row = route_rows[route]
+            fill_count = max(int(row['fill_count']), 1)
+            row['avg_slippage_bps'] = float(row['avg_slippage_bps']) / fill_count
+            row['avg_latency_ms'] = float(row['avg_latency_ms']) / fill_count
+            row['avg_fee_bps'] = float(row['avg_fee_bps']) / fill_count
+            share = (float(row['gross_notional_usd']) / total_notional) if total_notional > 1e-9 else 0.0
+            row['notional_share'] = share
+            row['slippage_drag_usd'] = total_slippage_drag * share
+            row['fee_drag_usd'] = total_fee_drag * share
+            row['latency_drag_usd'] = total_latency_drag * share
+            row['execution_drag_usd'] = total_execution_drag * share
+            items.append(row)
+        return {
+            'status': 'ok',
+            'run_id': run_id,
+            'mode': mode,
+            'items': items,
+            'totals': {
+                'gross_notional_usd': total_notional,
+                'slippage_drag_usd': total_slippage_drag,
+                'fee_drag_usd': total_fee_drag,
+                'latency_drag_usd': total_latency_drag,
+                'execution_drag_usd': total_execution_drag,
+            },
+            'as_of': drag_payload.get('as_of'),
+        }

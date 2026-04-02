@@ -365,6 +365,36 @@ def execution_quality_latest_summary() -> dict:
     return _get_execution_quality_latest_summary()
 
 
+@router.get('/quality/by-mode')
+def execution_quality_by_mode() -> dict:
+    return _repo.execution_quality_by_mode()
+
+
+@router.get('/quality/latency-by-mode-route')
+def execution_latency_by_mode_route() -> dict:
+    return _repo.execution_latency_by_mode_route()
+
+
+@router.get('/quality/pnl-linkage/latest')
+def execution_quality_pnl_linkage_latest() -> dict:
+    return _repo.latest_execution_pnl_linkage()
+
+
+@router.get('/quality/drag-breakdown/latest')
+def execution_quality_drag_breakdown_latest() -> dict:
+    return _repo.latest_execution_drag_breakdown()
+
+
+@router.get('/quality/symbol-leakage/latest')
+def execution_quality_symbol_leakage_latest() -> dict:
+    return _repo.latest_execution_symbol_leakage()
+
+
+@router.get('/quality/route-leakage/latest')
+def execution_quality_route_leakage_latest() -> dict:
+    return _repo.latest_execution_route_leakage()
+
+
 @router.get('/fills')
 def execution_fills(limit: int = 100) -> dict:
     items = _repo.store.fetchall_dict(

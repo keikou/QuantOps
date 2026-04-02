@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import hashlib
+import json
+import subprocess
 from time import perf_counter
 
 from ai_hedge_bot.app.container import CONTAINER
@@ -7,6 +10,9 @@ from ai_hedge_bot.contracts.reason_codes import EXECUTION_DISABLED, build_reason
 from ai_hedge_bot.contracts.runtime_events import CYCLE_COMPLETED, CYCLE_FAILED, CYCLE_STARTED, build_runtime_event
 from ai_hedge_bot.core.clock import utc_now_iso
 from ai_hedge_bot.core.ids import new_cycle_id
+from ai_hedge_bot.core.mode import RuntimeMode
+from ai_hedge_bot.core.mode_rules import build_default_policy
+from ai_hedge_bot.core.settings import SETTINGS
 from ai_hedge_bot.execution.state_machine import ExecutionStateInput, classify_execution_state
 from ai_hedge_bot.orchestrator.orchestration_service import OrchestrationService
 from ai_hedge_bot.repositories.audit_repository import AuditRepository
@@ -170,6 +176,27 @@ class RuntimeService:
         )
         return {**state, "cancelled_open_orders": cancelled_orders}
 
+    def pause_trading(self, note: str = "Runtime paused", actor: str = "system") -> dict:
+        state = self.set_trading_state("paused", note)
+        cancelled_orders = self.cancel_open_execution_orders("paused")
+        self._append_execution_halt_snapshot("paused", note, cancelled_orders)
+        self.audit_repo.create_log(
+            {
+                "audit_id": new_cycle_id(),
+                "category": "runtime",
+                "event_type": "pause",
+                "run_id": None,
+                "created_at": state["as_of"],
+                "payload_json": CONTAINER.runtime_store.to_json({
+                    "trading_state": "paused",
+                    "note": note,
+                    "cancelled_open_orders": cancelled_orders,
+                }),
+                "actor": actor,
+            }
+        )
+        return {**state, "cancelled_open_orders": cancelled_orders}
+
     def resume_trading(self, note: str = "Runtime resumed", actor: str = "system") -> dict:
         state = self.set_trading_state("running", note)
         self.audit_repo.create_log(
@@ -187,6 +214,75 @@ class RuntimeService:
             }
         )
         return state
+
+    def _effective_config_snapshot(self, mode: str) -> dict:
+        runtime_mode = RuntimeMode.parse(mode)
+        app_config = CONTAINER.config
+        mode_policy = build_default_policy(runtime_mode).to_dict()
+        truth_price_runtime = self.orchestrator._truth.price_runtime_config()
+        snapshot = {
+            "mode": runtime_mode.value,
+            "app_config": {
+                "mode": app_config.mode.value,
+                "runtime_dir": str(app_config.runtime_dir),
+                "data_db_path": str(app_config.data_db_path),
+                "symbols": list(app_config.symbols),
+            },
+            "settings": {
+                "timeframe": SETTINGS.timeframe,
+                "max_gross_exposure": SETTINGS.max_gross_exposure,
+                "max_symbol_weight": SETTINGS.max_symbol_weight,
+                "family_weight_cap": SETTINGS.family_weight_cap,
+                "panic_gross_exposure": SETTINGS.panic_gross_exposure,
+                "panic_symbol_weight": SETTINGS.panic_symbol_weight,
+                "use_live_market_data": SETTINGS.use_live_market_data,
+                "price_source": SETTINGS.price_source,
+                "allow_synthetic_quote_fallback": SETTINGS.allow_synthetic_quote_fallback,
+                "strict_live_quotes": SETTINGS.strict_live_quotes,
+                "quote_timeout_sec": SETTINGS.quote_timeout_sec,
+                "expected_return_scale": SETTINGS.expected_return_scale,
+                "expected_return_cap": SETTINGS.expected_return_cap,
+                "risk_aversion": SETTINGS.risk_aversion,
+                "turnover_cost_bps": SETTINGS.turnover_cost_bps,
+            },
+            "mode_policy": mode_policy,
+            "truth_price_runtime": truth_price_runtime,
+        }
+        canonical = json.dumps(snapshot, sort_keys=True, ensure_ascii=False, separators=(",", ":"))
+        return {
+            "fingerprint": hashlib.sha256(canonical.encode("utf-8")).hexdigest(),
+            "snapshot": snapshot,
+        }
+
+    def _deploy_provenance(self) -> dict:
+        def _git(args: list[str]) -> str:
+            try:
+                completed = subprocess.run(
+                    ["git", *args],
+                    cwd=str(CONTAINER.config.runtime_dir.parent),
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                )
+                return completed.stdout.strip()
+            except Exception:
+                return ""
+
+        commit_sha = _git(["rev-parse", "HEAD"])
+        branch = _git(["branch", "--show-current"])
+        status_output = _git(["status", "--porcelain"])
+        dirty = bool(status_output.strip())
+        snapshot = {
+            "commit_sha": commit_sha,
+            "branch": branch,
+            "dirty": dirty,
+            "app_version": "0.12.0-phaseh-sprint5-integrated",
+        }
+        canonical = json.dumps(snapshot, sort_keys=True, ensure_ascii=False, separators=(",", ":"))
+        return {
+            "fingerprint": hashlib.sha256(canonical.encode("utf-8")).hexdigest(),
+            "snapshot": snapshot,
+        }
 
     def run_once(self, mode: str | None = None, job_name: str = "runtime_run_once", triggered_by: str = "api") -> dict:
         self.seed_defaults()
@@ -229,6 +325,8 @@ class RuntimeService:
                 "as_of": as_of,
             }
         effective_mode = mode or CONTAINER.mode.value
+        config_provenance = self._effective_config_snapshot(effective_mode)
+        deploy_provenance = self._deploy_provenance()
         ctx = RunContext(job_name=job_name, mode=effective_mode, triggered_by=triggered_by)
         cycle_id = new_cycle_id()
         self.runtime_repo.create_run(
@@ -252,7 +350,14 @@ class RuntimeService:
                 "event_type": "run_started",
                 "run_id": ctx.run_id,
                 "created_at": ctx.started_at,
-                "payload_json": CONTAINER.runtime_store.to_json({"job_name": ctx.job_name, "mode": ctx.mode}),
+                "payload_json": CONTAINER.runtime_store.to_json(
+                    {
+                        "job_name": ctx.job_name,
+                        "mode": ctx.mode,
+                        "config_provenance": config_provenance,
+                        "deploy_provenance": deploy_provenance,
+                    }
+                ),
                 "actor": triggered_by,
             }
         )
@@ -294,7 +399,13 @@ class RuntimeService:
                 "run_id": ctx.run_id,
                 "checkpoint_name": "latest_orchestrator_run",
                 "created_at": utc_now_iso(),
-                "payload_json": CONTAINER.runtime_store.to_json(result),
+                "payload_json": CONTAINER.runtime_store.to_json(
+                    {
+                        **result,
+                        "config_provenance": config_provenance,
+                        "deploy_provenance": deploy_provenance,
+                    }
+                ),
             }
             self.runtime_repo.create_checkpoint(checkpoint_payload)
             self.audit_repo.create_log(
@@ -337,7 +448,14 @@ class RuntimeService:
                     timestamp=finished_at,
                 )
             )
-            return {"status": "ok", "run_id": ctx.run_id, "mode": ctx.mode, "result": result}
+            return {
+                "status": "ok",
+                "run_id": ctx.run_id,
+                "mode": ctx.mode,
+                "result": result,
+                "config_provenance": config_provenance,
+                "deploy_provenance": deploy_provenance,
+            }
         except Exception as exc:
             finished_at = utc_now_iso()
             duration_ms = int((perf_counter() - ctx.started_perf) * 1000)

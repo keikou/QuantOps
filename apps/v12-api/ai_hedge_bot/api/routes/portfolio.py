@@ -11,6 +11,7 @@ from ai_hedge_bot.core.clock import utc_now_iso
 from ai_hedge_bot.core.ids import new_cycle_id, new_signal_id
 from ai_hedge_bot.repositories.sprint5_repository import Sprint5Repository
 from ai_hedge_bot.api.routes.execution import _get_execution_quality_latest_summary
+from ai_hedge_bot.services.portfolio_intelligence_service import PortfolioIntelligenceService
 
 router = APIRouter(prefix='/portfolio', tags=['portfolio'])
 _signal_service = SignalService()
@@ -18,6 +19,7 @@ _portfolio_service = PhaseGPortfolioService()
 _decision_logger = JsonlLogger(CONTAINER.runtime_dir / 'logs' / 'portfolio_weights.jsonl')
 _diag_logger = JsonlLogger(CONTAINER.runtime_dir / 'logs' / 'portfolio_diagnostics.jsonl')
 _repo = Sprint5Repository()
+_portfolio_intelligence = PortfolioIntelligenceService()
 PORTFOLIO_EQUITY_HISTORY_CACHE_TTL_SECONDS = 5.0
 _equity_history_cache: dict[tuple[int], dict[str, object]] = {}
 PORTFOLIO_METRICS_CACHE_TTL_SECONDS = 5.0
@@ -325,6 +327,31 @@ def portfolio_positions_latest() -> dict:
     _portfolio_positions_cache['expires_at'] = now + timedelta(seconds=PORTFOLIO_POSITIONS_CACHE_TTL_SECONDS)
     _portfolio_positions_cache['payload'] = dict(built)
     return built
+
+
+@router.get('/intelligence/execution-aware-capital/latest')
+def portfolio_execution_aware_capital_allocation_latest() -> dict:
+    return _portfolio_intelligence.execution_aware_capital_allocation_latest()
+
+
+@router.get('/intelligence/exposure-shaping/latest')
+def portfolio_execution_aware_exposure_shaping_latest() -> dict:
+    return _portfolio_intelligence.execution_aware_exposure_shaping_latest()
+
+
+@router.get('/intelligence/allocation-stability/latest')
+def portfolio_allocation_stability_latest() -> dict:
+    return _portfolio_intelligence.allocation_stability_latest()
+
+
+@router.get('/intelligence/allocation-tradeoff/latest')
+def portfolio_allocation_tradeoff_resolution_latest() -> dict:
+    return _portfolio_intelligence.allocation_tradeoff_resolution_latest()
+
+
+@router.get('/intelligence/allocation-outcome-effectiveness/latest')
+def portfolio_allocation_outcome_effectiveness_latest() -> dict:
+    return _portfolio_intelligence.allocation_outcome_effectiveness_latest()
 
 
 @router.get('/equity-history')
