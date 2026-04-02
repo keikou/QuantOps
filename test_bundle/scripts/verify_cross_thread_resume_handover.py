@@ -16,9 +16,10 @@ def main() -> None:
     else:
         text = DOC.read_text(encoding="utf-8")
         for needle in [
-            "666f68a",
+            "1ea1efc",
             "Roadmapと進捗管理2",
-            "System-Level Learning / Feedback Integration",
+            "SLLFI-05",
+            "SLLFI_checkpoint_resume_memo_2026-04-02.md",
             "What To Tell Codex In A New Thread",
             "What To Tell Architect In A New Chat",
             "One-Day-Later Resume Flow",

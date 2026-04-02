@@ -4,7 +4,7 @@ Date: `2026-04-02`
 Repo: `QuantOps_github`
 Branch: `codex/post-phase7-hardening`
 Track: `system_level_learning_feedback_integration_v1`
-Status: `active`
+Status: `checkpoint_formalization_active`
 
 ## Purpose
 
@@ -30,12 +30,12 @@ That means:
 
 Current top task:
 
-- start `System-Level Learning / Feedback Integration`
+- freeze and hand off `System-Level Learning / Feedback Integration v1`
 
 Current architect-selected candidate:
 
 - `System-Level Learning / Feedback Integration`
-- current next packet = `Packet 01`
+- current packet = `checkpoint formalization after Packet 05`
 - current dependency 1 = `Research / Promotion Intelligence v1 checkpoint through RPI-06`
 - current dependency 2 = `Alpha / Strategy Selection Intelligence v1 checkpoint through ASI-05`
 - current dependency 3 = `Portfolio Intelligence v1 checkpoint through PI-05`
@@ -44,38 +44,35 @@ Current architect-selected candidate:
 
 ## Why This Is The Active Task
 
-Architect now treats `Execution Reality v1` as completed enough for checkpoint/baseline/report.
+Architect now treats `SLLFI v1` as completed enough for checkpoint/freeze/report.
 
 So the next question is no longer:
 
-- "can we measure execution well enough?"
-- "can runtime control resolve conflicts well enough?"
+- "what is the narrow next SLLFI packet?"
 
 The next question is:
 
-- "how should the system learn across already completed first-checkpoint layers?"
-- "how should execution and control outcomes feed back into future allocation and selection?"
-- "how should promotion and governed-state outcomes influence future behavior?"
-- "what is the narrow first invariant for System-Level Learning / Feedback Integration?"
+- "how should SLLFI v1 be formalized and reported?"
+- "what lane should start after SLLFI v1?"
 
 ## Next Candidate Options
 
-1. `Governance -> Runtime Control`
+1. `System-Level Learning / Feedback Integration`
+   - now treated as checkpoint-complete through Packet 05
+2. `Research / Promotion Intelligence`
    - now treated as completed enough for first checkpoint and handoff
-2. `Execution Reality`
+3. `Alpha / Strategy Selection Intelligence`
+   - now treated as completed enough for first checkpoint and handoff
+4. `Portfolio Intelligence`
+   - now treated as completed enough for first checkpoint and handoff
+5. `Governance -> Runtime Control`
+   - now treated as completed enough for first checkpoint and handoff
+6. `Execution Reality`
    - now treated as checkpointed baseline, not active lane
-3. `Portfolio Intelligence`
-   - now treated as completed enough for first checkpoint and handoff
-4. `Alpha / Strategy Selection Intelligence`
-   - now treated as completed enough for first checkpoint and handoff
-5. `Research / Promotion Intelligence`
-   - now treated as completed enough for first checkpoint and handoff
-6. `System-Level Learning / Feedback Integration`
-   - now the current first choice
 
 ## Current Recommendation
 
-Use `System-Level Learning / Feedback Integration` as the current active lane.
+Use `SLLFI v1 checkpoint formalization / upward report / lane switch prep` as the current active task.
 
 ## Explicit Non-Tasks
 
@@ -85,29 +82,44 @@ These are not current tasks:
 - creating another acceptance-only lane
 - re-packaging resume docs again
 - reopening `Phase1` to `Phase7` closure work
-- deepening `Execution Reality` before alpha selection begins consuming existing downstream evidence
-- deepening `Governance -> Runtime Control` before alpha selection consumes it
-- deepening `Portfolio Intelligence` before alpha selection begins
-- deepening `Alpha / Strategy Selection Intelligence` before research/promotion consumes it
-- deepening `Research / Promotion Intelligence` before the new learning lane starts
+- deepening `Execution Reality`
+- deepening `Governance -> Runtime Control`
+- deepening `Portfolio Intelligence`
+- deepening `Alpha / Strategy Selection Intelligence`
+- deepening `Research / Promotion Intelligence`
+- implementing `SLLFI-06` before architect asks for another packet
 
 ## Inputs To Read Before Acting
 
 1. `../00_index/README.md`
 2. `../Cross_thread_resume_handover_2026-04-02.md`
-3. `../System_learning_resume_memo_2026-04-02.md`
-4. `../Auto_resume_handover_2026-04-02.md`
+3. `../SLLFI_checkpoint_resume_memo_2026-04-02.md`
+4. `../System_learning_resume_memo_2026-04-02.md`
+5. `../Auto_resume_handover_2026-04-02.md`
 
 ## Expected Output Of The Next Task
 
-The current lane should begin with:
+The current lane follow-up should produce:
 
-- one plan doc
-- one verifier script
-- one narrow first invariant or learning target
+- one checkpoint formalization doc
+- one upward report doc
+- one next-lane handoff or architect briefing doc
+
+Current lane output:
+
+- `docs/System_level_learning_feedback_integration_packet01_plan.md`
+- `test_bundle/scripts/verify_system_level_learning_feedback_integration_packet01.py`
+- `docs/System_level_learning_feedback_integration_packet02_policy_updates_plan.md`
+- `test_bundle/scripts/verify_system_level_learning_feedback_integration_packet02_policy_updates.py`
+- `docs/System_level_learning_feedback_integration_packet03_persisted_policy_state_plan.md`
+- `test_bundle/scripts/verify_system_level_learning_feedback_integration_packet03_persisted_policy_state.py`
+- `docs/System_level_learning_feedback_integration_packet04_resolved_overrides_plan.md`
+- `test_bundle/scripts/verify_system_level_learning_feedback_integration_packet04_resolved_overrides.py`
+- `docs/System_level_learning_feedback_integration_packet05_applied_override_consumption_plan.md`
+- `test_bundle/scripts/verify_system_level_learning_feedback_integration_packet05_applied_override_consumption.py`
 
 ## Single-Block Resume Note
 
 ```text
-Current task is not another hardening packet, not another Execution Reality packet, not another Governance -> Runtime Control packet, not another Portfolio Intelligence packet, not another Alpha / Strategy Selection Intelligence packet, and not another Research / Promotion Intelligence packet. Current task is System-Level Learning / Feedback Integration Packet 01.
+Current task is not another hardening packet, not another Execution Reality packet, not another Governance -> Runtime Control packet, not another Portfolio Intelligence packet, not another Alpha / Strategy Selection Intelligence packet, not another Research / Promotion Intelligence packet, and not another active SLLFI packet. Current task is SLLFI v1 checkpoint formalization, upward report, and next-lane handoff after Packet 05.
 ```

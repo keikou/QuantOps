@@ -9,6 +9,9 @@ from ai_hedge_bot.services.hardening_status_service import HardeningStatusServic
 from ai_hedge_bot.services.operator_diagnostic_bundle_service import OperatorDiagnosticBundleService
 from ai_hedge_bot.services.recovery_replay_diagnostic_bundle_service import RecoveryReplayDiagnosticBundleService
 from ai_hedge_bot.services.resume_operator_packet_service import ResumeOperatorPacketService
+from ai_hedge_bot.services.system_level_learning_feedback_integration_service import (
+    SystemLevelLearningFeedbackIntegrationService,
+)
 
 router = APIRouter(tags=['system'])
 _hardening_architect_handoff = HardeningArchitectHandoffService()
@@ -18,6 +21,7 @@ _hardening_status = HardeningStatusService()
 _operator_bundle = OperatorDiagnosticBundleService()
 _recovery_replay_bundle = RecoveryReplayDiagnosticBundleService()
 _resume_operator_packet = ResumeOperatorPacketService()
+_system_learning_feedback = SystemLevelLearningFeedbackIntegrationService()
 
 
 def _payload() -> dict:
@@ -86,3 +90,28 @@ def operator_diagnostic_bundle() -> dict:
 @router.get('/system/recovery-replay-diagnostic-bundle')
 def recovery_replay_diagnostic_bundle() -> dict:
     return _recovery_replay_bundle.build()
+
+
+@router.get('/system/learning-feedback/latest')
+def system_learning_feedback_latest(limit: int = 20) -> dict:
+    return _system_learning_feedback.latest(limit=limit)
+
+
+@router.get('/system/learning-policy-updates/latest')
+def system_learning_policy_updates_latest(limit: int = 20) -> dict:
+    return _system_learning_feedback.policy_updates_latest(limit=limit)
+
+
+@router.get('/system/learning-policy-state/latest')
+def system_learning_policy_state_latest(limit: int = 20) -> dict:
+    return _system_learning_feedback.persisted_policy_state_latest(limit=limit)
+
+
+@router.get('/system/learning-resolved-overrides/latest')
+def system_learning_resolved_overrides_latest(limit: int = 20) -> dict:
+    return _system_learning_feedback.resolved_overrides_latest(limit=limit)
+
+
+@router.get('/system/learning-applied-consumption/latest')
+def system_learning_applied_consumption_latest(limit: int = 20) -> dict:
+    return _system_learning_feedback.applied_override_consumption_latest(limit=limit)

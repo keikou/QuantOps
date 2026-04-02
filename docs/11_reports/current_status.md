@@ -18,7 +18,9 @@ The repo currently stands in this state:
 - `Portfolio Intelligence` has reached a first completed checkpoint through Packet PI-05
 - `Alpha / Strategy Selection Intelligence` has reached a first completed checkpoint through Packet ASI-05
 - `Research / Promotion Intelligence` has reached a first completed checkpoint through Packet RPI-06
-- next architect-aligned lane is `System-Level Learning / Feedback Integration`
+- `System-Level Learning / Feedback Integration` has reached a first completed checkpoint through Packet SLLFI-05
+- latest pushed commit is `1ea1efc`
+- current local worktree contains uncommitted `SLLFI` changes
 
 ## Current Reports To Trust First
 
@@ -37,8 +39,11 @@ The repo currently stands in this state:
 13. `../Alpha_strategy_selection_intelligence_upward_report_2026-04-02.md`
 14. `../Research_promotion_intelligence_lane_status_review_2026-04-02.md`
 15. `../Research_promotion_intelligence_architect_status_update_2026-04-02.md`
-16. `../System_learning_resume_memo_2026-04-02.md`
-17. `../Cross_thread_resume_handover_2026-04-02.md`
+16. `../System_level_learning_feedback_integration_lane_status_review_2026-04-02.md`
+17. `../System_level_learning_feedback_integration_architect_status_update_2026-04-02.md`
+18. `../SLLFI_checkpoint_resume_memo_2026-04-02.md`
+19. `../System_learning_resume_memo_2026-04-02.md`
+20. `../Cross_thread_resume_handover_2026-04-02.md`
 
 ## Meaning
 
@@ -47,6 +52,7 @@ The current reporting state no longer says:
 - hardening is just starting
 - cross-phase acceptance is still pending
 - runtime-to-governance linkage is the unresolved primary gap
+- `SLLFI` is still an active packet-implementation lane
 
 The current reporting state now says:
 
@@ -62,6 +68,14 @@ The current reporting state now says:
 - `portfolio actions are now evaluable against realized next-run effectiveness`
 - `alpha selection can now begin consuming downstream execution/control/portfolio evidence`
 - `research and promotion decisions can now be persisted into governed state transitions`
+- `cross-layer learning feedback can now summarize portfolio outcome, selection pressure, and governed state transitions`
+- `learning feedback can now be converted into deterministic next-cycle policy updates`
+- `next-cycle policy updates can now be persisted as explicit policy state`
+- `persisted policy state can now be resolved into explicit next-cycle overrides`
+- `resolved overrides can now be shown as next-cycle consumed behavior`
+- `System-Level Learning / Feedback Integration` now has a first applied-consumption checkpoint through Packet 05
+- architect now treats `System-Level Learning / Feedback Integration v1` as checkpoint-complete
+- current next work is checkpoint formalization, upward report, and next-lane handoff
 
 ## Current Decision Summary
 
@@ -69,67 +83,26 @@ Architect re-alignment now supports:
 
 - completed hardening slice
 - no further acceptance-only lane by default
-- next lane selection beyond hardening/resume
-- active control shaping from execution evidence
 - completed first checkpoints through research/promotion persistence
-- next lane switch to `System-Level Learning / Feedback Integration`
+- completed first checkpoint through system-level learning consumption
+- current work shifting from packet implementation to checkpoint formalization and lane switch prep
 
 ## Default Next Candidate
 
-- `System-Level Learning / Feedback Integration`
+- `SLLFI checkpoint formalization / upward report / next-lane handoff`
 
-## Current Execution Reality Checkpoint
+## Current System-Level Learning / Feedback Integration Checkpoint
 
-- `Packet 01-10 defined and verified`
-- `Execution Reality v1 checkpoint ready`
-- `baseline metrics v1 fixed from existing surfaces`
-- `upward report is the current recommended next action`
-
-## Current Governance Runtime Control Checkpoint
-
-- `Packet C1-C6 defined and verified`
-- `route / guard / throttle / symbol control` surfaces are explicit
-- `route-level closed-loop adaptive control is present`
-- `cross-control arbitration is explicit and audit-backed`
-- `first control checkpoint is ready for lane review or upstream report`
-
-## Current Portfolio Intelligence Checkpoint
-
-- `Packet PI-01-PI-05 defined and verified`
-- `execution-aware capital allocation surface is explicit`
-- `execution-aware exposure shaping surface is explicit`
-- `allocation stability surface is explicit`
-- `allocation tradeoff resolution surface is explicit`
-- `allocation outcome effectiveness surface is explicit`
-- `portfolio can now consume leakage, resolved control state, shape exposure, compare stability across runs, resolve competing allocation pressures, and evaluate realized action effectiveness`
-- `first portfolio checkpoint is ready for lane review`
-
-## Current Alpha / Strategy Selection Intelligence Checkpoint
-
-- `Packet ASI-01 defined and verified`
-- `execution-aware alpha selection surface is explicit`
-- `alpha ranking can now consume runtime control pressure, portfolio tradeoff policy, and realized allocation effectiveness`
-- `strategy action resolution is explicit`
-- `queue destination is explicit`
-- `family budget arbitration is explicit`
-- `effective selection slate is explicit`
-- `first alpha strategy selection checkpoint is ready for architect review`
-- `architect has now treated the first alpha strategy selection slice as checkpoint-complete`
-
-## Current Research / Promotion Intelligence Checkpoint
-
-- `Packet RPI-01 defined and verified`
-- `Packet RPI-02 defined and verified`
-- `Packet RPI-03 defined and verified`
-- `Packet RPI-04 defined and verified`
-- `Packet RPI-05 defined and verified`
-- `Packet RPI-06 defined and verified`
-- `effective selection slate can now be converted into a research/promotion agenda`
-- `promotion agenda items can now be attached to experiment/model lineage in a review docket`
-- `lineage-backed promotion candidates can now be split into explicit review queues`
-- `review queues can now be resolved into a board-facing decision slate`
-- `board-facing review decisions can now be resolved into deterministic applied outcomes`
-- `deterministic applied outcomes can now be persisted into governed state transitions`
-- `first research/promotion state-applied checkpoint is ready for lane review`
-- `architect has treated the first research/promotion slice as checkpoint-complete`
-- `next lane is System-Level Learning / Feedback Integration`
+- `Packet 01 defined and verified`
+- `Packet 02 defined and verified`
+- `Packet 03 defined and verified`
+- `Packet 04 defined and verified`
+- `Packet 05 defined and verified`
+- `cross-layer learning feedback bundle is explicit`
+- `family-level learning_action is deterministic`
+- `family-level policy updates are explicit`
+- `family-level policy state is persisted`
+- `family-level selection/capital/review/runtime overrides are explicit`
+- `resolved overrides now map into explicit next-cycle consumed behavior`
+- `lane review and architect status update were accepted as a first completed checkpoint`
+- `the lane should now be frozen and reported upward`

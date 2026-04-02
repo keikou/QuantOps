@@ -5,25 +5,21 @@ from pathlib import Path
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-DOC = REPO_ROOT / "docs" / "System_learning_resume_memo_2026-04-02.md"
+DOC = REPO_ROOT / "docs" / "System_level_learning_feedback_integration_lane_status_review_2026-04-02.md"
 
 
 def main() -> None:
     failures: list[str] = []
 
     if not DOC.exists():
-        failures.append("missing_system_learning_resume_memo")
+        failures.append("missing_sllfi_lane_status_review")
     else:
         text = DOC.read_text(encoding="utf-8")
         for needle in [
-            "Research / Promotion Intelligence v1",
-            "RPI-06",
-            "System-Level Learning / Feedback Integration",
-            "SLLFI-05",
-            "1ea1efc",
-            "What To Tell Architect In A New Chat",
-            "What To Tell Codex In A New Chat",
-            "One-Day-Later Resume Flow",
+            "Packet 01",
+            "Packet 05",
+            "applied-consumption visibility",
+            "first applied-consumption checkpoint ready",
         ]:
             if needle not in text:
                 failures.append(f"doc_missing:{needle}")

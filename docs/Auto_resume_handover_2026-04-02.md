@@ -3,7 +3,7 @@
 Date: `2026-04-02`
 Repo: `QuantOps_github`
 Working branch: `codex/post-phase7-hardening`
-Status: `ready_to_resume_after_rpi_v1`
+Status: `ready_to_resume_after_sllfi_v1`
 
 ## Current Project State
 
@@ -48,6 +48,7 @@ The repo now also contains canonical docs for:
 - `Portfolio Intelligence v1`
 - `Alpha / Strategy Selection Intelligence v1`
 - `Research / Promotion Intelligence v1`
+- `System-Level Learning / Feedback Integration v1`
 
 ## Current Hardening State
 
@@ -69,19 +70,23 @@ The current architect-aligned post-hardening state is:
 - `Portfolio Intelligence v1` checkpoint-complete
 - `Alpha / Strategy Selection Intelligence v1` checkpoint-complete
 - `Research / Promotion Intelligence v1` checkpoint-complete through `RPI-06`
-- next lane = `System-Level Learning / Feedback Integration`
+- `System-Level Learning / Feedback Integration v1` checkpoint-complete through `SLLFI-05`
+- latest pushed commit = `1ea1efc`
+- local worktree contains uncommitted `SLLFI` changes
+- next work = `SLLFI checkpoint formalization / upward report / lane switch`
 
 ## Key Docs To Read First After Resume
 
 Read in this order:
 
 1. `docs/Cross_thread_resume_handover_2026-04-02.md`
-2. `docs/System_learning_resume_memo_2026-04-02.md`
-3. `docs/Auto_resume_handover_2026-04-02.md`
-4. `docs/Architect_alignment_resume_memo_2026-04-02.md`
-5. `docs/11_reports/current_status.md`
-6. `docs/03_plans/current.md`
-7. `docs/Post_Phase7_hardening_architect_report_2026-04-02.md`
+2. `docs/SLLFI_checkpoint_resume_memo_2026-04-02.md`
+3. `docs/System_learning_resume_memo_2026-04-02.md`
+4. `docs/Auto_resume_handover_2026-04-02.md`
+5. `docs/Architect_alignment_resume_memo_2026-04-02.md`
+6. `docs/11_reports/current_status.md`
+7. `docs/03_plans/current.md`
+8. `docs/Post_Phase7_hardening_architect_report_2026-04-02.md`
 
 ## Primary Resume Surface
 
@@ -133,6 +138,8 @@ python test_bundle/scripts/verify_hardening_status_surface.py --json
 python test_bundle/scripts/verify_hardening_evidence_snapshot.py --json
 python test_bundle/scripts/verify_hardening_architect_handoff.py --json
 python test_bundle/scripts/verify_hardening_handover_manifest.py --json
+python test_bundle/scripts/verify_system_level_learning_feedback_integration_packet05_applied_override_consumption.py
+python test_bundle/scripts/verify_system_level_learning_feedback_integration_architect_status_update.py
 ```
 
 Expected shape for each:
@@ -149,6 +156,7 @@ python test_bundle/scripts/run_resume_quickcheck.py --json
 python test_bundle/scripts/run_resume_bundle_refresh.py --json
 python test_bundle/scripts/resume_hardening_helper.py --json
 python test_bundle/scripts/verify_system_learning_resume_memo.py
+python test_bundle/scripts/verify_sllfi_checkpoint_resume_memo.py
 ```
 
 Suggested order:
@@ -159,16 +167,16 @@ Suggested order:
 
 ## Suggested Next Work
 
-The hardening slice and the first five post-hardening intelligence lanes are now treated as sufficiently complete checkpoints.
+The hardening slice and six post-hardening intelligence lanes are now treated as sufficiently complete checkpoints.
 If implementation should continue beyond the current handover state, the next direction is:
 
 ```text
-move to System-Level Learning / Feedback Integration
+complete SLLFI checkpoint formalization / upward report / lane switch
 ```
 
 Do not reopen hardening acceptance packaging unless a real regression is found.
 Do not reopen phase closure.
-Do not replay completed `Execution Reality`, `Governance -> Runtime Control`, `Portfolio Intelligence`, `Alpha / Strategy Selection Intelligence`, or `Research / Promotion Intelligence` packets.
+Do not replay completed `Execution Reality`, `Governance -> Runtime Control`, `Portfolio Intelligence`, `Alpha / Strategy Selection Intelligence`, `Research / Promotion Intelligence`, or `System-Level Learning / Feedback Integration` packets.
 
 ## Architect Resume Prompt
 
@@ -185,11 +193,12 @@ Current completed checkpoints are:
 - Portfolio Intelligence v1 complete
 - Alpha / Strategy Selection Intelligence v1 complete
 - Research / Promotion Intelligence v1 complete through RPI-06
+- System-Level Learning / Feedback Integration v1 complete through SLLFI-05
 
-The current architect-aligned next lane is:
-- System-Level Learning / Feedback Integration
+The latest architect-aligned judgment is:
+- SLLFI v1 is checkpoint-complete and should now be reported upward before the next lane
 
-Please reason only from this completed state and recommend the first narrow packet for System-Level Learning / Feedback Integration.
+Please reason only from this completed state and recommend the next top-level lane after SLLFI v1.
 ```
 
 ## Codex Resume Prompt
@@ -198,16 +207,19 @@ If another Codex thread needs to resume, use:
 
 ```text
 Read docs/Cross_thread_resume_handover_2026-04-02.md first.
+Then read docs/SLLFI_checkpoint_resume_memo_2026-04-02.md.
 Then read docs/System_learning_resume_memo_2026-04-02.md.
 Then read docs/Auto_resume_handover_2026-04-02.md.
 We are on branch codex/post-phase7-hardening.
-Latest pushed commit is 666f68a.
+Latest pushed commit is 1ea1efc.
+Local worktree contains uncommitted SLLFI changes.
 Phase1 through Phase7 are complete.
 Hardening/resume is sufficiently complete and must not be replayed.
-Execution Reality v1, Governance -> Runtime Control v1, Portfolio Intelligence v1, Alpha / Strategy Selection Intelligence v1, and Research / Promotion Intelligence v1 are checkpoint-complete.
+Execution Reality v1, Governance -> Runtime Control v1, Portfolio Intelligence v1, Alpha / Strategy Selection Intelligence v1, Research / Promotion Intelligence v1, and System-Level Learning / Feedback Integration v1 are checkpoint-complete.
 Research / Promotion Intelligence is complete through RPI-06 and must not be replayed.
-Latest architect judgment says the next lane is System-Level Learning / Feedback Integration.
-Create the first narrow packet for that lane with one plan doc and one verifier.
+System-Level Learning / Feedback Integration is complete through SLLFI-05 and must not be replayed.
+Latest architect judgment says SLLFI is checkpoint-complete and should be frozen/reported before a lane switch.
+Prepare checkpoint formalization, upward report, and next-lane handoff.
 Do not reopen phase-closure work unless a real regression is found.
 Continue from the latest architect-aligned lane state rather than replaying old packet sequencing.
 ```
@@ -223,5 +235,5 @@ Continue from the latest architect-aligned lane state rather than replaying old 
 ## Single-Sentence Summary
 
 ```text
-All seven phases remain complete; resume on branch codex/post-phase7-hardening using docs/Cross_thread_resume_handover_2026-04-02.md, docs/System_learning_resume_memo_2026-04-02.md, and docs/Auto_resume_handover_2026-04-02.md, with hardening/resume plus the first five post-hardening intelligence lanes treated as checkpoint-complete and the next lane being System-Level Learning / Feedback Integration.
+All seven phases remain complete; resume on branch codex/post-phase7-hardening using docs/Cross_thread_resume_handover_2026-04-02.md, docs/SLLFI_checkpoint_resume_memo_2026-04-02.md, docs/System_learning_resume_memo_2026-04-02.md, and docs/Auto_resume_handover_2026-04-02.md, with hardening/resume plus six post-hardening intelligence lanes treated as checkpoint-complete through SLLFI-05 and the next work being checkpoint formalization and lane switch prep.
 ```
