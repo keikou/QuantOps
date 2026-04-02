@@ -17,7 +17,8 @@ The repo currently stands in this state:
 - `Governance -> Runtime Control` has reached a first verified checkpoint through Packet C6
 - `Portfolio Intelligence` has reached a first completed checkpoint through Packet PI-05
 - `Alpha / Strategy Selection Intelligence` has reached a first completed checkpoint through Packet ASI-05
-- `Research / Promotion Intelligence` has started through Packet RPI-06
+- `Research / Promotion Intelligence` has reached a first completed checkpoint through Packet RPI-06
+- next architect-aligned lane is `System-Level Learning / Feedback Integration`
 
 ## Current Reports To Trust First
 
@@ -34,6 +35,10 @@ The repo currently stands in this state:
 11. `../Alpha_strategy_selection_intelligence_architect_status_update_2026-04-02.md`
 12. `../Alpha_strategy_selection_intelligence_checkpoint_v1.md`
 13. `../Alpha_strategy_selection_intelligence_upward_report_2026-04-02.md`
+14. `../Research_promotion_intelligence_lane_status_review_2026-04-02.md`
+15. `../Research_promotion_intelligence_architect_status_update_2026-04-02.md`
+16. `../System_learning_resume_memo_2026-04-02.md`
+17. `../Cross_thread_resume_handover_2026-04-02.md`
 
 ## Meaning
 
@@ -56,6 +61,7 @@ The current reporting state now says:
 - `portfolio allocation tradeoffs now resolve into one deterministic action per symbol`
 - `portfolio actions are now evaluable against realized next-run effectiveness`
 - `alpha selection can now begin consuming downstream execution/control/portfolio evidence`
+- `research and promotion decisions can now be persisted into governed state transitions`
 
 ## Current Decision Summary
 
@@ -65,10 +71,12 @@ Architect re-alignment now supports:
 - no further acceptance-only lane by default
 - next lane selection beyond hardening/resume
 - active control shaping from execution evidence
+- completed first checkpoints through research/promotion persistence
+- next lane switch to `System-Level Learning / Feedback Integration`
 
 ## Default Next Candidate
 
-- `Research / Promotion Intelligence`
+- `System-Level Learning / Feedback Integration`
 
 ## Current Execution Reality Checkpoint
 
@@ -123,4 +131,5 @@ Architect re-alignment now supports:
 - `board-facing review decisions can now be resolved into deterministic applied outcomes`
 - `deterministic applied outcomes can now be persisted into governed state transitions`
 - `first research/promotion state-applied checkpoint is ready for lane review`
-- `architect status update is ready for research/promotion checkpoint review`
+- `architect has treated the first research/promotion slice as checkpoint-complete`
+- `next lane is System-Level Learning / Feedback Integration`
