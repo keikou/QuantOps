@@ -1,6 +1,6 @@
 # Current Status
 
-Date: `2026-04-02`
+Date: `2026-04-03`
 Repo: `QuantOps_github`
 Branch: `codex/post-phase7-hardening`
 Status: `current_repo_report`
@@ -19,8 +19,10 @@ The repo currently stands in this state:
 - `Alpha / Strategy Selection Intelligence` has reached a first completed checkpoint through Packet ASI-05
 - `Research / Promotion Intelligence` has reached a first completed checkpoint through Packet RPI-06
 - `System-Level Learning / Feedback Integration` has reached a first completed checkpoint through Packet SLLFI-05
-- latest pushed commit is `1ea1efc`
-- current local worktree contains uncommitted `SLLFI` changes
+- `System-Level Learning / Feedback Integration v1` checkpoint and upward report are now formalized in docs
+- architect selected `Policy Optimization / Meta-Control Learning` as the next top-level lane
+- latest pushed commit is `96fe0ee`
+- current local worktree contains uncommitted `Policy Optimization / Meta-Control Learning` changes
 
 ## Current Reports To Trust First
 
@@ -44,6 +46,8 @@ The repo currently stands in this state:
 18. `../SLLFI_checkpoint_resume_memo_2026-04-02.md`
 19. `../System_learning_resume_memo_2026-04-02.md`
 20. `../Cross_thread_resume_handover_2026-04-02.md`
+21. `../System_level_learning_feedback_integration_checkpoint_v1.md`
+22. `../System_level_learning_feedback_integration_upward_report_2026-04-03.md`
 
 ## Meaning
 
@@ -75,7 +79,15 @@ The current reporting state now says:
 - `resolved overrides can now be shown as next-cycle consumed behavior`
 - `System-Level Learning / Feedback Integration` now has a first applied-consumption checkpoint through Packet 05
 - architect now treats `System-Level Learning / Feedback Integration v1` as checkpoint-complete
-- current next work is checkpoint formalization, upward report, and next-lane handoff
+- `Policy Optimization / Meta-Control Learning` is now the active next top-level lane
+- `System-Level Learning / Feedback Integration checkpoint v1` is now fixed in docs
+- `System-Level Learning / Feedback Integration upward report` is now ready
+- `PO-01` is now defined for multi-cycle policy effectiveness attribution
+- `PO-02` is now defined for policy tuning recommendations
+- `PO-03` is now defined for persisted meta-policy state
+- `PO-04` is now defined for applied tuning consumption
+- `PO-05` is now the active packet for meta-policy outcome effectiveness
+- `Policy Optimization / Meta-Control Learning` lane review and architect status update are now ready
 
 ## Current Decision Summary
 
@@ -85,11 +97,11 @@ Architect re-alignment now supports:
 - no further acceptance-only lane by default
 - completed first checkpoints through research/promotion persistence
 - completed first checkpoint through system-level learning consumption
-- current work shifting from packet implementation to checkpoint formalization and lane switch prep
+- current work shifting from checkpoint formalization to policy optimization and meta-control learning
 
 ## Default Next Candidate
 
-- `SLLFI checkpoint formalization / upward report / next-lane handoff`
+- `Policy Optimization / Meta-Control Learning Packet 05`
 
 ## Current System-Level Learning / Feedback Integration Checkpoint
 

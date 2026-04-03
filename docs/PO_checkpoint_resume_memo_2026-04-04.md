@@ -1,26 +1,24 @@
-# Cross Thread Resume Handover 2026-04-02
+# PO Checkpoint Resume Memo 2026-04-04
 
 Date: `2026-04-04`
 Repo: `QuantOps_github`
 Branch: `codex/post-phase7-hardening`
-Latest pushed commit: `96fe0ee`
-Current local state: `policy_optimization_v1_checkpoint_complete_uncommitted`
-Status: `cross_thread_resume_ready`
+Status: `policy_optimization_v1_checkpoint_complete`
 
 ## Purpose
 
-This memo is the carryover entrypoint for a new ChatGPT or Codex thread.
+This memo is the shortest resume note for the current point in the roadmap.
 
 Use it when:
 
-- this conversation is no longer available
+- this thread is no longer available
 - the PC was restarted
 - work resumes one day later
 - architect must be re-briefed from the current repo truth
 
 ## Current Completed Boundary
 
-The following are already checkpoint-complete and must not be replayed unless a real regression is found:
+The following slices are already checkpoint-complete and must not be replayed unless a real regression is found:
 
 - `System Reliability Hardening` current slice
 - `Execution Reality v1`
@@ -31,15 +29,7 @@ The following are already checkpoint-complete and must not be replayed unless a 
 - `System-Level Learning / Feedback Integration v1`
 - `Policy Optimization / Meta-Control Learning v1`
 
-`Research / Promotion Intelligence v1` is complete through `RPI-06`.
-`System-Level Learning / Feedback Integration v1` is complete through `SLLFI-05`.
 `Policy Optimization / Meta-Control Learning v1` is complete through `PO-05`.
-
-The current system boundary already closes:
-
-```text
-alpha -> select -> allocate -> execute -> measure -> control -> evaluate -> promote -> persist -> learn -> override -> consume -> optimize policy
-```
 
 ## Latest Architect Truth
 
@@ -51,12 +41,6 @@ The latest architect judgment from project `ai_hedge_bot`, chat `Roadmapと進�
 - the recommended next lane is `Deployment / Rollout Intelligence`
 - the recommended first packet is `DRI-01 — Staged Rollout Decision Surface`
 
-This means:
-
-- do not reopen hardening packaging
-- do not reopen `Execution Reality`, `Governance -> Runtime Control`, `Portfolio Intelligence`, `Alpha / Strategy Selection Intelligence`, `Research / Promotion Intelligence`, `System-Level Learning / Feedback Integration`, or `Policy Optimization` packets as active work
-- start from `Deployment / Rollout Intelligence`
-
 ## Current Repo Truth To Assume
 
 Assume all of the following are true unless verification proves otherwise:
@@ -66,39 +50,7 @@ Assume all of the following are true unless verification proves otherwise:
 - local worktree currently contains uncommitted `Policy Optimization` files and doc updates
 - current plan should point to `Deployment / Rollout Intelligence`
 - current task should not point to another active `PO` packet
-- current status should treat `PO-05` as checkpoint-complete, not active
-
-## Read Order After Reboot Or In A New Thread
-
-Read these first, in order:
-
-1. `docs/Cross_thread_resume_handover_2026-04-02.md`
-2. `docs/PO_checkpoint_resume_memo_2026-04-04.md`
-3. `docs/System_level_learning_feedback_integration_checkpoint_v1.md`
-4. `docs/Auto_resume_handover_2026-04-02.md`
-5. `docs/11_reports/current_status.md`
-6. `docs/03_plans/current.md`
-7. `docs/04_tasks/current.md`
-
-## One-Day-Later Resume Flow
-
-1. open repo
-   - `C:\work_data\pyWorkSpace\QuantOpsV12\QuantOps_github`
-2. confirm branch
-   - `git branch --show-current`
-   - expected: `codex/post-phase7-hardening`
-3. confirm repo state
-   - `git status --short`
-4. expect local uncommitted `Policy Optimization` changes to still be present after reboot
-5. if service surfaces are needed, start the repo services
-6. read the docs in the read order above
-7. if hardening context needs a sanity refresh, run:
-   - `python test_bundle/scripts/run_resume_quickcheck.py --json`
-   - `python test_bundle/scripts/resume_hardening_helper.py --json`
-8. if `Policy Optimization` context needs a sanity refresh, run:
-   - `python test_bundle/scripts/verify_policy_optimization_meta_control_learning_packet05_outcome_effectiveness.py`
-   - `python test_bundle/scripts/verify_policy_optimization_meta_control_learning_architect_status_update.py`
-9. continue only from `Deployment / Rollout Intelligence`
+- `PO v1` should be treated as checkpoint-complete, not as an active implementation lane
 
 ## What To Tell Codex In A New Thread
 
@@ -107,15 +59,12 @@ Use this exact prompt shape:
 ```text
 Read docs/Cross_thread_resume_handover_2026-04-02.md first.
 Then read docs/PO_checkpoint_resume_memo_2026-04-04.md.
-Then read docs/System_level_learning_feedback_integration_checkpoint_v1.md.
 Then read docs/Auto_resume_handover_2026-04-02.md.
 We are on branch codex/post-phase7-hardening in repo QuantOps_github.
 Latest pushed commit is 96fe0ee.
 Local worktree includes uncommitted Policy Optimization changes.
 Phase1 through Phase7 are complete.
 Hardening/resume plus Execution Reality v1, Governance -> Runtime Control v1, Portfolio Intelligence v1, Alpha / Strategy Selection Intelligence v1, Research / Promotion Intelligence v1, System-Level Learning / Feedback Integration v1, and Policy Optimization / Meta-Control Learning v1 are checkpoint-complete and must not be replayed.
-Research / Promotion Intelligence is complete through RPI-06.
-System-Level Learning / Feedback Integration is complete through SLLFI-05.
 Policy Optimization is complete through PO-05.
 Latest architect judgment says PO v1 is checkpoint-complete and the next top-level lane is Deployment / Rollout Intelligence.
 Prepare Deployment / Rollout Intelligence Packet 01.
@@ -146,16 +95,6 @@ The latest architect-aligned judgment is:
 
 Please reason only from this completed state and judge the best first packet for Deployment / Rollout Intelligence.
 ```
-
-## Guardrails
-
-- do not reopen `Cross-Phase Acceptance`
-- do not reopen phase-closure work
-- do not replay old packet order
-- do not treat `RPI-06` as still active
-- do not treat `SLLFI-05` as still active packet work
-- do not treat `PO-05` as still active packet work
-- do not ask architect to re-judge already completed checkpoint slices unless a real regression appears
 
 ## Single-Block Carryover Note
 
