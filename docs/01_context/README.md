@@ -2,7 +2,7 @@
 
 Date: `2026-04-02`
 Repo: `QuantOps_github`
-Status: `initial_context_index`
+Status: `canonical_context_entrypoint`
 
 ## Purpose
 
@@ -18,9 +18,10 @@ It answers:
 
 1. `./project_state.md`
 2. `./working_assumptions.md`
-3. `../Development for AI.md`
-4. `../After_Sprint6H_Roadmap_from_Architect.md`
-5. `../chatgpt-codex-cowork.md`
+3. `./supporting_context_docs.md`
+4. `../Development for AI.md`
+5. `../After_Sprint6H_Roadmap_from_Architect.md`
+6. `../chatgpt-codex-cowork.md`
 
 ## Context Rule
 
@@ -37,7 +38,12 @@ For active priorities, continue from:
 - `Phase1` through `Phase7` remain complete
 - current branch work is still under `codex/post-phase7-hardening`
 - the current hardening/resume slice is already treated as sufficiently complete
-- next likely lane is `Execution Reality`
+- `Meta Portfolio Intelligence` first checkpoint is complete
+- next top-level lane is `Strategy Evolution / Regime Adaptation Intelligence`
+
+Historical note:
+
+- `Execution Reality` was an earlier post-hardening next-lane candidate, but it is no longer the active next lane
 
 ## Guardrails
 

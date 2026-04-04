@@ -21,12 +21,12 @@ Use this workflow when a task touches runtime truth, execution evidence, accepta
 
 ## Current Example
 
-For the next lane, `Execution Reality` should likely begin with one narrow reality check such as:
+For the current next lane, `Strategy Evolution / Regime Adaptation Intelligence` should likely begin with one narrow regime-state check such as:
 
-- fill realism
-- slippage evidence
-- order rejection visibility
-- partial-fill continuity
+- regime degradation consistency
+- strategy compatibility drift
+- gating trigger visibility
+- transition detection continuity
 
 ## Non-Goal
 

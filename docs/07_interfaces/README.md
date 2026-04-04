@@ -8,15 +8,16 @@ Status: `initial_interfaces_index`
 
 This folder is the canonical entrypoint for API, schema, contract, and display-interface documentation.
 
-At the current repo stage, the interface truth is still split across a few older root-level docs.
+At the current repo stage, the interface truth is still split across a few older docs.
 This index tells humans and AI agents which contract docs to trust first.
 
 ## Current Canonical Interface Docs
 
 1. `./current_contracts.md`
-2. `../api-summary-contracts.md`
-3. `../portfolio-display-semantics.md`
-4. `../architecture-read-models.md`
+2. `./api-summary-contracts.md`
+3. `./portfolio-display-semantics.md`
+4. `../02_architecture/architecture-read-models.md`
+5. `./V12_QuantOps_Interface_Contract.md`
 
 ## What Counts As An Interface Here
 

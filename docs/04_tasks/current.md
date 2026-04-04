@@ -3,8 +3,8 @@
 Date: `2026-04-05`
 Repo: `QuantOps_github`
 Branch: `codex/post-phase7-hardening`
-Track: `live_capital_control_adaptive_runtime_allocation`
-Status: `architect_judgment_pending`
+Track: `strategy_evolution_regime_adaptation_intelligence`
+Status: `packet01_pending`
 
 ## Purpose
 
@@ -30,13 +30,13 @@ That means:
 
 Current top task:
 
-- establish `Live Capital Control / Adaptive Runtime Allocation` from the completed `DRI v1` checkpoint
-- report that `LCC-01` through `LCC-05` now form the first completed checkpoint candidate for the lane
+- establish `Strategy Evolution / Regime Adaptation Intelligence` from the completed `MPI v1` checkpoint
+- implement `SERI-01: Regime Detection & Strategy Gating Engine`
 
 Current architect-selected candidate:
 
-- `Live Capital Control / Adaptive Runtime Allocation`
-- current review boundary = `LCC-01` through `LCC-05`
+- `Strategy Evolution / Regime Adaptation Intelligence`
+- current implementation boundary = `SERI-01`
 - current dependency 1 = `Research / Promotion Intelligence v1 checkpoint through RPI-06`
 - current dependency 2 = `Alpha / Strategy Selection Intelligence v1 checkpoint through ASI-05`
 - current dependency 3 = `Portfolio Intelligence v1 checkpoint through PI-05`
@@ -45,43 +45,45 @@ Current architect-selected candidate:
 - current dependency 6 = `System-Level Learning / Feedback Integration v1 checkpoint through SLLFI-05`
 - current dependency 7 = `Policy Optimization / Meta-Control Learning v1 checkpoint through PO-05`
 - current dependency 8 = `Deployment / Rollout Intelligence v1 checkpoint through DRI-05`
+- current dependency 9 = `Live Capital Control / Adaptive Runtime Allocation v1 checkpoint through LCC-05`
+- current dependency 10 = `Meta Portfolio Intelligence / Cross-Strategy Capital Allocation v1 checkpoint through MPI-05`
 
 ## Why This Is The Active Task
 
-Architect now treats `Deployment / Rollout Intelligence v1` as completed enough to start live capital control.
-
-So the next question is no longer:
-
-- "can the system judge rollout more deeply right now?"
+Architect now treats `Meta Portfolio Intelligence / Cross-Strategy Capital Allocation v1` as completed enough to start regime-adaptation control.
 
 The next question is:
 
-- "should `LCC-01` through `LCC-05` now be frozen as the first live-capital checkpoint?"
-- "should `LCC` continue with another packet or should the next top-level lane be selected?"
-- "is there any real regression that prevents checkpoint closure?"
+- "how should current regime state become explicit at the system surface?"
+- "how should strategy gating react when degradation is regime-consistent?"
+- "what is the first deterministic survival boundary for live strategies?"
+
+This is still the next lane beyond the completed hardening/resume slice, but it is no longer the older `Execution Reality` default.
 
 ## Next Candidate Options
 
-1. `Deployment / Rollout Intelligence`
-   - now treated as checkpoint-complete input, not the active lane
-2. `Policy Optimization / Meta-Control Learning`
-   - now treated as checkpoint-complete input, not the active lane
-3. `Live Capital Control / Adaptive Runtime Allocation`
+1. `Strategy Evolution / Regime Adaptation Intelligence`
    - selected by architect as the next top-level lane
-4. `System-Level Learning / Feedback Integration`
+2. `Deployment / Rollout Intelligence`
    - now treated as checkpoint-complete input, not the active lane
-5. `Research / Promotion Intelligence`
+3. `Policy Optimization / Meta-Control Learning`
+   - now treated as checkpoint-complete input, not the active lane
+4. `Meta Portfolio Intelligence / Cross-Strategy Capital Allocation`
+   - now treated as checkpoint-complete input, not the active lane
+5. `System-Level Learning / Feedback Integration`
+   - now treated as checkpoint-complete input, not the active lane
+6. `Research / Promotion Intelligence`
    - now treated as completed enough for first checkpoint and handoff
-6. `Alpha / Strategy Selection Intelligence`
+7. `Alpha / Strategy Selection Intelligence`
    - now treated as completed enough for first checkpoint and handoff
-7. `Portfolio Intelligence`
+8. `Portfolio Intelligence`
    - now treated as completed enough for first checkpoint and handoff
-8. `Governance -> Runtime Control`
+9. `Governance -> Runtime Control`
    - now treated as completed enough for first checkpoint and handoff
 
 ## Current Recommendation
 
-Use `LCC architect judgment request` as the current active task.
+Use `SERI-01` as the current active task.
 
 ## Explicit Non-Tasks
 
@@ -98,7 +100,8 @@ These are not current tasks:
 - deepening `Research / Promotion Intelligence`
 - reopening `SLLFI` as the active packet lane
 - reopening `Policy Optimization` as the active packet lane
-- continuing `Deployment / Rollout Intelligence` packet expansion as the active lane
+- continuing `Live Capital Control` packet expansion as the active lane
+- continuing `Meta Portfolio Intelligence` packet expansion as the active lane
 
 ## Inputs To Read Before Acting
 
@@ -108,15 +111,16 @@ These are not current tasks:
 4. `../Policy_optimization_meta_control_learning_architect_status_update_2026-04-03.md`
 5. `../Auto_resume_handover_2026-04-02.md`
 6. `../Deployment_rollout_intelligence_checkpoint_v1.md`
+7. `../Live_capital_control_adaptive_runtime_allocation_checkpoint_v1.md`
+8. `../Meta_portfolio_intelligence_cross_strategy_capital_allocation_checkpoint_v1.md`
 
 ## Expected Output Of The Next Task
 
 The current lane follow-up should produce:
 
-- one lane status review
-- one architect status update
-- one checkpoint doc
-- one upward report
+- one packet plan doc
+- one verifier script
+- one regime-state surface
 
 Current prerequisite lane output:
 
@@ -155,5 +159,5 @@ Current prerequisite lane output:
 ## Single-Block Resume Note
 
 ```text
-Current task is not another hardening packet, not another Execution Reality packet, not another Governance -> Runtime Control packet, not another Portfolio Intelligence packet, not another Alpha / Strategy Selection Intelligence packet, not another Research / Promotion Intelligence packet, not another active SLLFI packet, not another active Policy Optimization packet, and not another active DRI packet. Current task is `LCC architect judgment request` after `LCC-05` made live capital control effectiveness explicit and `LCC v1` formalization docs were prepared.
+Current task is not another hardening packet, not another Execution Reality packet, not another Governance -> Runtime Control packet, not another Portfolio Intelligence packet, not another Alpha / Strategy Selection Intelligence packet, not another Research / Promotion Intelligence packet, not another active SLLFI packet, not another active Policy Optimization packet, not another active DRI packet, not another active LCC packet, and not another active MPI packet. Current task is `SERI-01` after `MPI-05` made cross-strategy capital efficiency explicit.
 ```

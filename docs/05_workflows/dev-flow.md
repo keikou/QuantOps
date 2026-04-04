@@ -26,3 +26,4 @@ Use this workflow when starting or continuing repo work.
 - do not reopen completed hardening packets unless a real regression is found
 - do not treat old architect guidance as current if the repo state has moved on
 - prefer canonical entrypoint docs over scattered thread memory
+- route root-level workflow docs through `supporting_workflows.md` before moving them physically

@@ -254,8 +254,8 @@ Use this sequence:
 
 ## Related Docs
 
-- [timeout-roadmap.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/timeout-roadmap.md)
+- [timeout-roadmap.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/06_playbooks/timeout-roadmap.md)
 - [ops-runbook.md](/C:/work_data/pyWorkSpace\QuantOpsV12\QuantOps_github/docs/ops-runbook.md)
-- [api-summary-contracts.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/api-summary-contracts.md)
-- [architecture-read-models.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/architecture-read-models.md)
-- [writer-observability.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/writer-observability.md)
+- [api-summary-contracts.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/07_interfaces/api-summary-contracts.md)
+- [architecture-read-models.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/02_architecture/architecture-read-models.md)
+- [writer-observability.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/02_architecture/writer-observability.md)

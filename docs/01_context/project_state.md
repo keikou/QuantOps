@@ -58,9 +58,13 @@ The repo is now asking:
 
 ## Current Default Next Candidate
 
-- `Execution Reality`
+- `Strategy Evolution / Regime Adaptation Intelligence`
 
 ## Other Candidate Next Lanes
 
-- `Governance -> Runtime Control`
-- `Portfolio Intelligence`
+- `Meta Portfolio Intelligence / Cross-Strategy Capital Allocation`
+- `Live Capital Control / Adaptive Runtime Allocation`
+
+## Historical Candidate Note
+
+- `Execution Reality` was the earliest post-hardening next-lane candidate before later completed lane checkpoints changed the repo state

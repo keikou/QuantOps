@@ -2,7 +2,7 @@
 
 Date: `2026-04-02`
 Repo: `QuantOps_github`
-Status: `initial_reports_index`
+Status: `canonical_reports_entrypoint`
 
 ## Purpose
 
@@ -18,9 +18,10 @@ It answers:
 
 1. `./current_status.md`
 2. `./historical_reports.md`
-3. `../Post_Phase7_hardening_architect_report_2026-04-02.md`
-4. `../Hardening_architect_handoff_latest.md`
-5. `../Resume_bundle_completion_status_2026-04-02.md`
+3. `../Meta_portfolio_intelligence_cross_strategy_capital_allocation_checkpoint_v1.md`
+4. `../Meta_portfolio_intelligence_cross_strategy_capital_allocation_upward_report_2026-04-05.md`
+5. `../Post_Phase7_hardening_architect_report_2026-04-02.md`
+6. `../Hardening_architect_handoff_latest.md`
 
 ## Current Report Rule
 
@@ -31,3 +32,5 @@ Do not infer the current state only from older phase completion reports.
 ## Historical Report Rule
 
 Phase completion files remain important, but they are historical evidence unless the current status docs explicitly reactivate them for investigation.
+
+Route root-level report artifacts through `historical_reports.md` before physically moving them.

@@ -2,14 +2,14 @@
 
 Date: `2026-04-02`
 Repo: `QuantOps_github`
-Status: `initial_mapping`
+Status: `canonical_entrypoints_extended_across_context_plans_workflows_guides_agent_reports`
 
 ## Mapping Rule
 
 This file maps the current flat `docs/` files to the proposed target structure.
 
-It is a routing document first, not a move log.
-Physical file moves should happen only after the target folder has a stable canonical entrypoint.
+It is a routing document first, and now also tracks the highest-signal moves already completed.
+Physical file moves should still happen only after the target folder has a stable canonical entrypoint.
 
 ## 00_index
 
@@ -27,6 +27,7 @@ Why:
 - `01_context/README.md`
 - `01_context/project_state.md`
 - `01_context/working_assumptions.md`
+- `01_context/supporting_context_docs.md`
 - `After_Sprint6H_Roadmap_from_Architect.md`
 - `Development for AI.md`
 - `chatgpt-codex-cowork.md`
@@ -37,20 +38,21 @@ Why:
 
 ## 02_architecture
 
-- `architecture-read-models.md`
-- `api-summary-contracts.md`
-- `portfolio-display-semantics.md`
-- `writer-observability.md`
+- `02_architecture/QuantOps_Architecture_Master.md`
+- `02_architecture/V12_Architecture_Master.md`
+- `02_architecture/architecture-read-models.md`
+- `02_architecture/writer-observability.md`
 
 Why:
 
-- these are system structure, semantics, or model-shaping documents
+- these are system structure and model-shaping documents
 
 ## 03_plans
 
 - `03_plans/README.md`
 - `03_plans/current.md`
 - `03_plans/roadmap.md`
+- `03_plans/historical_plans.md`
 - `sprinth-finish-plan.md`
 - `Post_Phase7_hardening_plan.md`
 - `Phase2_execution_closure_plan.md`
@@ -88,22 +90,21 @@ Why:
 
 ## 04_tasks
 
-Current gap:
-
-- no dedicated task-spec set exists yet
-
-Recommended first canonical files:
-
-- `current.md`
-- `active_tasks.md`
-- `task_template.md`
+- `04_tasks/current.md`
+- `04_tasks/active_tasks.md`
+- `04_tasks/task_template.md`
 
 Why:
 
-- this is where AI-executable and human-readable task units should live next
+- this is the canonical task-spec layer for AI-executable and human-readable task units
 
 ## 05_workflows
 
+- `05_workflows/README.md`
+- `05_workflows/dev-flow.md`
+- `05_workflows/incident-flow.md`
+- `05_workflows/runtime-acceptance-flow.md`
+- `05_workflows/supporting_workflows.md`
 - `development-workflow.md`
 - `correlation-logging-guide.md`
 
@@ -111,18 +112,10 @@ Why:
 
 - these describe repeatable flows and investigation paths
 
-Current gap:
-
-- `dev-flow`
-- `incident-flow`
-- `runtime-acceptance-flow`
-
-should eventually exist as dedicated workflow docs
-
 ## 06_playbooks
 
-- `timeout-improvement-pr-summary.md`
-- `timeout-roadmap.md`
+- `06_playbooks/timeout-improvement-pr-summary.md`
+- `06_playbooks/timeout-roadmap.md`
 
 Why:
 
@@ -130,9 +123,10 @@ Why:
 
 ## 07_interfaces
 
-- `api-summary-contracts.md`
-- `portfolio-display-semantics.md`
-- `architecture-read-models.md`
+- `07_interfaces/V12_QuantOps_Interface_Contract.md`
+- `07_interfaces/api-summary-contracts.md`
+- `07_interfaces/portfolio-display-semantics.md`
+- `02_architecture/architecture-read-models.md`
 
 Candidate future additions:
 
@@ -150,6 +144,7 @@ Why:
 - `08_dev_guides/README.md`
 - `08_dev_guides/current_dev_guide.md`
 - `08_dev_guides/verification_guide.md`
+- `08_dev_guides/supporting_guides.md`
 - `development-rules-v12-vs-quantops.md`
 - `development-workflow.md`
 - `dev-startup.md`
@@ -164,6 +159,7 @@ Why:
 - `09_runtime_ops/README.md`
 - `09_runtime_ops/current_runtime_ops.md`
 - `09_runtime_ops/incident_and_tracing.md`
+- `09_runtime_ops/supporting_runtime_ops.md`
 - `ops-runbook.md`
 - `correlation-logging-guide.md`
 - `SprintH_completion_report.md`
@@ -179,6 +175,7 @@ Why:
 - `10_agent/rules.md`
 - `10_agent/capabilities.md`
 - `10_agent/constraints.md`
+- `10_agent/supporting_agent_docs.md`
 - `Development for AI.md`
 - `chatgpt-codex-cowork.md`
 - `Architect_alignment_resume_memo_2026-04-02.md`
@@ -236,14 +233,13 @@ Archive only when:
 
 ## Recommended Next Migration Steps
 
-1. keep all current files where they are for now
-2. add canonical `README.md` or `current.md` files in target folders gradually
-3. move only high-signal entrypoint docs after replacement paths exist
-4. create dedicated `04_tasks` and `05_workflows` content next
+1. verify the expanded canonical entrypoints stay internally consistent
+2. continue routing root-level docs through folder-owned `README.md` or `current.md` files before physical moves
+3. decide the next high-signal physical moves only after ownership is stable
+4. use verifier coverage to catch stale docs-state drift early
 
 ## Most Important Current Gaps
 
-- no explicit `04_tasks/` layer yet
-- no dedicated `05_workflows/` folder yet
-- `07_interfaces/` is still too thin
-- some docs belong to multiple views, so canonical ownership needs to be decided before moving files
+- root-level plan and report artifacts still remain physically outside their canonical folders
+- root-level workflow and guide docs still remain physically outside their canonical folders
+- some docs still belong to multiple views, so canonical ownership needs to be decided before moving more files

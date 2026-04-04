@@ -2,7 +2,7 @@
 
 Date: `2026-04-02`
 Repo: `QuantOps_github`
-Status: `initial_runtime_ops_index`
+Status: `canonical_runtime_ops_entrypoint`
 
 ## Purpose
 
@@ -18,9 +18,10 @@ It answers:
 
 1. `./current_runtime_ops.md`
 2. `./incident_and_tracing.md`
-3. `../ops-runbook.md`
-4. `../correlation-logging-guide.md`
-5. `../dev-startup.md`
+3. `./supporting_runtime_ops.md`
+4. `../ops-runbook.md`
+5. `../correlation-logging-guide.md`
+6. `../dev-startup.md`
 
 ## Runtime Ops Rule
 

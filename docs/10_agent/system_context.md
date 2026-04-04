@@ -22,11 +22,15 @@ The repo is no longer in:
 
 The repo is currently in:
 
-- next-lane selection beyond the completed hardening/resume slice
+- first-packet implementation planning beyond the completed `MPI` checkpoint
 
 ## Default Next Candidate
 
-- `Execution Reality`
+- `Strategy Evolution / Regime Adaptation Intelligence`
+
+Historical note:
+
+- `Execution Reality` was the earlier next-lane candidate before newer completed checkpoints changed the current repo state
 
 ## Human And AI Shared Rule
 

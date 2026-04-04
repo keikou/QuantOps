@@ -21,9 +21,11 @@ The repo currently stands in this state:
 - `System-Level Learning / Feedback Integration` has reached a first completed checkpoint through Packet SLLFI-05
 - `System-Level Learning / Feedback Integration v1` checkpoint and upward report are now formalized in docs
 - `Deployment / Rollout Intelligence v1` is checkpoint-complete through `DRI-05`
-- architect selected `Live Capital Control / Adaptive Runtime Allocation` as the next top-level lane
-- latest pushed commit is `96fe0ee`
-- current local worktree now contains uncommitted `Deployment / Rollout Intelligence` and `Live Capital Control / Adaptive Runtime Allocation` changes on `2026-04-04`
+- `Live Capital Control / Adaptive Runtime Allocation v1` is checkpoint-complete through `LCC-05`
+- `Meta Portfolio Intelligence / Cross-Strategy Capital Allocation v1` is checkpoint-complete through `MPI-05`
+- architect selected `Strategy Evolution / Regime Adaptation Intelligence` as the next top-level lane
+- latest pushed commit is `6c808f8`
+- current local worktree now contains uncommitted post-`MPI` and docs-structure changes on `2026-04-05`
 
 ## Current Reports To Trust First
 
@@ -92,7 +94,21 @@ The current reporting state now says:
 - `Policy Optimization / Meta-Control Learning` lane review and architect status update are now ready
 - `Deployment / Rollout Intelligence` is now checkpoint-complete through `DRI-05`
 - architect accepted `DRI-01` through `DRI-05` as the first completed rollout checkpoint
-- `Live Capital Control / Adaptive Runtime Allocation v1` is now checkpoint-complete through `LCC-05`
+- architect accepted `LCC-01` through `LCC-05` as the first completed live-capital checkpoint
+- architect accepted `MPI-01` through `MPI-05` as the first completed meta-portfolio checkpoint
+- `Strategy Evolution / Regime Adaptation Intelligence` is now the active next top-level lane
+- `MPI-01` is now defined for capital competition visibility
+- `MPI-02` is now defined for deterministic meta-portfolio decisioning
+- `MPI-03` is now defined for persisted meta-portfolio state
+- `MPI-04` is now defined for next-cycle meta-portfolio flow
+- `MPI-05` is now defined for meta-portfolio efficiency
+- `GET /system/meta-portfolio-allocation/latest` is now available
+- `GET /system/meta-portfolio-decision/latest` is now available
+- `GET /system/meta-portfolio-state/latest` is now available
+- `GET /system/meta-portfolio-flow/latest` is now available
+- `GET /system/meta-portfolio-efficiency/latest` is now available
+- `Meta Portfolio Intelligence / Cross-Strategy Capital Allocation` lane review, architect status update, checkpoint, and upward report are now ready
+- `SERI-01` is now the next packet to implement for regime detection and strategy gating
 - `LCC-01` is now defined for live allocation governor state
 - `LCC-02` is now defined for live capital adjustment decisioning
 - `LCC-03` is now defined for persisted live capital control state
@@ -113,11 +129,11 @@ Architect re-alignment now supports:
 - no further acceptance-only lane by default
 - completed first checkpoints through research/promotion persistence
 - completed first checkpoint through system-level learning consumption
-- current work has shifted from completed live capital control formalization into architect judgment on whether to continue `LCC` or switch lanes
+- current work has shifted from completed meta-portfolio checkpointing into first-packet SERI implementation
 
 ## Default Next Candidate
 
-- `Live Capital Control / Adaptive Runtime Allocation v1 Architect Judgment`
+- `Strategy Evolution / Regime Adaptation Intelligence Packet 01`
 
 ## Current System-Level Learning / Feedback Integration Checkpoint
 

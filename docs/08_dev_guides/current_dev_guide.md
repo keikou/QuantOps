@@ -39,12 +39,16 @@ If work continues, prefer starting the next lane beyond hardening/resume.
 
 ## Default Next Lane
 
-- `Execution Reality`
+- `Strategy Evolution / Regime Adaptation Intelligence`
+
+Historical note:
+
+- `Execution Reality` was the earlier next-lane default before the repo advanced through later completed checkpoints
 
 ## Read Next For Details
 
 - `../development-rules-v12-vs-quantops.md`
-- `../development-workflow.md`
+- `../05_workflows/dev-flow.md`
 - `../01_context/working_assumptions.md`
 - `../03_plans/current.md`
 - `../04_tasks/current.md`

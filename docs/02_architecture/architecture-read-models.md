@@ -195,6 +195,6 @@ The broad architectural direction should remain:
 
 ## Related Docs
 
-- [timeout-roadmap.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/timeout-roadmap.md)
-- [api-summary-contracts.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/api-summary-contracts.md)
-- [timeout-improvement-pr-summary.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/timeout-improvement-pr-summary.md)
+- [timeout-roadmap.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/06_playbooks/timeout-roadmap.md)
+- [api-summary-contracts.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/07_interfaces/api-summary-contracts.md)
+- [timeout-improvement-pr-summary.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/06_playbooks/timeout-improvement-pr-summary.md)

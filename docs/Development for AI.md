@@ -74,8 +74,8 @@ Read in this order when starting fresh:
 11. [correlation-logging-guide.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/correlation-logging-guide.md)
 12. [development-rules-v12-vs-quantops.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/development-rules-v12-vs-quantops.md)
 13. [development-workflow.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/development-workflow.md)
-14. [architecture-read-models.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/architecture-read-models.md)
-15. [api-summary-contracts.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/api-summary-contracts.md)
+14. [architecture-read-models.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/02_architecture/architecture-read-models.md)
+15. [api-summary-contracts.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/07_interfaces/api-summary-contracts.md)
 16. [ops-runbook.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/ops-runbook.md)
 17. [dev-startup.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/dev-startup.md)
 18. [ci_regression_packs.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/ci_regression_packs.md)
@@ -84,12 +84,12 @@ Read in this order when starting fresh:
 Read these when touching specific areas:
 
 - writer behavior:
-  - [writer-observability.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/writer-observability.md)
+  - [writer-observability.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/02_architecture/writer-observability.md)
 - portfolio UI semantics:
-  - [portfolio-display-semantics.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/portfolio-display-semantics.md)
+  - [portfolio-display-semantics.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/07_interfaces/portfolio-display-semantics.md)
 - broader background:
-  - [timeout-roadmap.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/timeout-roadmap.md)
-  - [timeout-improvement-pr-summary.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/timeout-improvement-pr-summary.md)
+  - [timeout-roadmap.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/06_playbooks/timeout-roadmap.md)
+  - [timeout-improvement-pr-summary.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/06_playbooks/timeout-improvement-pr-summary.md)
 - timeout, incident, and page-access tracing:
   - [correlation-logging-guide.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/correlation-logging-guide.md)
   - [ops-runbook.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/ops-runbook.md)
@@ -342,8 +342,8 @@ as the next roadmap tracks, not Phase1/2/3/4/5/6/7 reopening.
 Read:
 
 - [development-rules-v12-vs-quantops.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/development-rules-v12-vs-quantops.md)
-- [architecture-read-models.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/architecture-read-models.md)
-- [api-summary-contracts.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/api-summary-contracts.md)
+- [architecture-read-models.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/02_architecture/architecture-read-models.md)
+- [api-summary-contracts.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/07_interfaces/api-summary-contracts.md)
 
 Then decide first whether the change belongs in V12 or QuantOps API.
 
@@ -352,16 +352,16 @@ Then decide first whether the change belongs in V12 or QuantOps API.
 Read:
 
 - [development-workflow.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/development-workflow.md)
-- [timeout-roadmap.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/timeout-roadmap.md)
-- [writer-observability.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/writer-observability.md)
+- [timeout-roadmap.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/06_playbooks/timeout-roadmap.md)
+- [writer-observability.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/02_architecture/writer-observability.md)
 - [ops-runbook.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/ops-runbook.md)
 
 ### Frontend contract or display change
 
 Read:
 
-- [api-summary-contracts.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/api-summary-contracts.md)
-- [portfolio-display-semantics.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/portfolio-display-semantics.md)
+- [api-summary-contracts.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/07_interfaces/api-summary-contracts.md)
+- [portfolio-display-semantics.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/07_interfaces/portfolio-display-semantics.md)
 
 ### Startup, stop, or operational issue
 

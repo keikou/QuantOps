@@ -2,7 +2,7 @@
 
 Date: `2026-04-02`
 Repo: `QuantOps_github`
-Status: `proposed_docs_operating_index`
+Status: `active_docs_operating_index`
 
 ## Purpose
 
@@ -82,9 +82,10 @@ Until the migration is complete, the closest current files are:
 
 ## Current Focus
 
-- hardening slice is sufficiently complete for the current branch stage
-- do not reopen completed hardening packets unless a real regression is found
-- next likely lane is `Execution Reality`
+- `Phase1` through `Phase7` are complete
+- hardening/resume plus `Execution Reality`, `Governance -> Runtime Control`, `Portfolio Intelligence`, `Alpha / Strategy Selection Intelligence`, `Research / Promotion Intelligence`, `System-Level Learning / Feedback Integration`, `Policy Optimization`, `Deployment / Rollout Intelligence`, `Live Capital Control`, and `Meta Portfolio Intelligence` first checkpoints are complete
+- do not reopen completed closure or checkpoint work unless a real regression is found
+- current next top-level lane is `Strategy Evolution / Regime Adaptation Intelligence`
 - current branch remains `codex/post-phase7-hardening`
 
 ## Immediate Migration Rule

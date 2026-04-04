@@ -18,7 +18,7 @@ Use it first when you need to answer:
 
 Primary reference:
 
-- `../api-summary-contracts.md`
+- `./api-summary-contracts.md`
 
 Core fields:
 
@@ -41,7 +41,7 @@ Meaning:
 
 Primary reference:
 
-- `../portfolio-display-semantics.md`
+- `./portfolio-display-semantics.md`
 
 Core rules:
 
@@ -55,7 +55,7 @@ Core rules:
 
 Primary reference:
 
-- `../architecture-read-models.md`
+- `../02_architecture/architecture-read-models.md`
 
 Core rules:
 
@@ -103,6 +103,6 @@ Then decide whether the problem is:
 Until the interface layer is deeper, use this sequence:
 
 1. `current_contracts.md`
-2. `api-summary-contracts.md`
-3. `portfolio-display-semantics.md`
-4. `architecture-read-models.md`
+2. `./api-summary-contracts.md`
+3. `./portfolio-display-semantics.md`
+4. `../02_architecture/architecture-read-models.md`

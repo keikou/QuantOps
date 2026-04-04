@@ -182,7 +182,7 @@ We want Architect to confirm or overturn that position using the current repo st
 ## Relevant References
 
 - [Sprint6H_truth_completion_final.md](https://github.com/keikou/QuantOps/blob/main/docs/Sprint6H_truth_completion_final.md)
-- [timeout-roadmap.md](https://github.com/keikou/QuantOps/blob/main/docs/timeout-roadmap.md)
+- [timeout-roadmap.md](https://github.com/keikou/QuantOps/blob/main/docs/06_playbooks/timeout-roadmap.md)
 - [test_execution_quality_summary_api.py](https://github.com/keikou/QuantOps/blob/main/apps/v12-api/tests/test_execution_quality_summary_api.py)
 - [test_phased.py](https://github.com/keikou/QuantOps/blob/main/apps/v12-api/tests/test_phased.py)
 - [test_phaseg_sprint2_api.py](https://github.com/keikou/QuantOps/blob/main/apps/v12-api/tests/test_phaseg_sprint2_api.py)

@@ -16,7 +16,7 @@ Use this workflow when the repo, runtime, or docs state appears inconsistent, br
 2. check the current canonical entrypoints:
    - `../00_index/README.md`
    - `../04_tasks/current.md`
-   - `../Architect_alignment_resume_memo_2026-04-02.md`
+   - `../11_reports/current_status.md`
 3. if services matter, run the resume quickcheck and refresh helpers
 4. run the narrowest relevant verifier first
 5. only reopen a completed lane if the verifier shows a real regression

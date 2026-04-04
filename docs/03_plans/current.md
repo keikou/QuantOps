@@ -3,7 +3,7 @@
 Date: `2026-04-05`
 Repo: `QuantOps_github`
 Branch: `codex/post-phase7-hardening`
-Status: `live_capital_control_architect_judgment_pending`
+Status: `strategy_evolution_regime_adaptation_intelligence_packet01_pending`
 
 ## Current Planning Decision
 
@@ -11,17 +11,27 @@ The current hardening/resume slice is treated as sufficiently complete.
 
 So the active planning question is:
 
-- how should live capital keep changing after deployment once live truth materially changes?
-- how should runtime health, risk usage, and execution quality constrain live allocation?
-- how should stale static live allocation be prevented?
+- how should live regime state become explicit enough to gate strategies deterministically?
+- how should regime-consistent degradation be separated from stochastic noise?
+- how should capital stop flowing to strategies whose live behavior no longer matches the current regime?
+
+Historical note:
+
+- `Execution Reality` was the earliest next-lane candidate after hardening/resume, but it is no longer the current active planning answer
 
 ## Current Answer
 
 Architect-selected answer:
 
-- `Deployment / Rollout Intelligence v1` is checkpoint-complete through `DRI-05`
-- next top-level lane is `Live Capital Control / Adaptive Runtime Allocation`
-- first packet should be `LCC-01: Live Allocation Governor`
+- `Live Capital Control / Adaptive Runtime Allocation v1` is checkpoint-complete through `LCC-05`
+- `Meta Portfolio Intelligence / Cross-Strategy Capital Allocation v1` is checkpoint-complete through `MPI-05`
+- next top-level lane is `Strategy Evolution / Regime Adaptation Intelligence`
+- first packets are now:
+  - `SERI-01: Regime Detection & Strategy Gating Engine`
+  - `SERI-02: Strategy Regime Compatibility Surface`
+  - `SERI-03: Strategy Gating Decision`
+  - `SERI-04: Regime Transition Detection`
+  - `SERI-05: Strategy Survival Analysis`
 
 ## Why This Is The Current Plan
 
@@ -41,7 +51,7 @@ Architect re-alignment now treats the following as sufficiently closed for the c
 - `System-Level Learning / Feedback Integration v1`
 - `Policy Optimization / Meta-Control Learning v1`
 
-That means planning should not continue to expand completed rollout packaging and should now start the first live-capital control lane.
+That means planning should not continue to expand completed live-capital or meta-portfolio packaging and should now start the first regime-adaptation lane.
 
 ## Explicitly Completed Planning Slice
 
@@ -58,6 +68,9 @@ The following planning sequence is now historical and completed:
 9. complete `System-Level Learning / Feedback Integration v1` through `SLLFI-05`
 10. freeze `SLLFI v1` as the first applied-consumption checkpoint
 11. complete `Policy Optimization / Meta-Control Learning v1` through `PO-05`
+12. complete `Deployment / Rollout Intelligence v1` through `DRI-05`
+13. complete `Live Capital Control / Adaptive Runtime Allocation v1` through `LCC-05`
+14. complete `Meta Portfolio Intelligence / Cross-Strategy Capital Allocation v1` through `MPI-05`
 
 ## Current Lane Output
 
@@ -110,16 +123,36 @@ Current completed live-capital outputs:
 - `../../test_bundle/scripts/verify_live_capital_control_adaptive_runtime_allocation_packet05_control_effectiveness.py`
 - `GET /system/live-capital-control-effectiveness/latest`
 
+Current completed meta-portfolio outputs:
+
+- `../Meta_portfolio_intelligence_cross_strategy_capital_allocation_packet01_plan.md`
+- `../../test_bundle/scripts/verify_meta_portfolio_intelligence_cross_strategy_capital_allocation_packet01.py`
+- `GET /system/meta-portfolio-allocation/latest`
+- `../Meta_portfolio_intelligence_cross_strategy_capital_allocation_packet02_decision_plan.md`
+- `../../test_bundle/scripts/verify_meta_portfolio_intelligence_cross_strategy_capital_allocation_packet02_decision.py`
+- `GET /system/meta-portfolio-decision/latest`
+- `../Meta_portfolio_intelligence_cross_strategy_capital_allocation_packet03_state_plan.md`
+- `../../test_bundle/scripts/verify_meta_portfolio_intelligence_cross_strategy_capital_allocation_packet03_state.py`
+- `GET /system/meta-portfolio-state/latest`
+- `../Meta_portfolio_intelligence_cross_strategy_capital_allocation_packet04_flow_plan.md`
+- `../../test_bundle/scripts/verify_meta_portfolio_intelligence_cross_strategy_capital_allocation_packet04_flow.py`
+- `GET /system/meta-portfolio-flow/latest`
+- `../Meta_portfolio_intelligence_cross_strategy_capital_allocation_packet05_efficiency_plan.md`
+- `../../test_bundle/scripts/verify_meta_portfolio_intelligence_cross_strategy_capital_allocation_packet05_efficiency.py`
+- `GET /system/meta-portfolio-efficiency/latest`
+
 Current plan outputs now ready:
 
-- `../Live_capital_control_adaptive_runtime_allocation_lane_status_review_2026-04-05.md`
-- `../Live_capital_control_adaptive_runtime_allocation_architect_status_update_2026-04-05.md`
-- `../Live_capital_control_adaptive_runtime_allocation_checkpoint_v1.md`
-- `../Live_capital_control_adaptive_runtime_allocation_upward_report_2026-04-05.md`
+- `../Meta_portfolio_intelligence_cross_strategy_capital_allocation_lane_status_review_2026-04-05.md`
+- `../Meta_portfolio_intelligence_cross_strategy_capital_allocation_architect_status_update_2026-04-05.md`
+- `../Meta_portfolio_intelligence_cross_strategy_capital_allocation_checkpoint_v1.md`
+- `../Meta_portfolio_intelligence_cross_strategy_capital_allocation_upward_report_2026-04-05.md`
 
-Current plan output to decide next:
+Current plan output to implement next:
 
-- architect judgment on whether to continue `LCC` or switch to the next top-level lane
+- first `SERI` packet plan doc
+- first `SERI` verifier script
+- `GET /system/regime-state/latest`
 
 ## Non-Plan
 
@@ -135,14 +168,14 @@ This is not the current plan:
 - another `Research / Promotion Intelligence` deepening step
 - another `System-Level Learning / Feedback Integration` packet
 - another `Policy Optimization` packet before rollout lane establishment
-- replaying `DRI-01` instead of extending the rollout lane
-- inventing `DRI-06` before freezing and reviewing the first checkpoint
-- continuing `DRI` packet expansion before starting `LCC-01`
+- continuing `MPI` packet expansion after architect checkpoint closure
+- inventing `MPI-06` before a real regression exists
+- replaying a completed checkpoint lane instead of starting `SERI`
 
 ## Read Before Editing
 
 1. `../04_tasks/current.md`
-2. `../PO_checkpoint_resume_memo_2026-04-04.md`
-3. `../Policy_optimization_meta_control_learning_architect_status_update_2026-04-03.md`
+2. `../Meta_portfolio_intelligence_cross_strategy_capital_allocation_architect_status_update_2026-04-05.md`
+3. `../Meta_portfolio_intelligence_cross_strategy_capital_allocation_checkpoint_v1.md`
 4. `../Cross_thread_resume_handover_2026-04-02.md`
 5. `./roadmap.md`

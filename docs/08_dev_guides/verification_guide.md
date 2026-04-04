@@ -40,6 +40,7 @@ Docs-structure checks added in this lane:
 - `python test_bundle/scripts/verify_plans_docs.py`
 - `python test_bundle/scripts/verify_context_docs.py`
 - `python test_bundle/scripts/verify_reports_docs.py`
+- `python test_bundle/scripts/verify_dev_guides_docs.py`
 
 ## Rule
 

@@ -143,7 +143,7 @@ Current working view:
 - keep as-is:
   - debug and provenance routes
 
-The criterion is not “make everything uniform”.
+The criterion is not “make everything uniform E
 The criterion is whether the response is a mixed operator-facing summary that benefits from explicit stable/display semantics.
 
 ### 3. Optional freshness contract expansion
@@ -218,7 +218,7 @@ Tasks:
 - add regression coverage for any newly promoted secondary contract
 - add writer closeout notes to docs
 - update runbook with writer log interpretation guidance
-- update roadmap docs so “done” versus “optional” is explicit
+- update roadmap docs so “done Eversus “optional Eis explicit
 
 Acceptance:
 
@@ -266,9 +266,9 @@ The present recommendation for SprintH is:
 
 ## Related Docs
 
-- [timeout-roadmap.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/timeout-roadmap.md)
-- [timeout-improvement-pr-summary.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/timeout-improvement-pr-summary.md)
-- [architecture-read-models.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/architecture-read-models.md)
-- [api-summary-contracts.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/api-summary-contracts.md)
-- [writer-observability.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/writer-observability.md)
+- [timeout-roadmap.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/06_playbooks/timeout-roadmap.md)
+- [timeout-improvement-pr-summary.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/06_playbooks/timeout-improvement-pr-summary.md)
+- [architecture-read-models.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/02_architecture/architecture-read-models.md)
+- [api-summary-contracts.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/07_interfaces/api-summary-contracts.md)
+- [writer-observability.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/02_architecture/writer-observability.md)
 - [ops-runbook.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/ops-runbook.md)

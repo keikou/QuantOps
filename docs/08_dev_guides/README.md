@@ -2,7 +2,7 @@
 
 Date: `2026-04-02`
 Repo: `QuantOps_github`
-Status: `initial_dev_guides_index`
+Status: `canonical_dev_guides_entrypoint`
 
 ## Purpose
 
@@ -18,9 +18,10 @@ It answers:
 
 1. `./current_dev_guide.md`
 2. `./verification_guide.md`
-3. `../development-rules-v12-vs-quantops.md`
-4. `../dev-startup.md`
-5. `../ci_regression_packs.md`
+3. `./supporting_guides.md`
+4. `../development-rules-v12-vs-quantops.md`
+5. `../dev-startup.md`
+6. `../ci_regression_packs.md`
 
 ## Development Rule
 
@@ -30,5 +31,9 @@ Treat this folder as the canonical entrypoint that tells humans and AI agents wh
 ## Current Focus
 
 - do not reopen completed hardening packets unless a real regression is found
-- if implementation continues, it should likely start the next lane beyond hardening/resume
-- current default candidate remains `Execution Reality`
+- if implementation continues, it should start the next lane beyond the completed `MPI` checkpoint
+- current default candidate is `Strategy Evolution / Regime Adaptation Intelligence`
+
+Historical note:
+
+- `Execution Reality` was the earlier default next-lane candidate before the later lanes were completed
