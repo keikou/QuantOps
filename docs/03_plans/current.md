@@ -1,9 +1,9 @@
 # Current Plan
 
-Date: `2026-04-04`
+Date: `2026-04-05`
 Repo: `QuantOps_github`
 Branch: `codex/post-phase7-hardening`
-Status: `deployment_rollout_intelligence_packet01_pending`
+Status: `live_capital_control_architect_judgment_pending`
 
 ## Current Planning Decision
 
@@ -11,17 +11,17 @@ The current hardening/resume slice is treated as sufficiently complete.
 
 So the active planning question is:
 
-- how should checkpoint-complete policy and governed changes be rolled out safely?
-- how should rollout mode be chosen from `shadow / limited / canary / full`?
-- how should gating and rollback conditions be made explicit?
+- how should live capital keep changing after deployment once live truth materially changes?
+- how should runtime health, risk usage, and execution quality constrain live allocation?
+- how should stale static live allocation be prevented?
 
 ## Current Answer
 
 Architect-selected answer:
 
-- `Policy Optimization / Meta-Control Learning v1` is checkpoint-complete through `PO-05`
-- next top-level lane is `Deployment / Rollout Intelligence`
-- first packet should be `DRI-01: Staged Rollout Decision Surface`
+- `Deployment / Rollout Intelligence v1` is checkpoint-complete through `DRI-05`
+- next top-level lane is `Live Capital Control / Adaptive Runtime Allocation`
+- first packet should be `LCC-01: Live Allocation Governor`
 
 ## Why This Is The Current Plan
 
@@ -41,7 +41,7 @@ Architect re-alignment now treats the following as sufficiently closed for the c
 - `System-Level Learning / Feedback Integration v1`
 - `Policy Optimization / Meta-Control Learning v1`
 
-That means planning should not continue to expand hardening packaging and should not deepen completed v1 lanes before the rollout lane is established.
+That means planning should not continue to expand completed rollout packaging and should now start the first live-capital control lane.
 
 ## Explicitly Completed Planning Slice
 
@@ -74,10 +74,52 @@ Current historical lane outputs:
 - `../Policy_optimization_meta_control_learning_packet05_outcome_effectiveness_plan.md`
 - `../../test_bundle/scripts/verify_policy_optimization_meta_control_learning_packet05_outcome_effectiveness.py`
 
-Current plan outputs to add next:
+Current completed rollout outputs:
 
 - `../Deployment_rollout_intelligence_packet01_plan.md`
 - `../../test_bundle/scripts/verify_deployment_rollout_intelligence_packet01.py`
+- `GET /system/deployment-rollout-decision/latest`
+- `../Deployment_rollout_intelligence_packet02_candidate_docket_plan.md`
+- `../../test_bundle/scripts/verify_deployment_rollout_intelligence_packet02_candidate_docket.py`
+- `GET /system/deployment-rollout-candidate-docket/latest`
+- `../Deployment_rollout_intelligence_packet03_persisted_rollout_state_plan.md`
+- `../../test_bundle/scripts/verify_deployment_rollout_intelligence_packet03_persisted_rollout_state.py`
+- `GET /system/deployment-rollout-state/latest`
+- `../Deployment_rollout_intelligence_packet04_applied_rollout_consumption_plan.md`
+- `../../test_bundle/scripts/verify_deployment_rollout_intelligence_packet04_applied_rollout_consumption.py`
+- `GET /system/deployment-rollout-consumption/latest`
+- `../Deployment_rollout_intelligence_packet05_rollout_outcome_effectiveness_plan.md`
+- `../../test_bundle/scripts/verify_deployment_rollout_intelligence_packet05_rollout_outcome_effectiveness.py`
+- `GET /system/deployment-rollout-effectiveness/latest`
+
+Current completed live-capital outputs:
+
+- `../Live_capital_control_adaptive_runtime_allocation_packet01_plan.md`
+- `../../test_bundle/scripts/verify_live_capital_control_adaptive_runtime_allocation_packet01.py`
+- `GET /system/live-capital-control/latest`
+- `../Live_capital_control_adaptive_runtime_allocation_packet02_adjustment_decision_plan.md`
+- `../../test_bundle/scripts/verify_live_capital_control_adaptive_runtime_allocation_packet02_adjustment_decision.py`
+- `GET /system/live-capital-adjustment-decision/latest`
+- `../Live_capital_control_adaptive_runtime_allocation_packet03_control_state_plan.md`
+- `../../test_bundle/scripts/verify_live_capital_control_adaptive_runtime_allocation_packet03_control_state.py`
+- `GET /system/live-capital-control-state/latest`
+- `../Live_capital_control_adaptive_runtime_allocation_packet04_control_consumption_plan.md`
+- `../../test_bundle/scripts/verify_live_capital_control_adaptive_runtime_allocation_packet04_control_consumption.py`
+- `GET /system/live-capital-control-consumption/latest`
+- `../Live_capital_control_adaptive_runtime_allocation_packet05_control_effectiveness_plan.md`
+- `../../test_bundle/scripts/verify_live_capital_control_adaptive_runtime_allocation_packet05_control_effectiveness.py`
+- `GET /system/live-capital-control-effectiveness/latest`
+
+Current plan outputs now ready:
+
+- `../Live_capital_control_adaptive_runtime_allocation_lane_status_review_2026-04-05.md`
+- `../Live_capital_control_adaptive_runtime_allocation_architect_status_update_2026-04-05.md`
+- `../Live_capital_control_adaptive_runtime_allocation_checkpoint_v1.md`
+- `../Live_capital_control_adaptive_runtime_allocation_upward_report_2026-04-05.md`
+
+Current plan output to decide next:
+
+- architect judgment on whether to continue `LCC` or switch to the next top-level lane
 
 ## Non-Plan
 
@@ -93,6 +135,9 @@ This is not the current plan:
 - another `Research / Promotion Intelligence` deepening step
 - another `System-Level Learning / Feedback Integration` packet
 - another `Policy Optimization` packet before rollout lane establishment
+- replaying `DRI-01` instead of extending the rollout lane
+- inventing `DRI-06` before freezing and reviewing the first checkpoint
+- continuing `DRI` packet expansion before starting `LCC-01`
 
 ## Read Before Editing
 

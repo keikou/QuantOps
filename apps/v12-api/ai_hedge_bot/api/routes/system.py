@@ -2,10 +2,16 @@ from __future__ import annotations
 
 from fastapi import APIRouter
 from ai_hedge_bot.app.container import CONTAINER
+from ai_hedge_bot.services.deployment_rollout_intelligence_service import (
+    DeploymentRolloutIntelligenceService,
+)
 from ai_hedge_bot.services.hardening_architect_handoff_service import HardeningArchitectHandoffService
 from ai_hedge_bot.services.hardening_evidence_snapshot_service import HardeningEvidenceSnapshotService
 from ai_hedge_bot.services.hardening_handover_manifest_service import HardeningHandoverManifestService
 from ai_hedge_bot.services.hardening_status_service import HardeningStatusService
+from ai_hedge_bot.services.live_capital_control_adaptive_runtime_allocation_service import (
+    LiveCapitalControlAdaptiveRuntimeAllocationService,
+)
 from ai_hedge_bot.services.operator_diagnostic_bundle_service import OperatorDiagnosticBundleService
 from ai_hedge_bot.services.policy_optimization_meta_control_learning_service import (
     PolicyOptimizationMetaControlLearningService,
@@ -17,10 +23,12 @@ from ai_hedge_bot.services.system_level_learning_feedback_integration_service im
 )
 
 router = APIRouter(tags=['system'])
+_deployment_rollout = DeploymentRolloutIntelligenceService()
 _hardening_architect_handoff = HardeningArchitectHandoffService()
 _hardening_snapshot = HardeningEvidenceSnapshotService()
 _hardening_manifest = HardeningHandoverManifestService()
 _hardening_status = HardeningStatusService()
+_live_capital_control = LiveCapitalControlAdaptiveRuntimeAllocationService()
 _operator_bundle = OperatorDiagnosticBundleService()
 _policy_optimization = PolicyOptimizationMetaControlLearningService()
 _recovery_replay_bundle = RecoveryReplayDiagnosticBundleService()
@@ -144,3 +152,53 @@ def system_meta_policy_consumption_latest(limit: int = 20) -> dict:
 @router.get('/system/meta-policy-effectiveness/latest')
 def system_meta_policy_effectiveness_latest(limit: int = 20) -> dict:
     return _policy_optimization.outcome_effectiveness_latest(limit=limit)
+
+
+@router.get('/system/deployment-rollout-decision/latest')
+def system_deployment_rollout_decision_latest(limit: int = 20) -> dict:
+    return _deployment_rollout.latest(limit=limit)
+
+
+@router.get('/system/deployment-rollout-candidate-docket/latest')
+def system_deployment_rollout_candidate_docket_latest(limit: int = 20) -> dict:
+    return _deployment_rollout.candidate_docket_latest(limit=limit)
+
+
+@router.get('/system/deployment-rollout-state/latest')
+def system_deployment_rollout_state_latest(limit: int = 20) -> dict:
+    return _deployment_rollout.persisted_rollout_state_latest(limit=limit)
+
+
+@router.get('/system/deployment-rollout-consumption/latest')
+def system_deployment_rollout_consumption_latest(limit: int = 20) -> dict:
+    return _deployment_rollout.applied_rollout_consumption_latest(limit=limit)
+
+
+@router.get('/system/deployment-rollout-effectiveness/latest')
+def system_deployment_rollout_effectiveness_latest(limit: int = 20) -> dict:
+    return _deployment_rollout.rollout_outcome_effectiveness_latest(limit=limit)
+
+
+@router.get('/system/live-capital-control/latest')
+def system_live_capital_control_latest(limit: int = 20) -> dict:
+    return _live_capital_control.latest(limit=limit)
+
+
+@router.get('/system/live-capital-adjustment-decision/latest')
+def system_live_capital_adjustment_decision_latest(limit: int = 20) -> dict:
+    return _live_capital_control.adjustment_decision_latest(limit=limit)
+
+
+@router.get('/system/live-capital-control-state/latest')
+def system_live_capital_control_state_latest(limit: int = 20) -> dict:
+    return _live_capital_control.control_state_latest(limit=limit)
+
+
+@router.get('/system/live-capital-control-consumption/latest')
+def system_live_capital_control_consumption_latest(limit: int = 20) -> dict:
+    return _live_capital_control.control_consumption_latest(limit=limit)
+
+
+@router.get('/system/live-capital-control-effectiveness/latest')
+def system_live_capital_control_effectiveness_latest(limit: int = 20) -> dict:
+    return _live_capital_control.control_effectiveness_latest(limit=limit)

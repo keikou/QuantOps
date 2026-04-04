@@ -1,6 +1,6 @@
 # Current Status
 
-Date: `2026-04-03`
+Date: `2026-04-05`
 Repo: `QuantOps_github`
 Branch: `codex/post-phase7-hardening`
 Status: `current_repo_report`
@@ -20,9 +20,10 @@ The repo currently stands in this state:
 - `Research / Promotion Intelligence` has reached a first completed checkpoint through Packet RPI-06
 - `System-Level Learning / Feedback Integration` has reached a first completed checkpoint through Packet SLLFI-05
 - `System-Level Learning / Feedback Integration v1` checkpoint and upward report are now formalized in docs
-- architect selected `Policy Optimization / Meta-Control Learning` as the next top-level lane
+- `Deployment / Rollout Intelligence v1` is checkpoint-complete through `DRI-05`
+- architect selected `Live Capital Control / Adaptive Runtime Allocation` as the next top-level lane
 - latest pushed commit is `96fe0ee`
-- current local worktree contains uncommitted `Policy Optimization / Meta-Control Learning` changes
+- current local worktree now contains uncommitted `Deployment / Rollout Intelligence` and `Live Capital Control / Adaptive Runtime Allocation` changes on `2026-04-04`
 
 ## Current Reports To Trust First
 
@@ -79,15 +80,30 @@ The current reporting state now says:
 - `resolved overrides can now be shown as next-cycle consumed behavior`
 - `System-Level Learning / Feedback Integration` now has a first applied-consumption checkpoint through Packet 05
 - architect now treats `System-Level Learning / Feedback Integration v1` as checkpoint-complete
-- `Policy Optimization / Meta-Control Learning` is now the active next top-level lane
+- `Policy Optimization / Meta-Control Learning v1` is now checkpoint-complete through `PO-05`
+- `Deployment / Rollout Intelligence v1` is now checkpoint-complete through `DRI-05`
 - `System-Level Learning / Feedback Integration checkpoint v1` is now fixed in docs
 - `System-Level Learning / Feedback Integration upward report` is now ready
 - `PO-01` is now defined for multi-cycle policy effectiveness attribution
 - `PO-02` is now defined for policy tuning recommendations
 - `PO-03` is now defined for persisted meta-policy state
 - `PO-04` is now defined for applied tuning consumption
-- `PO-05` is now the active packet for meta-policy outcome effectiveness
+- `PO-05` is checkpoint-complete for meta-policy outcome effectiveness
 - `Policy Optimization / Meta-Control Learning` lane review and architect status update are now ready
+- `Deployment / Rollout Intelligence` is now checkpoint-complete through `DRI-05`
+- architect accepted `DRI-01` through `DRI-05` as the first completed rollout checkpoint
+- `Live Capital Control / Adaptive Runtime Allocation v1` is now checkpoint-complete through `LCC-05`
+- `LCC-01` is now defined for live allocation governor state
+- `LCC-02` is now defined for live capital adjustment decisioning
+- `LCC-03` is now defined for persisted live capital control state
+- `LCC-04` is now defined for applied live capital control consumption
+- `LCC-05` is now defined for live capital control effectiveness
+- `GET /system/live-capital-control/latest` is now available
+- `GET /system/live-capital-adjustment-decision/latest` is now available
+- `GET /system/live-capital-control-state/latest` is now available
+- `GET /system/live-capital-control-consumption/latest` is now available
+- `GET /system/live-capital-control-effectiveness/latest` is now available
+- `Live Capital Control / Adaptive Runtime Allocation` lane review, architect status update, checkpoint, and upward report are now ready
 
 ## Current Decision Summary
 
@@ -97,11 +113,11 @@ Architect re-alignment now supports:
 - no further acceptance-only lane by default
 - completed first checkpoints through research/promotion persistence
 - completed first checkpoint through system-level learning consumption
-- current work shifting from checkpoint formalization to policy optimization and meta-control learning
+- current work has shifted from completed live capital control formalization into architect judgment on whether to continue `LCC` or switch lanes
 
 ## Default Next Candidate
 
-- `Policy Optimization / Meta-Control Learning Packet 05`
+- `Live Capital Control / Adaptive Runtime Allocation v1 Architect Judgment`
 
 ## Current System-Level Learning / Feedback Integration Checkpoint
 
