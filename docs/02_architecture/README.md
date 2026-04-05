@@ -17,10 +17,12 @@ It should answer:
 ## Current Canonical Architecture Docs
 
 1. `./current_architecture.md`
-2. `./QuantOps_Architecture_Master.md`
-3. `./V12_Architecture_Master.md`
-4. `./architecture-read-models.md`
-5. `./writer-observability.md`
+2. `./architecture_layers.md`
+3. `./system_ownership_map.md`
+4. `./QuantOps_Architecture_Master.md`
+5. `./V12_Architecture_Master.md`
+6. `./architecture-read-models.md`
+7. `./writer-observability.md`
 
 ## Rule
 

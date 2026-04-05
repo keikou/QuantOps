@@ -16,23 +16,29 @@ Use it first when you need to answer:
 
 ## Canonical Docs
 
-1. `./QuantOps_Architecture_Master.md`
-2. `./V12_Architecture_Master.md`
-3. `../07_interfaces/V12_QuantOps_Interface_Contract.md`
-4. `./architecture-read-models.md`
-5. `./writer-observability.md`
+1. `./architecture_layers.md`
+2. `./system_ownership_map.md`
+3. `./QuantOps_Architecture_Master.md`
+4. `./V12_Architecture_Master.md`
+5. `../07_interfaces/V12_QuantOps_Interface_Contract.md`
+6. `./architecture-read-models.md`
+7. `./writer-observability.md`
 
 ## Summary
 
 - `QuantOps` is the control plane and operator workspace
 - `V12` is the trading engine and runtime truth producer
+- `QuantOps API` is the contract and aggregation layer between runtime truth and operator-facing surfaces
 - read models exist to create stable, presentation-oriented views of truth
 - writer observability exists to explain freshness, lag, and degraded write paths
+- ownership boundaries matter as much as code structure
 
 ## Investigation Order
 
-1. `QuantOps_Architecture_Master.md`
-2. `V12_Architecture_Master.md`
-3. `V12_QuantOps_Interface_Contract.md`
-4. `architecture-read-models.md`
-5. `writer-observability.md`
+1. `architecture_layers.md`
+2. `system_ownership_map.md`
+3. `QuantOps_Architecture_Master.md`
+4. `V12_Architecture_Master.md`
+5. `V12_QuantOps_Interface_Contract.md`
+6. `architecture-read-models.md`
+7. `writer-observability.md`

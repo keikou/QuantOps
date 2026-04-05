@@ -38,6 +38,10 @@ Why:
 
 ## 02_architecture
 
+- `02_architecture/README.md`
+- `02_architecture/current_architecture.md`
+- `02_architecture/architecture_layers.md`
+- `02_architecture/system_ownership_map.md`
 - `02_architecture/QuantOps_Architecture_Master.md`
 - `02_architecture/V12_Architecture_Master.md`
 - `02_architecture/architecture-read-models.md`
