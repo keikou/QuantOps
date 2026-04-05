@@ -93,20 +93,20 @@ Then decide whether the problem is:
 
 ## Current Missing Interface Docs
 
-- event contracts
-- runtime checkpoint shapes
-- operator bundle payload shapes
-- acceptance result payload shapes
-
-Current additions now available:
-
 - `./event_contracts.md`
 - `./runtime_checkpoint_shapes.md`
 - `./operator_bundle_payloads.md`
 - `./endpoint_contract_matrix.md`
+- `./lane_surface_inventory.md`
 - `./api_endpoints.md`
 - `./data_schema.md`
 - `./runtime_payloads.md`
+
+Current thinner areas:
+
+- regime-adaptation lane contracts
+- deeper request-body schema coverage
+- full field-by-field lineage for family payloads
 
 ## Current Recommendation
 
@@ -120,6 +120,7 @@ Until the interface layer is deeper, use this sequence:
 6. `./runtime_checkpoint_shapes.md`
 7. `./operator_bundle_payloads.md`
 8. `./endpoint_contract_matrix.md`
-9. `./api_endpoints.md`
-10. `./data_schema.md`
-11. `./runtime_payloads.md`
+9. `./lane_surface_inventory.md`
+10. `./api_endpoints.md`
+11. `./data_schema.md`
+12. `./runtime_payloads.md`

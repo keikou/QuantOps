@@ -22,9 +22,10 @@ This index tells humans and AI agents which contract docs to trust first.
 7. `./runtime_checkpoint_shapes.md`
 8. `./operator_bundle_payloads.md`
 9. `./endpoint_contract_matrix.md`
-10. `./api_endpoints.md`
-11. `./data_schema.md`
-12. `./runtime_payloads.md`
+10. `./lane_surface_inventory.md`
+11. `./api_endpoints.md`
+12. `./data_schema.md`
+13. `./runtime_payloads.md`
 
 ## What Counts As An Interface Here
 
@@ -69,13 +70,14 @@ The current gaps are:
 
 ## Recommended Next Additions
 
-1. deepen `event_contracts.md`
-2. deepen `runtime_checkpoint_shapes.md`
-3. deepen `operator_bundle_payloads.md`
-4. deepen `endpoint_contract_matrix.md`
-5. deepen `api_endpoints.md`
-6. deepen `data_schema.md`
-7. deepen `runtime_payloads.md`
+1. add `SERI` family surfaces when packet 01 starts
+2. deepen `event_contracts.md`
+3. deepen `runtime_checkpoint_shapes.md`
+4. deepen `operator_bundle_payloads.md`
+5. deepen `endpoint_contract_matrix.md`
+6. deepen `api_endpoints.md`
+7. deepen `data_schema.md`
+8. deepen `runtime_payloads.md`
 
 ## Rule
 

@@ -59,3 +59,5 @@ This file is the compact routing matrix for the current `system` contract surfac
 ## Rule
 
 When a new `system` endpoint is added, update this matrix if the endpoint is operator-visible or part of the lane checkpoint contract surface.
+
+Use `lane_surface_inventory.md` when you need to follow the same endpoints as one checkpoint family rather than as isolated routes.
