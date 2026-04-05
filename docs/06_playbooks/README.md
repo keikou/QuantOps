@@ -18,6 +18,8 @@ They are concrete response documents for a bounded problem class.
 3. `./timeout-improvement-pr-summary.md`
 4. `./runtime_regression_triage.md`
 5. `./resume_and_docs_state_drift.md`
+6. `./api_failure_triage.md`
+7. `./rollback_decision_path.md`
 
 ## Rule
 

@@ -14,6 +14,8 @@ This file is the short human/AI summary of the current playbook set.
 2. `./timeout-improvement-pr-summary.md`
 3. `./runtime_regression_triage.md`
 4. `./resume_and_docs_state_drift.md`
+5. `./api_failure_triage.md`
+6. `./rollback_decision_path.md`
 
 ## Current Recommendation
 
@@ -28,3 +30,5 @@ Current high-value playbook classes now include:
 - timeout remediation
 - runtime regression triage
 - resume/docs state drift cleanup
+- API failure triage
+- rollback decision control
