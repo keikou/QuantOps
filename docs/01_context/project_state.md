@@ -60,6 +60,18 @@ The repo is now asking:
 
 - `Strategy Evolution / Regime Adaptation Intelligence`
 
+## Current Docs-Ready State
+
+The repo now has a docs-ready startup path for the next lane.
+
+Current prepared assets include:
+
+- `../04_tasks/seri01_regime_detection_and_strategy_gating_engine_2026-04-05.md`
+- `../07_interfaces/seri_regime_adaptation_contracts.md`
+- `../10_agent/ai_docs_operating_loop.md`
+
+This means the next implementation step can start from canonical docs rather than rebuilding context from conversation history.
+
 ## Other Candidate Next Lanes
 
 - `Meta Portfolio Intelligence / Cross-Strategy Capital Allocation`

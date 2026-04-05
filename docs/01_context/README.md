@@ -40,6 +40,8 @@ For active priorities, continue from:
 - the current hardening/resume slice is already treated as sufficiently complete
 - `Meta Portfolio Intelligence` first checkpoint is complete
 - next top-level lane is `Strategy Evolution / Regime Adaptation Intelligence`
+- `SERI-01` is docs-ready before code implementation starts
+- current execution mode is `docs-first`, then `code`, then `narrow verifier`, then `docs writeback`
 
 Historical note:
 

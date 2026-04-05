@@ -21,13 +21,15 @@ Status: `current_working_assumptions`
 - Codex should inspect, implement, verify, and update docs
 - ChatGPT app should be used for design framing, prioritization, and architect discussion
 - major conclusions should be written back into docs rather than left in conversation history
+- the default execution loop is `docs-first`, then `code`, then `narrow verifier`, then `docs writeback`
 
 ## Planning Assumptions
 
 - do not rename the current track to `Phase8` unless architect changes guidance
 - do not reopen completed hardening packets unless a real regression is found
 - the current hardening/resume slice is already treated as sufficiently complete
-- the next likely lane is `Execution Reality`
+- the next active lane is `Strategy Evolution / Regime Adaptation Intelligence`
+- `SERI-01` is the current docs-ready packet boundary
 
 ## Investigation Assumptions
 
