@@ -22,6 +22,9 @@ This index tells humans and AI agents which contract docs to trust first.
 7. `./runtime_checkpoint_shapes.md`
 8. `./operator_bundle_payloads.md`
 9. `./endpoint_contract_matrix.md`
+10. `./api_endpoints.md`
+11. `./data_schema.md`
+12. `./runtime_payloads.md`
 
 ## What Counts As An Interface Here
 
@@ -60,9 +63,9 @@ It is broader than just endpoint lists.
 
 The current gaps are:
 
-- endpoint-by-endpoint request and response schema depth is still thin
 - regime-adaptation lane contracts are not documented yet
-- operator payload lineage is still summarized rather than fully enumerated
+- request-body schema depth is still thin
+- family-level payload lineage is still summarized rather than fully enumerated
 
 ## Recommended Next Additions
 
@@ -70,6 +73,9 @@ The current gaps are:
 2. deepen `runtime_checkpoint_shapes.md`
 3. deepen `operator_bundle_payloads.md`
 4. deepen `endpoint_contract_matrix.md`
+5. deepen `api_endpoints.md`
+6. deepen `data_schema.md`
+7. deepen `runtime_payloads.md`
 
 ## Rule
 

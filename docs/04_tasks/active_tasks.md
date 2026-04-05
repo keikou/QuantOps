@@ -14,6 +14,7 @@ Status: `single_active_lane`
 
 - deeper `07_interfaces` schema detail if the compact routing docs are not enough
 - later `SERI-02` through `SERI-05` after `SERI-01` freezes its first surface
+- reusable task expansion beyond the first recurring verification and contract-update tasks
 
 ## Blocked
 

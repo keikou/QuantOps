@@ -104,6 +104,9 @@ Current additions now available:
 - `./runtime_checkpoint_shapes.md`
 - `./operator_bundle_payloads.md`
 - `./endpoint_contract_matrix.md`
+- `./api_endpoints.md`
+- `./data_schema.md`
+- `./runtime_payloads.md`
 
 ## Current Recommendation
 
@@ -117,3 +120,6 @@ Until the interface layer is deeper, use this sequence:
 6. `./runtime_checkpoint_shapes.md`
 7. `./operator_bundle_payloads.md`
 8. `./endpoint_contract_matrix.md`
+9. `./api_endpoints.md`
+10. `./data_schema.md`
+11. `./runtime_payloads.md`
