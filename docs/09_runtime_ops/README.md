@@ -31,5 +31,7 @@ Treat this folder as the canonical entrypoint for deciding where runtime investi
 ## Current Focus
 
 - local stack should still be operated through the verified startup/stop path
+- start runtime investigation from the canonical docs route before ad-hoc debugging
 - use runtime and correlation logs before guessing where a failure lives
 - do not confuse stale chat guidance with runtime evidence
+- prefer the narrowest relevant verifier before broad runtime replay

@@ -16,15 +16,16 @@ This file is the short entrypoint for runtime incident investigation.
 
 ## Investigation Order
 
-1. confirm the symptom is real and current
-2. confirm health and startup state
-3. inspect runtime logs and correlation logs
-4. match by `trace_id`, `request_id`, `session_id`, and `page_path`
-5. identify whether the issue belongs to:
+1. confirm the current repo state from canonical docs
+2. confirm the symptom is real and current
+3. confirm health and startup state
+4. inspect runtime logs and correlation logs
+5. match by `trace_id`, `request_id`, `session_id`, and `page_path`
+6. identify whether the issue belongs to:
    - frontend
    - QuantOps API
    - V12
-6. run the narrowest relevant verifier if the issue looks like a regression
+7. run the narrowest relevant verifier if the issue looks like a regression
 
 ## Current Important Log Surfaces
 
@@ -45,6 +46,13 @@ Runtime evidence comes from:
 - log rows
 - correlation ids
 - verifier failures
+
+Current docs-first runtime route:
+
+- `../00_index/README.md`
+- `../03_plans/current.md`
+- `../04_tasks/current.md`
+- `../10_agent/ai_docs_operating_loop.md`
 
 ## Historical Background
 
