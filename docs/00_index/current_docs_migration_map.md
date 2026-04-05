@@ -260,16 +260,13 @@ Archive only when:
 ## Recommended Next Migration Steps
 
 1. verify the expanded canonical entrypoints stay internally consistent
-2. continue routing root-level docs through folder-owned `README.md` or `current.md` files before physical moves
-3. keep the docs-first AI operating loop visible from `00_index` and `10_agent`
-4. keep `SERI-01` visible as a docs-ready lane before code implementation starts
-5. decide the next high-signal physical moves only after ownership is stable
-6. use verifier coverage to catch stale docs-state drift early
+2. keep the docs-first AI operating loop visible from all major folder entrypoints
+3. keep `SERI-01` visible as a docs-ready lane before code implementation starts
+4. decide the next high-signal physical moves only after ownership is stable
+5. use verifier coverage to catch stale docs-state drift early
 
 ## Most Important Current Gaps
 
-- root-level plan and report artifacts still remain physically outside their canonical folders
-- root-level workflow and guide docs still remain physically outside their canonical folders
-- some docs still belong to multiple views, so canonical ownership needs to be decided before moving more files
-- the docs-only AI operating loop is now defined, but downstream folder entrypoints should continue to reference it consistently
+- root-level plan, report, workflow, and guide artifacts still remain physically outside their canonical folders
+- a few docs still belong to multiple views, so canonical ownership must be settled before more physical moves
 - `SERI` implementation docs are prepared, but the code surface itself is not implemented yet

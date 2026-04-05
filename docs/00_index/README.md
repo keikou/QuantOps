@@ -89,7 +89,7 @@ Until the migration is complete, the closest current files are:
 - `SERI-01` is docs-ready through task, interface, and agent entrypoints
 - current AI operating mode is `docs-first`, then `code`, then `narrow verifier`, then `docs writeback`
 - current branch remains `codex/post-phase7-hardening`
-- latest pushed commit is `506ca54`
+- latest pushed commit is `59c234b`
 
 ## Immediate Migration Rule
 
