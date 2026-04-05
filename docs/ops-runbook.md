@@ -1,5 +1,14 @@
 # Operations Runbook
 
+## Canonical Route
+
+- primary ownership: `docs/09_runtime_ops/supporting_runtime_ops.md`
+
+## Use This File For
+
+- deeper runtime operation detail
+- startup/stop/troubleshooting detail beyond the runtime ops summaries
+
 This document is the practical operator guide for starting, stopping, checking, and troubleshooting the local QuantOps stack.
 
 For developer-oriented startup notes, also see:

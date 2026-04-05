@@ -1,5 +1,15 @@
 # Development Workflow
 
+## Canonical Route
+
+- primary ownership: `docs/05_workflows/supporting_workflows.md`
+- adjacent guide route: `docs/08_dev_guides/supporting_guides.md`
+
+## Use This File For
+
+- older workflow detail
+- engineering flow background for performance and stability work
+
 This document captures the workflow that proved effective during the timeout-improvement work.
 
 It is intended as a reusable engineering workflow for future performance, stability, and read-path changes in this repo.

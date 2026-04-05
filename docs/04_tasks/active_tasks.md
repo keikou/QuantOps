@@ -5,12 +5,13 @@ Status: `single_active_lane`
 
 ## Active
 
-- choose and start the next lane beyond completed hardening/resume
-- prepare `Execution Reality` as the default first candidate
+- implement `SERI-01` as the next lane beyond completed hardening/resume
+- strengthen `07_interfaces` so current system contract surfaces are readable without code-first recovery
+- execute [interface_contract_hardening_2026-04-05.md](/C:/work_data/pyWorkSpace/QuantOpsV12/QuantOps_github/docs/04_tasks/interface_contract_hardening_2026-04-05.md)
 
 ## Waiting
 
-- architect redirection to `Governance -> Runtime Control` or `Portfolio Intelligence`
+- deeper `07_interfaces` schema detail if the compact routing docs are not enough
 
 ## Blocked
 

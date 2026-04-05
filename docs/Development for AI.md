@@ -1,5 +1,16 @@
 # Development for AI
 
+## Canonical Route
+
+- primary ownership: `docs/10_agent/supporting_agent_docs.md`
+- shared context route: `docs/01_context/supporting_context_docs.md`
+
+## Use This File For
+
+- AI fast-start background
+- repo-wide implementation orientation
+- ChatGPT / Codex shared collaboration context
+
 ## Purpose
 
 This document is the fast-start guide for any AI agent, thread, or reviewer that needs to continue development in this repository without rediscovering the project structure and operating rules from scratch.

@@ -18,6 +18,10 @@ This index tells humans and AI agents which contract docs to trust first.
 3. `./portfolio-display-semantics.md`
 4. `../02_architecture/architecture-read-models.md`
 5. `./V12_QuantOps_Interface_Contract.md`
+6. `./event_contracts.md`
+7. `./runtime_checkpoint_shapes.md`
+8. `./operator_bundle_payloads.md`
+9. `./endpoint_contract_matrix.md`
 
 ## What Counts As An Interface Here
 
@@ -56,17 +60,16 @@ It is broader than just endpoint lists.
 
 The current gaps are:
 
-- no dedicated event contract doc
-- no runtime checkpoint payload index
-- no operator bundle payload reference
-- no single endpoint contract matrix yet
+- endpoint-by-endpoint request and response schema depth is still thin
+- regime-adaptation lane contracts are not documented yet
+- operator payload lineage is still summarized rather than fully enumerated
 
 ## Recommended Next Additions
 
-1. `event_contracts.md`
-2. `runtime_checkpoint_shapes.md`
-3. `operator_bundle_payloads.md`
-4. `endpoint_contract_matrix.md`
+1. deepen `event_contracts.md`
+2. deepen `runtime_checkpoint_shapes.md`
+3. deepen `operator_bundle_payloads.md`
+4. deepen `endpoint_contract_matrix.md`
 
 ## Rule
 

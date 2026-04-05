@@ -1,5 +1,16 @@
 # ChatGPT App And Codex Co-Work
 
+## Canonical Route
+
+- primary ownership: `docs/10_agent/supporting_agent_docs.md`
+- shared context route: `docs/01_context/supporting_context_docs.md`
+
+## Use This File For
+
+- ChatGPT / Codex role split
+- agent collaboration conventions
+- historical co-work rationale
+
 This document captures the effective co-work pattern that emerged while stabilizing timeout behavior and restructuring the read/write paths.
 
 The main lesson is simple:

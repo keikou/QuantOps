@@ -1,5 +1,16 @@
 # Developer Startup And Verification
 
+## Canonical Route
+
+- primary ownership: `docs/08_dev_guides/supporting_guides.md`
+- runtime operations route: `docs/09_runtime_ops/supporting_runtime_ops.md`
+
+## Use This File For
+
+- startup commands
+- local verification startup sequence
+- concrete port and URL checks
+
 This document captures the current working local startup path for `Sprint6H-9.2.7.12`.
 
 ## Startup Order

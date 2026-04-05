@@ -98,6 +98,13 @@ Then decide whether the problem is:
 - operator bundle payload shapes
 - acceptance result payload shapes
 
+Current additions now available:
+
+- `./event_contracts.md`
+- `./runtime_checkpoint_shapes.md`
+- `./operator_bundle_payloads.md`
+- `./endpoint_contract_matrix.md`
+
 ## Current Recommendation
 
 Until the interface layer is deeper, use this sequence:
@@ -106,3 +113,7 @@ Until the interface layer is deeper, use this sequence:
 2. `./api-summary-contracts.md`
 3. `./portfolio-display-semantics.md`
 4. `../02_architecture/architecture-read-models.md`
+5. `./event_contracts.md`
+6. `./runtime_checkpoint_shapes.md`
+7. `./operator_bundle_payloads.md`
+8. `./endpoint_contract_matrix.md`
