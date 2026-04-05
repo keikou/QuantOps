@@ -33,6 +33,8 @@ Treat this folder as the canonical entrypoint that tells humans and AI agents wh
 - do not reopen completed hardening packets unless a real regression is found
 - if implementation continues, it should start the next lane beyond the completed `MPI` checkpoint
 - current default candidate is `Strategy Evolution / Regime Adaptation Intelligence`
+- current implementation startup should follow the docs-first operating loop before code inspection
+- `SERI-01` is docs-ready before implementation
 
 Historical note:
 

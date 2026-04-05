@@ -10,9 +10,10 @@ This file explains how to choose the right verification depth for implementation
 
 ## Verification Order
 
-1. run the narrowest relevant verifier first
-2. run startup or integration checks only when the task actually touches them
-3. prefer repo-local proof over conversational confidence
+1. derive the current verifier path from docs first
+2. run the narrowest relevant verifier first
+3. run startup or integration checks only when the task actually touches them
+4. prefer repo-local proof over conversational confidence
 
 ## Current High-Signal Checks
 
@@ -41,6 +42,7 @@ Docs-structure checks added in this lane:
 - `python test_bundle/scripts/verify_context_docs.py`
 - `python test_bundle/scripts/verify_reports_docs.py`
 - `python test_bundle/scripts/verify_dev_guides_docs.py`
+- `python test_bundle/scripts/verify_agent_docs.py`
 
 ## Rule
 
@@ -48,6 +50,7 @@ A task is not complete just because the code change looks coherent.
 
 At minimum:
 
+- the verifier path should be explainable from current docs
 - the smallest relevant verifier should pass
 - the docs entrypoint for future threads should remain accurate
 

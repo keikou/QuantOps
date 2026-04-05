@@ -10,10 +10,19 @@ Use the repo in this order:
 
 1. read the canonical indexes first
 2. confirm the current plan and task
-3. inspect the real code and the real stack
-4. implement the smallest high-signal change
-5. run the narrowest relevant verifier
-6. write back the new truth into docs
+3. confirm the docs-first operating loop
+4. inspect the real code and the real stack
+5. implement the smallest high-signal change
+6. run the narrowest relevant verifier
+7. write back the new truth into docs
+
+Current startup route:
+
+1. `../00_index/README.md`
+2. `../10_agent/ai_docs_operating_loop.md`
+3. `../03_plans/current.md`
+4. `../04_tasks/current.md`
+5. the active task file
 
 ## Layer Rule
 
@@ -40,6 +49,7 @@ If work continues, prefer starting the next lane beyond hardening/resume.
 ## Default Next Lane
 
 - `Strategy Evolution / Regime Adaptation Intelligence`
+- current docs-ready packet is `SERI-01`
 
 Historical note:
 
@@ -50,5 +60,6 @@ Historical note:
 - `../development-rules-v12-vs-quantops.md`
 - `../05_workflows/dev-flow.md`
 - `../01_context/working_assumptions.md`
+- `../10_agent/ai_docs_operating_loop.md`
 - `../03_plans/current.md`
 - `../04_tasks/current.md`
