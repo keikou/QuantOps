@@ -15,12 +15,15 @@ Use this workflow when the repo, runtime, or docs state appears inconsistent, br
    - resume-state mismatch
 2. check the current canonical entrypoints:
    - `../00_index/README.md`
+   - `../10_agent/ai_docs_operating_loop.md`
+   - `../03_plans/current.md`
    - `../04_tasks/current.md`
    - `../11_reports/current_status.md`
-3. if services matter, run the resume quickcheck and refresh helpers
-4. run the narrowest relevant verifier first
-5. only reopen a completed lane if the verifier shows a real regression
-6. record the mismatch in a report or follow-up doc if it changes repo truth
+3. decide whether the mismatch is route drift, docs drift, or real runtime break
+4. if services matter, run the resume quickcheck and refresh helpers
+5. run the narrowest relevant verifier first
+6. only reopen a completed lane if the verifier shows a real regression
+7. record the mismatch in a report or follow-up doc if it changes repo truth
 
 ## Rule
 

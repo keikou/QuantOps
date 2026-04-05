@@ -9,7 +9,7 @@ Use this workflow when a task touches runtime truth, execution evidence, accepta
 
 ## Flow
 
-1. identify the exact runtime property being validated
+1. identify the exact runtime property being validated from current docs first
 2. define one narrow invariant or measurement target
 3. locate the closest existing runtime or hardening verifier
 4. decide whether to:
@@ -27,6 +27,10 @@ For the current next lane, `Strategy Evolution / Regime Adaptation Intelligence`
 - strategy compatibility drift
 - gating trigger visibility
 - transition detection continuity
+
+Current docs-ready packet:
+
+- `SERI-01`
 
 ## Non-Goal
 

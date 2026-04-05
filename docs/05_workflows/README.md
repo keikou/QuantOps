@@ -20,3 +20,8 @@ This folder describes repeatable flows that both humans and AI agents can follow
 - use `incident-flow.md` when something appears broken, stale, or inconsistent
 - use `runtime-acceptance-flow.md` when validating a runtime-oriented lane or packet
 - use `supporting_workflows.md` when a workflow-shaped doc still lives at the root of `docs/`
+
+## Current Operating Mode
+
+- start from the docs-first operating loop before deep code inspection
+- treat `SERI-01` as the current docs-ready packet boundary
