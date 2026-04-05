@@ -16,13 +16,16 @@ Use it first when you need to answer:
 
 ## Canonical Docs
 
-1. `./architecture_layers.md`
-2. `./system_ownership_map.md`
-3. `./QuantOps_Architecture_Master.md`
-4. `./V12_Architecture_Master.md`
-5. `../07_interfaces/V12_QuantOps_Interface_Contract.md`
-6. `./architecture-read-models.md`
-7. `./writer-observability.md`
+1. `./system_overview.md`
+2. `./architecture_layers.md`
+3. `./system_ownership_map.md`
+4. `./components.md`
+5. `./data_flow.md`
+6. `./QuantOps_Architecture_Master.md`
+7. `./V12_Architecture_Master.md`
+8. `../07_interfaces/V12_QuantOps_Interface_Contract.md`
+9. `./architecture-read-models.md`
+10. `./writer-observability.md`
 
 ## Summary
 
@@ -35,10 +38,13 @@ Use it first when you need to answer:
 
 ## Investigation Order
 
-1. `architecture_layers.md`
-2. `system_ownership_map.md`
-3. `QuantOps_Architecture_Master.md`
-4. `V12_Architecture_Master.md`
-5. `V12_QuantOps_Interface_Contract.md`
-6. `architecture-read-models.md`
-7. `writer-observability.md`
+1. `system_overview.md`
+2. `architecture_layers.md`
+3. `system_ownership_map.md`
+4. `components.md`
+5. `data_flow.md`
+6. `QuantOps_Architecture_Master.md`
+7. `V12_Architecture_Master.md`
+8. `V12_QuantOps_Interface_Contract.md`
+9. `architecture-read-models.md`
+10. `writer-observability.md`
