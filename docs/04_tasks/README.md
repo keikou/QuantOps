@@ -27,6 +27,8 @@ It answers:
 2. `./interface_contract_hardening_2026-04-05.md`
 3. `./runtime_regression_verification_task.md`
 4. `./contract_doc_update_task.md`
+5. `./docs_route_sync_task.md`
+6. `./docs_first_execution_prep_task.md`
 
 ## Rule
 

@@ -43,6 +43,8 @@ Prefer names that describe the executable unit, not the whole lane.
 - interface contract hardening
 - runtime regression investigation
 - docs-state alignment
+- docs-route synchronization
+- docs-first execution preparation
 
 ## Rule
 
