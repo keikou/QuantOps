@@ -40,8 +40,11 @@ Why:
 
 - `02_architecture/README.md`
 - `02_architecture/current_architecture.md`
+- `02_architecture/system_overview.md`
 - `02_architecture/architecture_layers.md`
 - `02_architecture/system_ownership_map.md`
+- `02_architecture/components.md`
+- `02_architecture/data_flow.md`
 - `02_architecture/QuantOps_Architecture_Master.md`
 - `02_architecture/V12_Architecture_Master.md`
 - `02_architecture/architecture-read-models.md`
@@ -101,6 +104,8 @@ Why:
 - `04_tasks/task_generation_rules.md`
 - `04_tasks/runtime_regression_verification_task.md`
 - `04_tasks/contract_doc_update_task.md`
+- `04_tasks/docs_route_sync_task.md`
+- `04_tasks/docs_first_execution_prep_task.md`
 - `04_tasks/interface_contract_hardening_2026-04-05.md`
 - `04_tasks/seri01_regime_detection_and_strategy_gating_engine_2026-04-05.md`
 
@@ -130,6 +135,8 @@ Why:
 - `06_playbooks/current_playbooks.md`
 - `06_playbooks/runtime_regression_triage.md`
 - `06_playbooks/resume_and_docs_state_drift.md`
+- `06_playbooks/api_failure_triage.md`
+- `06_playbooks/rollback_decision_path.md`
 
 Why:
 
@@ -146,9 +153,11 @@ Why:
 - `07_interfaces/runtime_checkpoint_shapes.md`
 - `07_interfaces/operator_bundle_payloads.md`
 - `07_interfaces/endpoint_contract_matrix.md`
+- `07_interfaces/lane_surface_inventory.md`
 - `07_interfaces/api_endpoints.md`
 - `07_interfaces/data_schema.md`
 - `07_interfaces/runtime_payloads.md`
+- `07_interfaces/seri_regime_adaptation_contracts.md`
 - `02_architecture/architecture-read-models.md`
 
 Why:
@@ -253,8 +262,9 @@ Archive only when:
 1. verify the expanded canonical entrypoints stay internally consistent
 2. continue routing root-level docs through folder-owned `README.md` or `current.md` files before physical moves
 3. keep the docs-first AI operating loop visible from `00_index` and `10_agent`
-4. decide the next high-signal physical moves only after ownership is stable
-5. use verifier coverage to catch stale docs-state drift early
+4. keep `SERI-01` visible as a docs-ready lane before code implementation starts
+5. decide the next high-signal physical moves only after ownership is stable
+6. use verifier coverage to catch stale docs-state drift early
 
 ## Most Important Current Gaps
 
@@ -262,3 +272,4 @@ Archive only when:
 - root-level workflow and guide docs still remain physically outside their canonical folders
 - some docs still belong to multiple views, so canonical ownership needs to be decided before moving more files
 - the docs-only AI operating loop is now defined, but downstream folder entrypoints should continue to reference it consistently
+- `SERI` implementation docs are prepared, but the code surface itself is not implemented yet

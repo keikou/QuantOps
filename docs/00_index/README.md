@@ -86,8 +86,10 @@ Until the migration is complete, the closest current files are:
 - hardening/resume plus `Execution Reality`, `Governance -> Runtime Control`, `Portfolio Intelligence`, `Alpha / Strategy Selection Intelligence`, `Research / Promotion Intelligence`, `System-Level Learning / Feedback Integration`, `Policy Optimization`, `Deployment / Rollout Intelligence`, `Live Capital Control`, and `Meta Portfolio Intelligence` first checkpoints are complete
 - do not reopen completed closure or checkpoint work unless a real regression is found
 - current next top-level lane is `Strategy Evolution / Regime Adaptation Intelligence`
+- `SERI-01` is docs-ready through task, interface, and agent entrypoints
 - current AI operating mode is `docs-first`, then `code`, then `narrow verifier`, then `docs writeback`
 - current branch remains `codex/post-phase7-hardening`
+- latest pushed commit is `506ca54`
 
 ## Immediate Migration Rule
 
