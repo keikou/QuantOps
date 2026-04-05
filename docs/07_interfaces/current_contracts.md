@@ -104,9 +104,12 @@ Then decide whether the problem is:
 
 Current thinner areas:
 
-- regime-adaptation lane contracts
 - deeper request-body schema coverage
 - full field-by-field lineage for family payloads
+
+Future-lane contract stub now available:
+
+- `./seri_regime_adaptation_contracts.md`
 
 ## Current Recommendation
 
@@ -121,6 +124,7 @@ Until the interface layer is deeper, use this sequence:
 7. `./operator_bundle_payloads.md`
 8. `./endpoint_contract_matrix.md`
 9. `./lane_surface_inventory.md`
-10. `./api_endpoints.md`
-11. `./data_schema.md`
-12. `./runtime_payloads.md`
+10. `./seri_regime_adaptation_contracts.md`
+11. `./api_endpoints.md`
+12. `./data_schema.md`
+13. `./runtime_payloads.md`

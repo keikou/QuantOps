@@ -38,6 +38,12 @@ The current lanes tend to expose five related surfaces:
   - state
   - flow
   - efficiency
+- `Strategy Evolution / Regime Adaptation Intelligence`
+  - regime state
+  - strategy-regime compatibility
+  - strategy gating decision
+  - regime transition detection
+  - strategy survival analysis
 
 ## Contract Rule
 

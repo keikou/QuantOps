@@ -23,9 +23,10 @@ This index tells humans and AI agents which contract docs to trust first.
 8. `./operator_bundle_payloads.md`
 9. `./endpoint_contract_matrix.md`
 10. `./lane_surface_inventory.md`
-11. `./api_endpoints.md`
-12. `./data_schema.md`
-13. `./runtime_payloads.md`
+11. `./seri_regime_adaptation_contracts.md`
+12. `./api_endpoints.md`
+13. `./data_schema.md`
+14. `./runtime_payloads.md`
 
 ## What Counts As An Interface Here
 
@@ -64,13 +65,12 @@ It is broader than just endpoint lists.
 
 The current gaps are:
 
-- regime-adaptation lane contracts are not documented yet
 - request-body schema depth is still thin
 - family-level payload lineage is still summarized rather than fully enumerated
 
 ## Recommended Next Additions
 
-1. add `SERI` family surfaces when packet 01 starts
+1. deepen `seri_regime_adaptation_contracts.md` once `SERI-01` lands
 2. deepen `event_contracts.md`
 3. deepen `runtime_checkpoint_shapes.md`
 4. deepen `operator_bundle_payloads.md`

@@ -55,3 +55,4 @@ Runtime-visible payloads should make the current action, current state, and curr
 1. `./operator_bundle_payloads.md`
 2. `./runtime_checkpoint_shapes.md`
 3. `./endpoint_contract_matrix.md`
+4. `./seri_regime_adaptation_contracts.md`
