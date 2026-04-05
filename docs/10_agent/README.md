@@ -17,13 +17,14 @@ It answers:
 ## Read First
 
 1. `./system_context.md`
-2. `./rules.md`
-3. `./capabilities.md`
-4. `./constraints.md`
-5. `./supporting_agent_docs.md`
-6. `../Architect_alignment_resume_memo_2026-04-02.md`
-7. `../Auto_resume_handover_2026-04-02.md`
-8. `../chatgpt-codex-cowork.md`
+2. `./ai_docs_operating_loop.md`
+3. `./rules.md`
+4. `./capabilities.md`
+5. `./constraints.md`
+6. `./supporting_agent_docs.md`
+7. `../Architect_alignment_resume_memo_2026-04-02.md`
+8. `../Auto_resume_handover_2026-04-02.md`
+9. `../chatgpt-codex-cowork.md`
 
 ## Current Agent Rule
 

@@ -17,7 +17,7 @@ Status: `current_agent_rules`
 ## Current First Docs
 
 1. `../00_index/README.md`
-2. `../01_context/README.md`
-3. `../03_plans/current.md`
-4. `../04_tasks/current.md`
-5. `../10_agent/system_context.md`
+2. `../03_plans/current.md`
+3. `../04_tasks/current.md`
+4. `../10_agent/system_context.md`
+5. `../10_agent/ai_docs_operating_loop.md`

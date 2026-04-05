@@ -63,22 +63,22 @@ Until the migration is complete, the closest current files are:
 
 Read in this order:
 
-1. `../01_context/`
+1. `../10_agent/`
 2. `../03_plans/`
 3. `../04_tasks/`
-4. `../05_workflows/`
-5. `../07_interfaces/`
-6. `../09_runtime_ops/`
+4. `../07_interfaces/`
+5. `../09_runtime_ops/`
+6. `../02_architecture/`
 7. `../11_reports/`
 
 Until the migration is complete, the closest current files are:
 
-1. `../Development for AI.md`
-2. `../Auto_resume_handover_2026-04-02.md`
-3. `../Architect_alignment_resume_memo_2026-04-02.md`
-4. `../Post_Phase7_hardening_architect_report_2026-04-02.md`
-5. `../Hardening_architect_handoff_latest.md`
-6. `../Resume_operator_packet_latest.md`
+1. `../10_agent/README.md`
+2. `../10_agent/ai_docs_operating_loop.md`
+3. `../03_plans/current.md`
+4. `../04_tasks/current.md`
+5. `../07_interfaces/current_contracts.md`
+6. `../11_reports/current_status.md`
 
 ## Current Focus
 
@@ -86,6 +86,7 @@ Until the migration is complete, the closest current files are:
 - hardening/resume plus `Execution Reality`, `Governance -> Runtime Control`, `Portfolio Intelligence`, `Alpha / Strategy Selection Intelligence`, `Research / Promotion Intelligence`, `System-Level Learning / Feedback Integration`, `Policy Optimization`, `Deployment / Rollout Intelligence`, `Live Capital Control`, and `Meta Portfolio Intelligence` first checkpoints are complete
 - do not reopen completed closure or checkpoint work unless a real regression is found
 - current next top-level lane is `Strategy Evolution / Regime Adaptation Intelligence`
+- current AI operating mode is `docs-first`, then `code`, then `narrow verifier`, then `docs writeback`
 - current branch remains `codex/post-phase7-hardening`
 
 ## Immediate Migration Rule

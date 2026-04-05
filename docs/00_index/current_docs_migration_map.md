@@ -97,6 +97,12 @@ Why:
 - `04_tasks/current.md`
 - `04_tasks/active_tasks.md`
 - `04_tasks/task_template.md`
+- `04_tasks/README.md`
+- `04_tasks/task_generation_rules.md`
+- `04_tasks/runtime_regression_verification_task.md`
+- `04_tasks/contract_doc_update_task.md`
+- `04_tasks/interface_contract_hardening_2026-04-05.md`
+- `04_tasks/seri01_regime_detection_and_strategy_gating_engine_2026-04-05.md`
 
 Why:
 
@@ -120,6 +126,10 @@ Why:
 
 - `06_playbooks/timeout-improvement-pr-summary.md`
 - `06_playbooks/timeout-roadmap.md`
+- `06_playbooks/README.md`
+- `06_playbooks/current_playbooks.md`
+- `06_playbooks/runtime_regression_triage.md`
+- `06_playbooks/resume_and_docs_state_drift.md`
 
 Why:
 
@@ -130,18 +140,20 @@ Why:
 - `07_interfaces/V12_QuantOps_Interface_Contract.md`
 - `07_interfaces/api-summary-contracts.md`
 - `07_interfaces/portfolio-display-semantics.md`
+- `07_interfaces/README.md`
+- `07_interfaces/current_contracts.md`
+- `07_interfaces/event_contracts.md`
+- `07_interfaces/runtime_checkpoint_shapes.md`
+- `07_interfaces/operator_bundle_payloads.md`
+- `07_interfaces/endpoint_contract_matrix.md`
+- `07_interfaces/api_endpoints.md`
+- `07_interfaces/data_schema.md`
+- `07_interfaces/runtime_payloads.md`
 - `02_architecture/architecture-read-models.md`
-
-Candidate future additions:
-
-- API schemas
-- event contracts
-- data contracts
-- checkpoint payload shapes
 
 Why:
 
-- current interface documentation is thin and still partly embedded elsewhere
+- current interface documentation now has a canonical folder route, but physical ownership is still mixed between `07_interfaces/` and a few adjacent docs
 
 ## 08_dev_guides
 
@@ -175,6 +187,7 @@ Why:
 ## 10_agent
 
 - `10_agent/README.md`
+- `10_agent/ai_docs_operating_loop.md`
 - `10_agent/system_context.md`
 - `10_agent/rules.md`
 - `10_agent/capabilities.md`
@@ -239,11 +252,13 @@ Archive only when:
 
 1. verify the expanded canonical entrypoints stay internally consistent
 2. continue routing root-level docs through folder-owned `README.md` or `current.md` files before physical moves
-3. decide the next high-signal physical moves only after ownership is stable
-4. use verifier coverage to catch stale docs-state drift early
+3. keep the docs-first AI operating loop visible from `00_index` and `10_agent`
+4. decide the next high-signal physical moves only after ownership is stable
+5. use verifier coverage to catch stale docs-state drift early
 
 ## Most Important Current Gaps
 
 - root-level plan and report artifacts still remain physically outside their canonical folders
 - root-level workflow and guide docs still remain physically outside their canonical folders
 - some docs still belong to multiple views, so canonical ownership needs to be decided before moving more files
+- the docs-only AI operating loop is now defined, but downstream folder entrypoints should continue to reference it consistently
