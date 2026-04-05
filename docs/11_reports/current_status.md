@@ -24,8 +24,9 @@ The repo currently stands in this state:
 - `Live Capital Control / Adaptive Runtime Allocation v1` is checkpoint-complete through `LCC-05`
 - `Meta Portfolio Intelligence / Cross-Strategy Capital Allocation v1` is checkpoint-complete through `MPI-05`
 - architect selected `Strategy Evolution / Regime Adaptation Intelligence` as the next top-level lane
-- latest pushed commit is `6c808f8`
-- current local worktree now contains uncommitted post-`MPI` and docs-structure changes on `2026-04-05`
+- `SERI-01` docs route is prepared through task, interface, and agent entrypoints
+- latest pushed commit is `db9e39a`
+- local worktree contains post-`SERI docs-ready` documentation changes on `2026-04-06`
 
 ## Current Reports To Trust First
 
@@ -134,6 +135,13 @@ Architect re-alignment now supports:
 ## Default Next Candidate
 
 - `Strategy Evolution / Regime Adaptation Intelligence Packet 01`
+
+## Current SERI Docs-Ready State
+
+- `SERI-01` task spec exists
+- `SERI` interface contract stub exists
+- `runtime checkpoint shape` now includes the expected `SERI` family
+- `10_agent` now exposes a docs-first operating loop for implementation startup
 
 ## Current System-Level Learning / Feedback Integration Checkpoint
 

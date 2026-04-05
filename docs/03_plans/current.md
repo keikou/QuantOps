@@ -154,6 +154,19 @@ Current plan output to implement next:
 - first `SERI` verifier script
 - `GET /system/regime-state/latest`
 
+## Current Docs-Ready State
+
+The docs route for `SERI-01` is now prepared before implementation.
+
+Current docs-ready assets:
+
+- `../04_tasks/seri01_regime_detection_and_strategy_gating_engine_2026-04-05.md`
+- `../07_interfaces/seri_regime_adaptation_contracts.md`
+- `../07_interfaces/runtime_checkpoint_shapes.md`
+- `../10_agent/ai_docs_operating_loop.md`
+
+That means the next implementation pass can start from canonical docs rather than reconstructing the lane from thread memory.
+
 ## Non-Plan
 
 This is not the current plan:
