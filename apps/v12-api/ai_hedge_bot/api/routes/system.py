@@ -12,6 +12,9 @@ from ai_hedge_bot.services.hardening_status_service import HardeningStatusServic
 from ai_hedge_bot.services.live_capital_control_adaptive_runtime_allocation_service import (
     LiveCapitalControlAdaptiveRuntimeAllocationService,
 )
+from ai_hedge_bot.services.meta_portfolio_intelligence_cross_strategy_capital_allocation_service import (
+    MetaPortfolioIntelligenceCrossStrategyCapitalAllocationService,
+)
 from ai_hedge_bot.services.operator_diagnostic_bundle_service import OperatorDiagnosticBundleService
 from ai_hedge_bot.services.policy_optimization_meta_control_learning_service import (
     PolicyOptimizationMetaControlLearningService,
@@ -29,6 +32,7 @@ _hardening_snapshot = HardeningEvidenceSnapshotService()
 _hardening_manifest = HardeningHandoverManifestService()
 _hardening_status = HardeningStatusService()
 _live_capital_control = LiveCapitalControlAdaptiveRuntimeAllocationService()
+_meta_portfolio = MetaPortfolioIntelligenceCrossStrategyCapitalAllocationService()
 _operator_bundle = OperatorDiagnosticBundleService()
 _policy_optimization = PolicyOptimizationMetaControlLearningService()
 _recovery_replay_bundle = RecoveryReplayDiagnosticBundleService()
@@ -202,3 +206,28 @@ def system_live_capital_control_consumption_latest(limit: int = 20) -> dict:
 @router.get('/system/live-capital-control-effectiveness/latest')
 def system_live_capital_control_effectiveness_latest(limit: int = 20) -> dict:
     return _live_capital_control.control_effectiveness_latest(limit=limit)
+
+
+@router.get('/system/meta-portfolio-allocation/latest')
+def system_meta_portfolio_allocation_latest(limit: int = 20) -> dict:
+    return _meta_portfolio.latest(limit=limit)
+
+
+@router.get('/system/meta-portfolio-decision/latest')
+def system_meta_portfolio_decision_latest(limit: int = 20) -> dict:
+    return _meta_portfolio.decision_latest(limit=limit)
+
+
+@router.get('/system/meta-portfolio-state/latest')
+def system_meta_portfolio_state_latest(limit: int = 20) -> dict:
+    return _meta_portfolio.state_latest(limit=limit)
+
+
+@router.get('/system/meta-portfolio-flow/latest')
+def system_meta_portfolio_flow_latest(limit: int = 20) -> dict:
+    return _meta_portfolio.flow_latest(limit=limit)
+
+
+@router.get('/system/meta-portfolio-efficiency/latest')
+def system_meta_portfolio_efficiency_latest(limit: int = 20) -> dict:
+    return _meta_portfolio.efficiency_latest(limit=limit)
