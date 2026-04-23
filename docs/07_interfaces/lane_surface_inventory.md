@@ -77,15 +77,14 @@ Contract progression:
 - applied override or tuning consumption
 - realized policy effectiveness
 
-## Next Expected Lane Family
-
-The next top-level lane is `Strategy Evolution / Regime Adaptation Intelligence`.
-
-Expected future family:
+## Strategy Evolution / Regime Adaptation Intelligence
 
 - `GET /system/regime-state/latest`
 - `GET /system/strategy-regime-compatibility/latest`
 - `GET /system/strategy-gating-decision/latest`
+
+Expected next surfaces:
+
 - `GET /system/regime-transition-detection/latest`
 - `GET /system/strategy-survival-analysis/latest`
 

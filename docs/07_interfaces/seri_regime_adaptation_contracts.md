@@ -39,6 +39,33 @@ Expected payload shape:
 - `supporting_signals`
 - one explicit `system_regime_action`
 
+## Packet 02 Expectation
+
+`SERI-02` should expose `GET /system/strategy-regime-compatibility/latest` as a deterministic family-compatibility surface.
+
+Expected payload shape:
+
+- top-level `status`
+- `items[]` grouped by `alpha_family`
+- `compatibility_status`
+- `compatibility_score`
+- `recommended_posture`
+- `compatibility_reason_codes`
+- one explicit `system_strategy_regime_action`
+
+## Packet 03 Expectation
+
+`SERI-03` should expose `GET /system/strategy-gating-decision/latest` as a deterministic family gating surface.
+
+Expected payload shape:
+
+- top-level `status`
+- `items[]` grouped by `alpha_family`
+- `strategy_gating_decision`
+- `gating_reason`
+- `gating_reason_codes`
+- one explicit `system_strategy_gating_action`
+
 ## Design Rule
 
 `SERI` should distinguish regime-consistent degradation from stochastic noise.

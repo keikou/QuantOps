@@ -55,6 +55,12 @@ This file is the short routing index for the current operator-visible API endpoi
 - `GET /system/meta-portfolio-flow/latest`
 - `GET /system/meta-portfolio-efficiency/latest`
 
+### Strategy Evolution / Regime Adaptation
+
+- `GET /system/regime-state/latest`
+- `GET /system/strategy-regime-compatibility/latest`
+- `GET /system/strategy-gating-decision/latest`
+
 ## Read Next
 
 1. `./endpoint_contract_matrix.md`

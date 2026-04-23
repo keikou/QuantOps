@@ -150,8 +150,8 @@ Current plan outputs now ready:
 
 Current plan output to implement next:
 
-- first `SERI` packet plan doc
-- first `SERI` verifier script
+- `../Strategy_evolution_regime_adaptation_intelligence_packet01_plan.md`
+- `../../test_bundle/scripts/verify_strategy_evolution_regime_adaptation_intelligence_packet01.py`
 - `GET /system/regime-state/latest`
 
 ## Current Docs-Ready State
@@ -166,6 +166,26 @@ Current docs-ready assets:
 - `../10_agent/ai_docs_operating_loop.md`
 
 That means the next implementation pass can start from canonical docs rather than reconstructing the lane from thread memory.
+
+## Current Implemented SERI Output
+
+`SERI-01` now exposes the first live regime surface:
+
+- `../Strategy_evolution_regime_adaptation_intelligence_packet01_plan.md`
+- `../../test_bundle/scripts/verify_strategy_evolution_regime_adaptation_intelligence_packet01.py`
+- `GET /system/regime-state/latest`
+
+`SERI-02` now exposes the first family compatibility surface:
+
+- `../Strategy_evolution_regime_adaptation_intelligence_packet02_strategy_regime_compatibility_plan.md`
+- `../../test_bundle/scripts/verify_strategy_evolution_regime_adaptation_intelligence_packet02_strategy_regime_compatibility.py`
+- `GET /system/strategy-regime-compatibility/latest`
+
+`SERI-03` now exposes the first family gating surface:
+
+- `../Strategy_evolution_regime_adaptation_intelligence_packet03_strategy_gating_decision_plan.md`
+- `../../test_bundle/scripts/verify_strategy_evolution_regime_adaptation_intelligence_packet03_strategy_gating_decision.py`
+- `GET /system/strategy-gating-decision/latest`
 
 ## Non-Plan
 

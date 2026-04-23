@@ -56,6 +56,14 @@ This file is the compact routing matrix for the current `system` contract surfac
 | `GET /system/meta-portfolio-flow/latest` | meta flow | capital flow view |
 | `GET /system/meta-portfolio-efficiency/latest` | meta efficiency | efficiency classification |
 
+## Strategy Evolution / Regime Adaptation Surfaces
+
+| Endpoint | Contract role | Primary output |
+| --- | --- | --- |
+| `GET /system/regime-state/latest` | regime state | deterministic regime summary |
+| `GET /system/strategy-regime-compatibility/latest` | regime compatibility | family compatibility view |
+| `GET /system/strategy-gating-decision/latest` | gating decision | family gating action |
+
 ## Rule
 
 When a new `system` endpoint is added, update this matrix if the endpoint is operator-visible or part of the lane checkpoint contract surface.

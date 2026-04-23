@@ -25,8 +25,11 @@ The repo currently stands in this state:
 - `Meta Portfolio Intelligence / Cross-Strategy Capital Allocation v1` is checkpoint-complete through `MPI-05`
 - architect selected `Strategy Evolution / Regime Adaptation Intelligence` as the next top-level lane
 - `SERI-01` docs route is prepared through task, interface, and agent entrypoints
-- latest pushed commit is `db9e39a`
-- local worktree contains post-`SERI docs-ready` documentation changes on `2026-04-06`
+- `SERI-01` now exposes `GET /system/regime-state/latest`
+- `SERI-02` now exposes `GET /system/strategy-regime-compatibility/latest`
+- `SERI-03` now exposes `GET /system/strategy-gating-decision/latest`
+- latest pushed commit is `0309d13`
+- local worktree contains active `SERI` implementation changes on `2026-04-23`
 
 ## Current Reports To Trust First
 
@@ -110,6 +113,12 @@ The current reporting state now says:
 - `GET /system/meta-portfolio-efficiency/latest` is now available
 - `Meta Portfolio Intelligence / Cross-Strategy Capital Allocation` lane review, architect status update, checkpoint, and upward report are now ready
 - `SERI-01` is now the next packet to implement for regime detection and strategy gating
+- `SERI-01` packet plan and verifier are now in repo
+- `GET /system/regime-state/latest` is now available
+- `SERI-02` packet plan and verifier are now in repo
+- `GET /system/strategy-regime-compatibility/latest` is now available
+- `SERI-03` packet plan and verifier are now in repo
+- `GET /system/strategy-gating-decision/latest` is now available
 - `LCC-01` is now defined for live allocation governor state
 - `LCC-02` is now defined for live capital adjustment decisioning
 - `LCC-03` is now defined for persisted live capital control state
@@ -142,6 +151,24 @@ Architect re-alignment now supports:
 - `SERI` interface contract stub exists
 - `runtime checkpoint shape` now includes the expected `SERI` family
 - `10_agent` now exposes a docs-first operating loop for implementation startup
+
+## Current SERI-01 Runtime State
+
+- first `SERI` packet plan doc exists
+- first `SERI` verifier exists
+- first `SERI` system surface exists at `GET /system/regime-state/latest`
+
+## Current SERI-02 Runtime State
+
+- second `SERI` packet plan doc exists
+- second `SERI` verifier exists
+- second `SERI` system surface exists at `GET /system/strategy-regime-compatibility/latest`
+
+## Current SERI-03 Runtime State
+
+- third `SERI` packet plan doc exists
+- third `SERI` verifier exists
+- third `SERI` system surface exists at `GET /system/strategy-gating-decision/latest`
 
 ## Current System-Level Learning / Feedback Integration Checkpoint
 

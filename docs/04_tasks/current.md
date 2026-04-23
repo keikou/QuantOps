@@ -122,6 +122,24 @@ The current lane follow-up should produce:
 - one verifier script
 - one regime-state surface
 
+Current `SERI-01` outputs now available:
+
+- `docs/Strategy_evolution_regime_adaptation_intelligence_packet01_plan.md`
+- `test_bundle/scripts/verify_strategy_evolution_regime_adaptation_intelligence_packet01.py`
+- `GET /system/regime-state/latest`
+
+Current `SERI-02` outputs now available:
+
+- `docs/Strategy_evolution_regime_adaptation_intelligence_packet02_strategy_regime_compatibility_plan.md`
+- `test_bundle/scripts/verify_strategy_evolution_regime_adaptation_intelligence_packet02_strategy_regime_compatibility.py`
+- `GET /system/strategy-regime-compatibility/latest`
+
+Current `SERI-03` outputs now available:
+
+- `docs/Strategy_evolution_regime_adaptation_intelligence_packet03_strategy_gating_decision_plan.md`
+- `test_bundle/scripts/verify_strategy_evolution_regime_adaptation_intelligence_packet03_strategy_gating_decision.py`
+- `GET /system/strategy-gating-decision/latest`
+
 Current prerequisite lane output:
 
 - `docs/Policy_optimization_meta_control_learning_packet01_plan.md`

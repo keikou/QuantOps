@@ -21,6 +21,9 @@ from ai_hedge_bot.services.policy_optimization_meta_control_learning_service imp
 )
 from ai_hedge_bot.services.recovery_replay_diagnostic_bundle_service import RecoveryReplayDiagnosticBundleService
 from ai_hedge_bot.services.resume_operator_packet_service import ResumeOperatorPacketService
+from ai_hedge_bot.services.strategy_evolution_regime_adaptation_intelligence_service import (
+    StrategyEvolutionRegimeAdaptationIntelligenceService,
+)
 from ai_hedge_bot.services.system_level_learning_feedback_integration_service import (
     SystemLevelLearningFeedbackIntegrationService,
 )
@@ -37,6 +40,7 @@ _operator_bundle = OperatorDiagnosticBundleService()
 _policy_optimization = PolicyOptimizationMetaControlLearningService()
 _recovery_replay_bundle = RecoveryReplayDiagnosticBundleService()
 _resume_operator_packet = ResumeOperatorPacketService()
+_strategy_evolution = StrategyEvolutionRegimeAdaptationIntelligenceService()
 _system_learning_feedback = SystemLevelLearningFeedbackIntegrationService()
 
 
@@ -231,3 +235,18 @@ def system_meta_portfolio_flow_latest(limit: int = 20) -> dict:
 @router.get('/system/meta-portfolio-efficiency/latest')
 def system_meta_portfolio_efficiency_latest(limit: int = 20) -> dict:
     return _meta_portfolio.efficiency_latest(limit=limit)
+
+
+@router.get('/system/regime-state/latest')
+def system_regime_state_latest(limit: int = 20) -> dict:
+    return _strategy_evolution.latest(limit=limit)
+
+
+@router.get('/system/strategy-regime-compatibility/latest')
+def system_strategy_regime_compatibility_latest(limit: int = 20) -> dict:
+    return _strategy_evolution.strategy_regime_compatibility_latest(limit=limit)
+
+
+@router.get('/system/strategy-gating-decision/latest')
+def system_strategy_gating_decision_latest(limit: int = 20) -> dict:
+    return _strategy_evolution.strategy_gating_decision_latest(limit=limit)
