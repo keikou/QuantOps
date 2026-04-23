@@ -250,3 +250,13 @@ def system_strategy_regime_compatibility_latest(limit: int = 20) -> dict:
 @router.get('/system/strategy-gating-decision/latest')
 def system_strategy_gating_decision_latest(limit: int = 20) -> dict:
     return _strategy_evolution.strategy_gating_decision_latest(limit=limit)
+
+
+@router.get('/system/regime-transition-detection/latest')
+def system_regime_transition_detection_latest(limit: int = 20) -> dict:
+    return _strategy_evolution.regime_transition_detection_latest(limit=limit)
+
+
+@router.get('/system/strategy-survival-analysis/latest')
+def system_strategy_survival_analysis_latest(limit: int = 20) -> dict:
+    return _strategy_evolution.strategy_survival_analysis_latest(limit=limit)

@@ -3,7 +3,7 @@
 Date: `2026-04-05`
 Repo: `QuantOps_github`
 Branch: `codex/post-phase7-hardening`
-Status: `strategy_evolution_regime_adaptation_intelligence_packet01_pending`
+Status: `strategy_evolution_regime_adaptation_intelligence_checkpoint_review_pending`
 
 ## Current Planning Decision
 
@@ -186,6 +186,18 @@ That means the next implementation pass can start from canonical docs rather tha
 - `../Strategy_evolution_regime_adaptation_intelligence_packet03_strategy_gating_decision_plan.md`
 - `../../test_bundle/scripts/verify_strategy_evolution_regime_adaptation_intelligence_packet03_strategy_gating_decision.py`
 - `GET /system/strategy-gating-decision/latest`
+
+`SERI-04` now exposes the first transition-detection surface:
+
+- `../Strategy_evolution_regime_adaptation_intelligence_packet04_regime_transition_detection_plan.md`
+- `../../test_bundle/scripts/verify_strategy_evolution_regime_adaptation_intelligence_packet04_regime_transition_detection.py`
+- `GET /system/regime-transition-detection/latest`
+
+`SERI-05` now exposes the first survival-analysis surface:
+
+- `../Strategy_evolution_regime_adaptation_intelligence_packet05_strategy_survival_analysis_plan.md`
+- `../../test_bundle/scripts/verify_strategy_evolution_regime_adaptation_intelligence_packet05_strategy_survival_analysis.py`
+- `GET /system/strategy-survival-analysis/latest`
 
 ## Non-Plan
 

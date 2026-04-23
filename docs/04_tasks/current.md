@@ -4,7 +4,7 @@ Date: `2026-04-05`
 Repo: `QuantOps_github`
 Branch: `codex/post-phase7-hardening`
 Track: `strategy_evolution_regime_adaptation_intelligence`
-Status: `packet01_pending`
+Status: `checkpoint_review_pending`
 
 ## Purpose
 
@@ -83,7 +83,7 @@ This is still the next lane beyond the completed hardening/resume slice, but it 
 
 ## Current Recommendation
 
-Use `SERI-01` as the current active task.
+Use `SERI v1 checkpoint review` as the current active task.
 
 ## Explicit Non-Tasks
 
@@ -139,6 +139,18 @@ Current `SERI-03` outputs now available:
 - `docs/Strategy_evolution_regime_adaptation_intelligence_packet03_strategy_gating_decision_plan.md`
 - `test_bundle/scripts/verify_strategy_evolution_regime_adaptation_intelligence_packet03_strategy_gating_decision.py`
 - `GET /system/strategy-gating-decision/latest`
+
+Current `SERI-04` outputs now available:
+
+- `docs/Strategy_evolution_regime_adaptation_intelligence_packet04_regime_transition_detection_plan.md`
+- `test_bundle/scripts/verify_strategy_evolution_regime_adaptation_intelligence_packet04_regime_transition_detection.py`
+- `GET /system/regime-transition-detection/latest`
+
+Current `SERI-05` outputs now available:
+
+- `docs/Strategy_evolution_regime_adaptation_intelligence_packet05_strategy_survival_analysis_plan.md`
+- `test_bundle/scripts/verify_strategy_evolution_regime_adaptation_intelligence_packet05_strategy_survival_analysis.py`
+- `GET /system/strategy-survival-analysis/latest`
 
 Current prerequisite lane output:
 

@@ -82,9 +82,6 @@ Contract progression:
 - `GET /system/regime-state/latest`
 - `GET /system/strategy-regime-compatibility/latest`
 - `GET /system/strategy-gating-decision/latest`
-
-Expected next surfaces:
-
 - `GET /system/regime-transition-detection/latest`
 - `GET /system/strategy-survival-analysis/latest`
 

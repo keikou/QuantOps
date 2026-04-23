@@ -60,6 +60,8 @@ This file is the short routing index for the current operator-visible API endpoi
 - `GET /system/regime-state/latest`
 - `GET /system/strategy-regime-compatibility/latest`
 - `GET /system/strategy-gating-decision/latest`
+- `GET /system/regime-transition-detection/latest`
+- `GET /system/strategy-survival-analysis/latest`
 
 ## Read Next
 

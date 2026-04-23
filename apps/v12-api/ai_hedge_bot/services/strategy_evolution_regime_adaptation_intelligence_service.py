@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from typing import Any
 
+from ai_hedge_bot.app.container import CONTAINER
+from ai_hedge_bot.core.clock import utc_now_iso
+from ai_hedge_bot.core.ids import new_cycle_id
 from ai_hedge_bot.services.alpha_strategy_selection_intelligence_service import (
     AlphaStrategySelectionIntelligenceService,
 )
@@ -18,6 +21,7 @@ from ai_hedge_bot.services.research_promotion_intelligence_service import (
 
 class StrategyEvolutionRegimeAdaptationIntelligenceService:
     def __init__(self) -> None:
+        self.store = CONTAINER.runtime_store
         self.alpha_selection = AlphaStrategySelectionIntelligenceService()
         self.live_capital_control = LiveCapitalControlAdaptiveRuntimeAllocationService()
         self.meta_portfolio = MetaPortfolioIntelligenceCrossStrategyCapitalAllocationService()
@@ -378,4 +382,215 @@ class StrategyEvolutionRegimeAdaptationIntelligenceService:
                 "system_strategy_gating_action": system_action,
             },
             "as_of": compatibility.get("as_of"),
+        }
+
+    def regime_transition_detection_latest(self, limit: int = 20) -> dict[str, Any]:
+        gating = self.strategy_gating_decision_latest(limit=limit)
+        created_at = utc_now_iso()
+        items: list[dict[str, Any]] = []
+        stable_count = 0
+        emerging_count = 0
+        confirmed_count = 0
+
+        for item in list(gating.get("items") or []):
+            family = str(item.get("alpha_family") or "unknown")
+            previous_detection = self.store.fetchone_dict(
+                """
+                SELECT *
+                FROM audit_logs
+                WHERE category='strategy_regime_transition_detection'
+                  AND actor=?
+                ORDER BY created_at DESC
+                LIMIT 1
+                """,
+                [family],
+            ) or {}
+            previous_payload = self.store.parse_json(previous_detection.get("payload_json")) if previous_detection else {}
+            previous_regime_state = str(previous_payload.get("family_regime_state") or "unknown")
+            previous_gating_decision = str(previous_payload.get("strategy_gating_decision") or "unknown")
+
+            family_regime_state = str(item.get("family_regime_state") or "balanced")
+            gating_decision = str(item.get("strategy_gating_decision") or "shadow")
+
+            transition_detected = False
+            detection_strength = "stable"
+            transition_reason = "regime_posture_unchanged"
+
+            if previous_regime_state in {"unknown", ""}:
+                if family_regime_state in {"transition", "risk_off"} or gating_decision in {"gate", "retire"}:
+                    transition_detected = True
+                    detection_strength = "emerging"
+                    transition_reason = "first_material_regime_shift_signal"
+                    emerging_count += 1
+                else:
+                    stable_count += 1
+            elif previous_regime_state != family_regime_state or previous_gating_decision != gating_decision:
+                transition_detected = True
+                if family_regime_state == "risk_off" or gating_decision in {"gate", "retire"}:
+                    detection_strength = "confirmed"
+                    transition_reason = "regime_shift_is_now_actionable"
+                    confirmed_count += 1
+                else:
+                    detection_strength = "emerging"
+                    transition_reason = "regime_shift_is_starting_to_form"
+                    emerging_count += 1
+            else:
+                stable_count += 1
+
+            transition_id = new_cycle_id()
+            self.store.append(
+                "audit_logs",
+                {
+                    "audit_id": transition_id,
+                    "created_at": created_at,
+                    "category": "strategy_regime_transition_detection",
+                    "event_type": "detect_strategy_regime_transition",
+                    "run_id": gating.get("run_id"),
+                    "payload_json": self.store.to_json(
+                        {
+                            "alpha_family": family,
+                            "family_regime_state": family_regime_state,
+                            "strategy_gating_decision": gating_decision,
+                            "transition_detected": transition_detected,
+                            "detection_strength": detection_strength,
+                            "transition_source_packet": "SERI-03",
+                        }
+                    ),
+                    "actor": family,
+                },
+            )
+
+            items.append(
+                {
+                    **item,
+                    "regime_transition_detection": {
+                        "transition_detected": transition_detected,
+                        "detection_strength": detection_strength,
+                        "previous_family_regime_state": previous_regime_state,
+                        "previous_strategy_gating_decision": previous_gating_decision,
+                        "transition_reason": transition_reason,
+                        "transition_detection_id": transition_id,
+                    },
+                }
+            )
+
+        system_action = "maintain_current_regime_interpretation"
+        if confirmed_count > 0:
+            system_action = "confirm_regime_transition_and_prepare_survival_actions"
+        elif emerging_count > 0:
+            system_action = "monitor_emerging_regime_transition"
+
+        return {
+            "status": "ok",
+            "run_id": gating.get("run_id"),
+            "cycle_id": gating.get("cycle_id"),
+            "mode": gating.get("mode"),
+            "consumed_run_id": gating.get("consumed_run_id"),
+            "consumed_cycle_id": gating.get("consumed_cycle_id"),
+            "items": items,
+            "current_regime": gating.get("current_regime"),
+            "regime_confidence": gating.get("regime_confidence"),
+            "supporting_signals": gating.get("supporting_signals") or {},
+            "system_regime_action": gating.get("system_regime_action"),
+            "source_packets": gating.get("source_packets") or {},
+            "regime_state_summary": gating.get("regime_state_summary") or {},
+            "strategy_regime_compatibility_summary": gating.get("strategy_regime_compatibility_summary") or {},
+            "strategy_gating_decision_summary": gating.get("strategy_gating_decision_summary") or {},
+            "regime_transition_detection_summary": {
+                "family_count": len(items),
+                "stable_families": stable_count,
+                "emerging_transition_families": emerging_count,
+                "confirmed_transition_families": confirmed_count,
+                "system_regime_transition_action": system_action,
+            },
+            "as_of": created_at,
+        }
+
+    def strategy_survival_analysis_latest(self, limit: int = 20) -> dict[str, Any]:
+        transition = self.regime_transition_detection_latest(limit=limit)
+        items: list[dict[str, Any]] = []
+        sustain_count = 0
+        watch_count = 0
+        reduce_count = 0
+        retire_count = 0
+
+        for item in list(transition.get("items") or []):
+            transition_view = dict(item.get("regime_transition_detection") or {})
+            transition_detected = bool(transition_view.get("transition_detected"))
+            detection_strength = str(transition_view.get("detection_strength") or "stable")
+            gating_decision = str(item.get("strategy_gating_decision") or "shadow")
+            compatibility_score = float(item.get("compatibility_score", 0.0) or 0.0)
+            family_regime_state = str(item.get("family_regime_state") or "balanced")
+
+            survival_posture = "watch"
+            survival_reason = "family_requires_continued_monitoring"
+
+            if gating_decision == "retire":
+                survival_posture = "retire"
+                survival_reason = "family_has_failed_survival_threshold"
+                retire_count += 1
+            elif gating_decision == "gate" or (
+                transition_detected and detection_strength == "confirmed"
+            ):
+                survival_posture = "reduce"
+                survival_reason = "family_should_be_reduced_under_confirmed_regime_shift"
+                reduce_count += 1
+            elif gating_decision == "allow" and compatibility_score >= 0.8 and family_regime_state == "risk_on":
+                survival_posture = "sustain"
+                survival_reason = "family_survives_current_regime_cleanly"
+                sustain_count += 1
+            else:
+                watch_count += 1
+
+            items.append(
+                {
+                    **item,
+                    "strategy_survival_analysis": {
+                        "survival_posture": survival_posture,
+                        "survival_reason": survival_reason,
+                        "survival_reason_codes": [
+                            f"gating_decision:{gating_decision}",
+                            f"transition_detected:{transition_detected}",
+                            f"detection_strength:{detection_strength}",
+                            f"compatibility_score:{round(compatibility_score, 6)}",
+                            f"family_regime_state:{family_regime_state}",
+                        ],
+                    },
+                }
+            )
+
+        system_action = "maintain_strategy_survival_watch"
+        if retire_count > 0:
+            system_action = "retire_non_surviving_strategies"
+        elif reduce_count > 0:
+            system_action = "reduce_fragile_strategies_under_transition"
+        elif sustain_count > 0 and watch_count == 0:
+            system_action = "sustain_regime_aligned_strategies"
+
+        return {
+            "status": "ok",
+            "run_id": transition.get("run_id"),
+            "cycle_id": transition.get("cycle_id"),
+            "mode": transition.get("mode"),
+            "consumed_run_id": transition.get("consumed_run_id"),
+            "consumed_cycle_id": transition.get("consumed_cycle_id"),
+            "items": items,
+            "current_regime": transition.get("current_regime"),
+            "regime_confidence": transition.get("regime_confidence"),
+            "supporting_signals": transition.get("supporting_signals") or {},
+            "system_regime_action": transition.get("system_regime_action"),
+            "source_packets": transition.get("source_packets") or {},
+            "regime_state_summary": transition.get("regime_state_summary") or {},
+            "strategy_regime_compatibility_summary": transition.get("strategy_regime_compatibility_summary") or {},
+            "strategy_gating_decision_summary": transition.get("strategy_gating_decision_summary") or {},
+            "regime_transition_detection_summary": transition.get("regime_transition_detection_summary") or {},
+            "strategy_survival_analysis_summary": {
+                "family_count": len(items),
+                "sustain_families": sustain_count,
+                "watch_families": watch_count,
+                "reduce_families": reduce_count,
+                "retire_families": retire_count,
+                "system_strategy_survival_action": system_action,
+            },
+            "as_of": transition.get("as_of"),
         }

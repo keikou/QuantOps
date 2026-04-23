@@ -28,6 +28,9 @@ The repo currently stands in this state:
 - `SERI-01` now exposes `GET /system/regime-state/latest`
 - `SERI-02` now exposes `GET /system/strategy-regime-compatibility/latest`
 - `SERI-03` now exposes `GET /system/strategy-gating-decision/latest`
+- `SERI-04` now exposes `GET /system/regime-transition-detection/latest`
+- `SERI-05` now exposes `GET /system/strategy-survival-analysis/latest`
+- `SERI v1` checkpoint review docs are now ready
 - latest pushed commit is `0309d13`
 - local worktree contains active `SERI` implementation changes on `2026-04-23`
 
@@ -119,6 +122,10 @@ The current reporting state now says:
 - `GET /system/strategy-regime-compatibility/latest` is now available
 - `SERI-03` packet plan and verifier are now in repo
 - `GET /system/strategy-gating-decision/latest` is now available
+- `SERI-04` packet plan and verifier are now in repo
+- `GET /system/regime-transition-detection/latest` is now available
+- `SERI-05` packet plan and verifier are now in repo
+- `GET /system/strategy-survival-analysis/latest` is now available
 - `LCC-01` is now defined for live allocation governor state
 - `LCC-02` is now defined for live capital adjustment decisioning
 - `LCC-03` is now defined for persisted live capital control state
@@ -169,6 +176,18 @@ Architect re-alignment now supports:
 - third `SERI` packet plan doc exists
 - third `SERI` verifier exists
 - third `SERI` system surface exists at `GET /system/strategy-gating-decision/latest`
+
+## Current SERI-04 Runtime State
+
+- fourth `SERI` packet plan doc exists
+- fourth `SERI` verifier exists
+- fourth `SERI` system surface exists at `GET /system/regime-transition-detection/latest`
+
+## Current SERI-05 Runtime State
+
+- fifth `SERI` packet plan doc exists
+- fifth `SERI` verifier exists
+- fifth `SERI` system surface exists at `GET /system/strategy-survival-analysis/latest`
 
 ## Current System-Level Learning / Feedback Integration Checkpoint
 

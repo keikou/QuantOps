@@ -66,6 +66,34 @@ Expected payload shape:
 - `gating_reason_codes`
 - one explicit `system_strategy_gating_action`
 
+## Packet 04 Expectation
+
+`SERI-04` should expose `GET /system/regime-transition-detection/latest` as a deterministic transition surface.
+
+Expected payload shape:
+
+- top-level `status`
+- `items[]` grouped by `alpha_family`
+- `regime_transition_detection.transition_detected`
+- `regime_transition_detection.detection_strength`
+- `regime_transition_detection.previous_family_regime_state`
+- `regime_transition_detection.previous_strategy_gating_decision`
+- `regime_transition_detection.transition_reason`
+- one explicit `system_regime_transition_action`
+
+## Packet 05 Expectation
+
+`SERI-05` should expose `GET /system/strategy-survival-analysis/latest` as a deterministic survival surface.
+
+Expected payload shape:
+
+- top-level `status`
+- `items[]` grouped by `alpha_family`
+- `strategy_survival_analysis.survival_posture`
+- `strategy_survival_analysis.survival_reason`
+- `strategy_survival_analysis.survival_reason_codes`
+- one explicit `system_strategy_survival_action`
+
 ## Design Rule
 
 `SERI` should distinguish regime-consistent degradation from stochastic noise.

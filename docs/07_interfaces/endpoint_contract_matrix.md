@@ -63,6 +63,8 @@ This file is the compact routing matrix for the current `system` contract surfac
 | `GET /system/regime-state/latest` | regime state | deterministic regime summary |
 | `GET /system/strategy-regime-compatibility/latest` | regime compatibility | family compatibility view |
 | `GET /system/strategy-gating-decision/latest` | gating decision | family gating action |
+| `GET /system/regime-transition-detection/latest` | transition detection | family transition view |
+| `GET /system/strategy-survival-analysis/latest` | survival analysis | family survival posture |
 
 ## Rule
 
