@@ -416,3 +416,103 @@ def system_alpha_expression_library_latest(limit: int = 20) -> dict:
 @router.get('/system/alpha-synthesis-effectiveness/latest')
 def system_alpha_synthesis_effectiveness_latest(limit: int = 20) -> dict:
     return _alpha_synthesis.alpha_synthesis_effectiveness_latest(limit=limit)
+
+
+@router.get('/system/alpha-parent-candidates/latest')
+def system_alpha_parent_candidates_latest(limit: int = 20) -> dict:
+    return _alpha_synthesis.alpha_parent_candidates_latest(limit=limit)
+
+
+@router.get('/system/alpha-mutation-candidates/latest')
+def system_alpha_mutation_candidates_latest(limit: int = 20) -> dict:
+    return _alpha_synthesis.alpha_mutation_candidates_latest(limit=limit)
+
+
+@router.get('/system/alpha-crossover-candidates/latest')
+def system_alpha_crossover_candidates_latest(limit: int = 20) -> dict:
+    return _alpha_synthesis.alpha_crossover_candidates_latest(limit=limit)
+
+
+@router.get('/system/alpha-evolution-search-state/latest')
+def system_alpha_evolution_search_state_latest(limit: int = 20) -> dict:
+    return _alpha_synthesis.alpha_evolution_search_state_latest(limit=limit)
+
+
+@router.get('/system/alpha-evolution-effectiveness/latest')
+def system_alpha_evolution_effectiveness_latest(limit: int = 20) -> dict:
+    return _alpha_synthesis.alpha_evolution_effectiveness_latest(limit=limit)
+
+
+@router.get('/system/alpha-regime-synthesis-agenda/latest')
+def system_alpha_regime_synthesis_agenda_latest(limit: int = 20) -> dict:
+    return _alpha_synthesis.alpha_regime_synthesis_agenda_latest(limit=limit)
+
+
+@router.get('/system/alpha-regime-targeted-candidates/latest')
+def system_alpha_regime_targeted_candidates_latest(limit: int = 20) -> dict:
+    return _alpha_synthesis.alpha_regime_targeted_candidates_latest(limit=limit)
+
+
+@router.get('/system/alpha-regime-fit-evaluation/latest')
+def system_alpha_regime_fit_evaluation_latest(limit: int = 20) -> dict:
+    return _alpha_synthesis.alpha_regime_fit_evaluation_latest(limit=limit)
+
+
+@router.get('/system/alpha-regime-expression-map/latest')
+def system_alpha_regime_expression_map_latest(limit: int = 20) -> dict:
+    return _alpha_synthesis.alpha_regime_expression_map_latest(limit=limit)
+
+
+@router.get('/system/alpha-regime-synthesis-effectiveness/latest')
+def system_alpha_regime_synthesis_effectiveness_latest(limit: int = 20) -> dict:
+    return _alpha_synthesis.alpha_regime_synthesis_effectiveness_latest(limit=limit)
+
+
+@router.get('/system/alpha-hypothesis-agenda/latest')
+def system_alpha_hypothesis_agenda_latest(limit: int = 20) -> dict:
+    return _alpha_synthesis.alpha_hypothesis_agenda_latest(limit=limit)
+
+
+@router.get('/system/alpha-llm-hypothesis-prompts/latest')
+def system_alpha_llm_hypothesis_prompts_latest(limit: int = 20) -> dict:
+    return _alpha_synthesis.alpha_llm_hypothesis_prompts_latest(limit=limit)
+
+
+@router.get('/system/alpha-llm-translation-candidates/latest')
+def system_alpha_llm_translation_candidates_latest(limit: int = 20) -> dict:
+    return _alpha_synthesis.alpha_llm_translation_candidates_latest(limit=limit)
+
+
+@router.get('/system/alpha-hypothesis-critique/latest')
+def system_alpha_hypothesis_critique_latest(limit: int = 20) -> dict:
+    return _alpha_synthesis.alpha_hypothesis_critique_latest(limit=limit)
+
+
+@router.get('/system/alpha-hypothesis-effectiveness/latest')
+def system_alpha_hypothesis_effectiveness_latest(limit: int = 20) -> dict:
+    return _alpha_synthesis.alpha_hypothesis_effectiveness_latest(limit=limit)
+
+
+@router.get('/system/alpha-hypothesis-feedback-queue/latest')
+def system_alpha_hypothesis_feedback_queue_latest(limit: int = 20) -> dict:
+    return _alpha_synthesis.alpha_hypothesis_feedback_queue_latest(limit=limit)
+
+
+@router.get('/system/alpha-hypothesis-prompt-tuning/latest')
+def system_alpha_hypothesis_prompt_tuning_latest(limit: int = 20) -> dict:
+    return _alpha_synthesis.alpha_hypothesis_prompt_tuning_latest(limit=limit)
+
+
+@router.get('/system/alpha-synthesis-policy-updates/latest')
+def system_alpha_synthesis_policy_updates_latest(limit: int = 20) -> dict:
+    return _alpha_synthesis.alpha_synthesis_policy_updates_latest(limit=limit)
+
+
+@router.get('/system/alpha-feedback-learning-state/latest')
+def system_alpha_feedback_learning_state_latest(limit: int = 20) -> dict:
+    return _alpha_synthesis.alpha_feedback_learning_state_latest(limit=limit)
+
+
+@router.get('/system/alpha-feedback-optimization-effectiveness/latest')
+def system_alpha_feedback_optimization_effectiveness_latest(limit: int = 20) -> dict:
+    return _alpha_synthesis.alpha_feedback_optimization_effectiveness_latest(limit=limit)

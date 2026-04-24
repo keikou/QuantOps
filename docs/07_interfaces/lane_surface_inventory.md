@@ -148,6 +148,26 @@ Contract progression:
 - `GET /system/alpha-novelty-evaluation/latest`
 - `GET /system/alpha-expression-library/latest`
 - `GET /system/alpha-synthesis-effectiveness/latest`
+- `GET /system/alpha-parent-candidates/latest`
+- `GET /system/alpha-mutation-candidates/latest`
+- `GET /system/alpha-crossover-candidates/latest`
+- `GET /system/alpha-evolution-search-state/latest`
+- `GET /system/alpha-evolution-effectiveness/latest`
+- `GET /system/alpha-regime-synthesis-agenda/latest`
+- `GET /system/alpha-regime-targeted-candidates/latest`
+- `GET /system/alpha-regime-fit-evaluation/latest`
+- `GET /system/alpha-regime-expression-map/latest`
+- `GET /system/alpha-regime-synthesis-effectiveness/latest`
+- `GET /system/alpha-hypothesis-agenda/latest`
+- `GET /system/alpha-llm-hypothesis-prompts/latest`
+- `GET /system/alpha-llm-translation-candidates/latest`
+- `GET /system/alpha-hypothesis-critique/latest`
+- `GET /system/alpha-hypothesis-effectiveness/latest`
+- `GET /system/alpha-hypothesis-feedback-queue/latest`
+- `GET /system/alpha-hypothesis-prompt-tuning/latest`
+- `GET /system/alpha-synthesis-policy-updates/latest`
+- `GET /system/alpha-feedback-learning-state/latest`
+- `GET /system/alpha-feedback-optimization-effectiveness/latest`
 
 Contract progression:
 
@@ -156,6 +176,26 @@ Contract progression:
 - novelty scoring
 - expression library visibility
 - synthesis effectiveness
+- parent selection
+- mutation search
+- crossover search
+- evolution router state
+- evolution effectiveness
+- regime synthesis agenda
+- regime-targeted candidates
+- regime-fit evaluation
+- regime expression map
+- regime synthesis effectiveness
+- hypothesis agenda
+- llm hypothesis prompts
+- llm translation candidates
+- hypothesis critique
+- hypothesis effectiveness
+- hypothesis feedback queue
+- hypothesis prompt tuning
+- synthesis policy updates
+- feedback learning state
+- feedback optimization effectiveness
 
 ## Rule
 

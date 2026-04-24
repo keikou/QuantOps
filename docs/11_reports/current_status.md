@@ -24,10 +24,10 @@ The repo currently stands in this state:
 - `Live Capital Control / Adaptive Runtime Allocation v1` is checkpoint-complete through `LCC-05`
 - `Meta Portfolio Intelligence / Cross-Strategy Capital Allocation v1` is checkpoint-complete through `MPI-05`
 - `Strategy Evolution / Regime Adaptation Intelligence v1` is checkpoint-complete through `SERI-05`
-- latest local `HEAD` is `d586baf`
-- latest pushed commit is `d586baf`
-- branch working tree now includes `AAE-01` through `AAE-05`
-- canonical current-state docs are now aligned to `AAE-05`
+- latest local `HEAD` is `36d335c`
+- latest pushed commit is `36d335c`
+- branch working tree now includes `AAE-01` through `AAE-05` and `ASD-01`
+- canonical current-state docs are now aligned to `ASD v1 checkpoint freeze`
 - `AAE-01` now exposes `GET /system/alpha-discovery-candidates/latest`
 - `AAE-01` now exposes `GET /system/alpha-validation-results/latest`
 - `AAE-01` now exposes `GET /system/alpha-admission-decision/latest`
@@ -59,6 +59,27 @@ The repo currently stands in this state:
 - `ASD-01` now exposes `GET /system/alpha-novelty-evaluation/latest`
 - `ASD-01` now exposes `GET /system/alpha-expression-library/latest`
 - `ASD-01` now exposes `GET /system/alpha-synthesis-effectiveness/latest`
+- `ASD-02` now exposes `GET /system/alpha-parent-candidates/latest`
+- `ASD-02` now exposes `GET /system/alpha-mutation-candidates/latest`
+- `ASD-02` now exposes `GET /system/alpha-crossover-candidates/latest`
+- `ASD-02` now exposes `GET /system/alpha-evolution-search-state/latest`
+- `ASD-02` now exposes `GET /system/alpha-evolution-effectiveness/latest`
+- `ASD-03` now exposes `GET /system/alpha-regime-synthesis-agenda/latest`
+- `ASD-03` now exposes `GET /system/alpha-regime-targeted-candidates/latest`
+- `ASD-03` now exposes `GET /system/alpha-regime-fit-evaluation/latest`
+- `ASD-03` now exposes `GET /system/alpha-regime-expression-map/latest`
+- `ASD-03` now exposes `GET /system/alpha-regime-synthesis-effectiveness/latest`
+- `ASD-04` now exposes `GET /system/alpha-hypothesis-agenda/latest`
+- `ASD-04` now exposes `GET /system/alpha-llm-hypothesis-prompts/latest`
+- `ASD-04` now exposes `GET /system/alpha-llm-translation-candidates/latest`
+- `ASD-04` now exposes `GET /system/alpha-hypothesis-critique/latest`
+- `ASD-04` now exposes `GET /system/alpha-hypothesis-effectiveness/latest`
+- `ASD-05` now exposes `GET /system/alpha-hypothesis-feedback-queue/latest`
+- `ASD-05` now exposes `GET /system/alpha-hypothesis-prompt-tuning/latest`
+- `ASD-05` now exposes `GET /system/alpha-synthesis-policy-updates/latest`
+- `ASD-05` now exposes `GET /system/alpha-feedback-learning-state/latest`
+- `ASD-05` now exposes `GET /system/alpha-feedback-optimization-effectiveness/latest`
+- `Alpha Synthesis / Structural Discovery Intelligence v1` is now checkpoint-complete through `ASD-05`
 
 ## Current Reports To Trust First
 
@@ -113,6 +134,26 @@ The current reporting state now says:
 - alpha novelty evaluation is now explicit
 - alpha expression library is now explicit
 - alpha synthesis effectiveness is now explicit
+- alpha parent candidates are now explicit
+- alpha mutation candidates are now explicit
+- alpha crossover candidates are now explicit
+- alpha evolution search state is now explicit
+- alpha evolution effectiveness is now explicit
+- alpha regime synthesis agenda is now explicit
+- alpha regime targeted candidates are now explicit
+- alpha regime fit evaluation is now explicit
+- alpha regime expression map is now explicit
+- alpha regime synthesis effectiveness is now explicit
+- alpha hypothesis agenda is now explicit
+- alpha llm hypothesis prompts are now explicit
+- alpha llm translation candidates are now explicit
+- alpha hypothesis critique is now explicit
+- alpha hypothesis effectiveness is now explicit
+- alpha hypothesis feedback queue is now explicit
+- alpha hypothesis prompt tuning is now explicit
+- alpha synthesis policy updates are now explicit
+- alpha feedback learning state is now explicit
+- alpha feedback optimization effectiveness is now explicit
 
 ## Current Decision Summary
 
@@ -121,21 +162,22 @@ Architect re-alignment now supports:
 - completed hardening slice
 - completed first checkpoints through `SERI-05`
 - no replay of `DRI`, `LCC`, `MPI`, or `SERI` unless a real regression appears
-- current work has shifted into `ASD-01`
+- current work has shifted into `ASD v1 checkpoint freeze`
 
 ## Default Next Candidate
 
-- `Alpha Synthesis / Structural Discovery Intelligence Packet 01`
+- `Alpha Synthesis / Structural Discovery Intelligence v1 checkpoint`
 
-## Current ASD-01 Docs-Ready State
+## Current ASD v1 Docs-Ready State
 
-- `ASD-01` task spec exists
+- `ASD-05` task spec exists
+- checkpoint doc exists
 - `ASD` interface contract doc exists
 - `lane_surface_inventory.md` and `api_endpoints.md` include the `ASD` family
 - `10_agent` still exposes the docs-first operating loop for implementation startup
 
-## Current ASD-01 Runtime State
+## Current ASD v1 Runtime State
 
 - packet plan doc exists
 - verifier exists
-- synthesis candidates, search state, novelty, expression library, and synthesis-effectiveness system surfaces exist
+- hypothesis feedback queue, hypothesis prompt tuning, synthesis policy updates, feedback learning state, and feedback optimization effectiveness system surfaces exist

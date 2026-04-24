@@ -3,7 +3,7 @@
 Date: `2026-04-24`
 Repo: `QuantOps_github`
 Branch: `codex/post-phase7-hardening`
-Status: `asd01_active_boundary`
+Status: `asd_v1_checkpoint_freeze`
 
 ## Current Planning Decision
 
@@ -26,7 +26,8 @@ Architect-selected answer:
 - `Strategy Evolution / Regime Adaptation Intelligence v1` is checkpoint-complete through `SERI-05`
 - `Autonomous Alpha Expansion / Strategy Generation Intelligence v1` is checkpoint-complete through `AAE-05`
 - next top-level lane is `Alpha Synthesis / Structural Discovery Intelligence`
-- current packet boundary is `ASD-01: Symbolic Alpha Generator`
+- `Alpha Synthesis / Structural Discovery Intelligence v1` is checkpoint-complete through `ASD-05`
+- next top-level lane is pending reselection
 
 ## Why This Is The Current Plan
 
@@ -50,7 +51,7 @@ Architect re-alignment now treats the following as sufficiently closed for the c
 - `Meta Portfolio Intelligence / Cross-Strategy Capital Allocation v1`
 - `Strategy Evolution / Regime Adaptation Intelligence v1`
 
-That means planning should not continue replaying `SERI` or `AAE` checkpoint work and should now begin the missing generator core.
+That means planning should not continue replaying `SERI`, `AAE`, or `ASD` checkpoint work and should now reselect the next missing lane.
 
 ## Explicitly Completed Planning Slice
 
@@ -73,23 +74,25 @@ The following planning sequence is now historical and completed:
 
 ## Current Plan Outputs
 
-Current `ASD-01` outputs now available:
+Current `ASD v1` checkpoint outputs now available:
 
-- `../Alpha_synthesis_structural_discovery_intelligence_packet01_plan.md`
-- `../../test_bundle/scripts/verify_alpha_synthesis_structural_discovery_intelligence_packet01.py`
-- `GET /system/alpha-synthesis-candidates/latest`
-- `GET /system/alpha-structure-search-state/latest`
-- `GET /system/alpha-novelty-evaluation/latest`
-- `GET /system/alpha-expression-library/latest`
-- `GET /system/alpha-synthesis-effectiveness/latest`
+- `../Alpha_synthesis_structural_discovery_intelligence_packet05_plan.md`
+- `../Alpha_synthesis_structural_discovery_intelligence_checkpoint_v1.md`
+- `../../test_bundle/scripts/verify_alpha_synthesis_structural_discovery_intelligence_packet05.py`
+- `GET /system/alpha-hypothesis-feedback-queue/latest`
+- `GET /system/alpha-hypothesis-prompt-tuning/latest`
+- `GET /system/alpha-synthesis-policy-updates/latest`
+- `GET /system/alpha-feedback-learning-state/latest`
+- `GET /system/alpha-feedback-optimization-effectiveness/latest`
 
 ## Current Docs-Ready State
 
-The docs route for `ASD-01` is now prepared and implemented.
+The docs route for `ASD v1` is now prepared and frozen.
 
 Current docs-ready assets:
 
-- `../04_tasks/asd01_symbolic_alpha_generator_2026-04-24.md`
+- `../04_tasks/asd05_feedback_optimization_2026-04-24.md`
+- `../Alpha_synthesis_structural_discovery_intelligence_checkpoint_v1.md`
 - `../07_interfaces/asd_alpha_synthesis_contracts.md`
 - `../07_interfaces/lane_surface_inventory.md`
 - `../10_agent/ai_docs_operating_loop.md`
@@ -105,7 +108,8 @@ This is not the current plan:
 - replaying completed `DRI`, `LCC`, `MPI`, or `SERI` packets
 - inventing `SERI-06`
 - replaying completed `AAE-01` through `AAE-05`
-- treating `ASD` generator-core work as already complete
+- replaying completed `ASD-01` through `ASD-05`
+- inventing `ASD-06` without a new architect boundary
 
 ## Read Before Editing
 

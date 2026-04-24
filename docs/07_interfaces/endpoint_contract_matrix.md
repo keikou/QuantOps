@@ -105,6 +105,26 @@ This file is the compact routing matrix for the current `system` contract surfac
 | `GET /system/alpha-novelty-evaluation/latest` | novelty evaluation | novelty scoring against expression library |
 | `GET /system/alpha-expression-library/latest` | expression library | persisted symbolic expression inventory |
 | `GET /system/alpha-synthesis-effectiveness/latest` | synthesis effectiveness | symbolic generator quality posture |
+| `GET /system/alpha-parent-candidates/latest` | parent candidates | eligible parent expressions |
+| `GET /system/alpha-mutation-candidates/latest` | mutation candidates | generated mutation expressions |
+| `GET /system/alpha-crossover-candidates/latest` | crossover candidates | generated crossover expressions |
+| `GET /system/alpha-evolution-search-state/latest` | evolution search state | evolutionary search router state |
+| `GET /system/alpha-evolution-effectiveness/latest` | evolution effectiveness | evolutionary generator quality posture |
+| `GET /system/alpha-regime-synthesis-agenda/latest` | regime synthesis agenda | regime-conditioned search agenda |
+| `GET /system/alpha-regime-targeted-candidates/latest` | regime targeted candidates | candidates targeted to current regime |
+| `GET /system/alpha-regime-fit-evaluation/latest` | regime fit evaluation | candidate-to-regime fit posture |
+| `GET /system/alpha-regime-expression-map/latest` | regime expression map | family expression map by regime |
+| `GET /system/alpha-regime-synthesis-effectiveness/latest` | regime synthesis effectiveness | regime-conditioned generator quality posture |
+| `GET /system/alpha-hypothesis-agenda/latest` | hypothesis agenda | regime-conditioned hypothesis briefs |
+| `GET /system/alpha-llm-hypothesis-prompts/latest` | llm hypothesis prompts | constrained prompt packs for symbolic translation |
+| `GET /system/alpha-llm-translation-candidates/latest` | llm translation candidates | translated symbolic drafts from hypothesis briefs |
+| `GET /system/alpha-hypothesis-critique/latest` | hypothesis critique | critique posture for translated drafts |
+| `GET /system/alpha-hypothesis-effectiveness/latest` | hypothesis effectiveness | llm-assisted hypothesis generator quality posture |
+| `GET /system/alpha-hypothesis-feedback-queue/latest` | hypothesis feedback queue | critique-derived feedback actions |
+| `GET /system/alpha-hypothesis-prompt-tuning/latest` | hypothesis prompt tuning | deterministic prompt constraint recommendations |
+| `GET /system/alpha-synthesis-policy-updates/latest` | synthesis policy updates | generator policy updates from feedback loop |
+| `GET /system/alpha-feedback-learning-state/latest` | feedback learning state | feedback-loop learning posture |
+| `GET /system/alpha-feedback-optimization-effectiveness/latest` | feedback optimization effectiveness | closed-loop synthesis feedback quality posture |
 
 ## Rule
 
