@@ -27,7 +27,7 @@ The repo currently stands in this state:
 - latest local `HEAD` is `36d335c`
 - latest pushed commit is `36d335c`
 - branch working tree now includes `AAE-01` through `AAE-05` and `ASD-01`
-- canonical current-state docs are now aligned to `ASD v1 checkpoint freeze`
+- canonical current-state docs are now aligned to `AES-04 active`
 - `AAE-01` now exposes `GET /system/alpha-discovery-candidates/latest`
 - `AAE-01` now exposes `GET /system/alpha-validation-results/latest`
 - `AAE-01` now exposes `GET /system/alpha-admission-decision/latest`
@@ -80,6 +80,36 @@ The repo currently stands in this state:
 - `ASD-05` now exposes `GET /system/alpha-feedback-learning-state/latest`
 - `ASD-05` now exposes `GET /system/alpha-feedback-optimization-effectiveness/latest`
 - `Alpha Synthesis / Structural Discovery Intelligence v1` is now checkpoint-complete through `ASD-05`
+- `AES-01` now defines `GET /system/alpha-evaluation/latest`
+- `AES-01` now defines `GET /system/alpha-decay-analysis/latest`
+- `AES-01` now defines `GET /system/alpha-correlation-matrix/latest`
+- `AES-01` now defines `GET /system/alpha-robustness-ranking/latest`
+- `AES-01` now defines `GET /system/alpha-selection-decisions/latest`
+- `AES-01` now defines `POST /system/alpha-evaluation/run`
+- `AES-01` now defines `GET /system/alpha-evaluation/candidate/{alpha_id}`
+- `AES-02` now exposes `POST /system/alpha-walk-forward/run`
+- `AES-02` now exposes `GET /system/alpha-walk-forward/latest`
+- `AES-02` now exposes `GET /system/alpha-walk-forward/candidate/{alpha_id}`
+- `AES-02` now exposes `GET /system/alpha-oos-validation/latest`
+- `AES-02` now exposes `GET /system/alpha-validation-decisions/latest`
+- `AES-02` now exposes `GET /system/alpha-validation-failures/latest`
+- `AES-03` now defines `POST /system/alpha-ensemble/run`
+- `AES-03` now defines `GET /system/alpha-ensemble/latest`
+- `AES-03` now defines `GET /system/alpha-ensemble/candidates/latest`
+- `AES-03` now defines `GET /system/alpha-ensemble/candidate/{ensemble_id}`
+- `AES-03` now defines `GET /system/alpha-ensemble-correlation/latest`
+- `AES-03` now defines `GET /system/alpha-marginal-contribution/latest`
+- `AES-03` now defines `GET /system/alpha-ensemble-selection/latest`
+- `AES-03` now defines `GET /system/alpha-ensemble-weights/latest`
+- `AES-04` now defines `POST /system/alpha-factor-attribution/run`
+- `AES-04` now defines `GET /system/alpha-factor-attribution/latest`
+- `AES-04` now defines `GET /system/alpha-factor-attribution/candidate/{alpha_id}`
+- `AES-04` now defines `GET /system/alpha-factor-exposure/latest`
+- `AES-04` now defines `GET /system/alpha-residual-alpha/latest`
+- `AES-04` now defines `GET /system/alpha-economic-risk/latest`
+- `AES-04` now defines `GET /system/alpha-factor-concentration/latest`
+- `AES-04` now defines `GET /system/alpha-economic-meaning/latest`
+- `AES-04` now defines `GET /system/alpha-factor-attribution/ensemble/{ensemble_id}`
 
 ## Current Reports To Trust First
 
@@ -154,6 +184,25 @@ The current reporting state now says:
 - alpha synthesis policy updates are now explicit
 - alpha feedback learning state is now explicit
 - alpha feedback optimization effectiveness is now explicit
+- alpha evaluation is now planned as an explicit system surface
+- alpha decay analysis is now planned as an explicit system surface
+- alpha correlation matrix is now planned as an explicit system surface
+- alpha robustness ranking is now planned as an explicit system surface
+- alpha selection decisions are now planned as an explicit system surface
+- alpha walk-forward validation is now explicit
+- alpha out-of-sample validation is now explicit
+- alpha validation decisions are now explicit
+- alpha validation failures are now explicit
+- alpha ensemble selection is now planned as an explicit system surface
+- alpha ensemble correlation is now planned as an explicit system surface
+- alpha marginal contribution is now planned as an explicit system surface
+- alpha ensemble weights are now planned as an explicit system surface
+- alpha factor attribution is now planned as an explicit system surface
+- alpha factor exposure is now planned as an explicit system surface
+- alpha residual alpha is now planned as an explicit system surface
+- alpha economic risk is now planned as an explicit system surface
+- alpha factor concentration is now planned as an explicit system surface
+- alpha economic meaning is now planned as an explicit system surface
 
 ## Current Decision Summary
 
@@ -162,22 +211,22 @@ Architect re-alignment now supports:
 - completed hardening slice
 - completed first checkpoints through `SERI-05`
 - no replay of `DRI`, `LCC`, `MPI`, or `SERI` unless a real regression appears
-- current work has shifted into `ASD v1 checkpoint freeze`
+- current work has shifted into `AES-04`
 
 ## Default Next Candidate
 
-- `Alpha Synthesis / Structural Discovery Intelligence v1 checkpoint`
+- `Alpha Evaluation / Selection Intelligence Packet 04`
 
-## Current ASD v1 Docs-Ready State
+## Current AES-04 Docs-Ready State
 
-- `ASD-05` task spec exists
-- checkpoint doc exists
-- `ASD` interface contract doc exists
-- `lane_surface_inventory.md` and `api_endpoints.md` include the `ASD` family
+- `AES-04` task spec exists
+- packet plan doc exists
+- `AES` interface contract doc exists
+- `lane_surface_inventory.md` and `api_endpoints.md` include the `AES` family
 - `10_agent` still exposes the docs-first operating loop for implementation startup
 
-## Current ASD v1 Runtime State
+## Current AES-04 Runtime State
 
 - packet plan doc exists
 - verifier exists
-- hypothesis feedback queue, hypothesis prompt tuning, synthesis policy updates, feedback learning state, and feedback optimization effectiveness system surfaces exist
+- factor attribution latest, factor exposure, residual alpha, economic risk, factor concentration, and economic meaning surfaces are defined for implementation

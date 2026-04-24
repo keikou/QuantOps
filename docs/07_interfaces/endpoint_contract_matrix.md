@@ -126,6 +126,33 @@ This file is the compact routing matrix for the current `system` contract surfac
 | `GET /system/alpha-feedback-learning-state/latest` | feedback learning state | feedback-loop learning posture |
 | `GET /system/alpha-feedback-optimization-effectiveness/latest` | feedback optimization effectiveness | closed-loop synthesis feedback quality posture |
 
+## Alpha Evaluation / Selection Surfaces
+
+| Endpoint | Contract role | Primary output |
+| --- | --- | --- |
+| `GET /system/alpha-evaluation/latest` | alpha evaluation | evaluation summary across current candidates |
+| `GET /system/alpha-decay-analysis/latest` | decay analysis | decay posture for evaluated alpha |
+| `GET /system/alpha-correlation-matrix/latest` | correlation matrix | redundancy and correlation view |
+| `GET /system/alpha-robustness-ranking/latest` | robustness ranking | stability-ranked alpha candidates |
+| `GET /system/alpha-selection-decisions/latest` | selection decisions | promote/watch/reject decisions |
+| `POST /system/alpha-evaluation/run` | evaluation run trigger | explicit evaluation execution request |
+| `GET /system/alpha-evaluation/candidate/{alpha_id}` | candidate evaluation lookup | per-alpha evaluation detail |
+| `POST /system/alpha-walk-forward/run` | walk-forward run trigger | explicit walk-forward validation execution request |
+| `GET /system/alpha-walk-forward/latest` | walk-forward latest | latest validation summary across candidates |
+| `GET /system/alpha-walk-forward/candidate/{alpha_id}` | walk-forward candidate lookup | per-alpha walk-forward detail |
+| `GET /system/alpha-oos-validation/latest` | oos validation | out-of-sample validation summary |
+| `GET /system/alpha-validation-decisions/latest` | validation decisions | pass/watch/fail validation decisions |
+| `GET /system/alpha-validation-failures/latest` | validation failures | explicit failed validation reasons |
+| `POST /system/alpha-factor-attribution/run` | factor attribution run trigger | explicit attribution execution request |
+| `GET /system/alpha-factor-attribution/latest` | factor attribution latest | latest attribution summary across selected alpha |
+| `GET /system/alpha-factor-attribution/candidate/{alpha_id}` | attribution candidate lookup | per-alpha attribution detail |
+| `GET /system/alpha-factor-exposure/latest` | factor exposure | per-factor loading view |
+| `GET /system/alpha-residual-alpha/latest` | residual alpha | factor-explained versus residual alpha view |
+| `GET /system/alpha-economic-risk/latest` | economic risk | regime and factor fragility view |
+| `GET /system/alpha-factor-concentration/latest` | factor concentration | ensemble factor concentration view |
+| `GET /system/alpha-economic-meaning/latest` | economic meaning | economic label and scaling recommendation |
+| `GET /system/alpha-factor-attribution/ensemble/{ensemble_id}` | ensemble attribution lookup | per-ensemble attribution detail |
+
 ## Rule
 
 When a new `system` endpoint is added, update this matrix if the endpoint is operator-visible or part of the lane checkpoint contract surface.

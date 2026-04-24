@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 from fastapi import APIRouter
+from ai_hedge_bot.alpha_ensemble.ensemble_service import AlphaEnsembleService
+from ai_hedge_bot.alpha_evaluation.evaluation_service import AlphaEvaluationService
+from ai_hedge_bot.alpha_validation.validation_service import AlphaValidationService
 from ai_hedge_bot.alpha_synthesis.alpha_synthesis_service import AlphaSynthesisService
 from ai_hedge_bot.services.autonomous_alpha_expansion_strategy_generation_intelligence_service import (
     AutonomousAlphaExpansionStrategyGenerationIntelligenceService,
@@ -48,6 +51,9 @@ _strategy_evolution = StrategyEvolutionRegimeAdaptationIntelligenceService()
 _system_learning_feedback = SystemLevelLearningFeedbackIntegrationService()
 _autonomous_alpha_expansion = AutonomousAlphaExpansionStrategyGenerationIntelligenceService()
 _alpha_synthesis = AlphaSynthesisService()
+_alpha_evaluation = AlphaEvaluationService()
+_alpha_validation = AlphaValidationService()
+_alpha_ensemble = AlphaEnsembleService()
 
 
 def _payload() -> dict:
@@ -516,3 +522,108 @@ def system_alpha_feedback_learning_state_latest(limit: int = 20) -> dict:
 @router.get('/system/alpha-feedback-optimization-effectiveness/latest')
 def system_alpha_feedback_optimization_effectiveness_latest(limit: int = 20) -> dict:
     return _alpha_synthesis.alpha_feedback_optimization_effectiveness_latest(limit=limit)
+
+
+@router.get('/system/alpha-evaluation/latest')
+def system_alpha_evaluation_latest(limit: int = 20) -> dict:
+    return _alpha_evaluation.latest(limit=limit)
+
+
+@router.get('/system/alpha-decay-analysis/latest')
+def system_alpha_decay_analysis_latest(limit: int = 20) -> dict:
+    return _alpha_evaluation.alpha_decay_analysis_latest(limit=limit)
+
+
+@router.get('/system/alpha-correlation-matrix/latest')
+def system_alpha_correlation_matrix_latest(limit: int = 20) -> dict:
+    return _alpha_evaluation.alpha_correlation_matrix_latest(limit=limit)
+
+
+@router.get('/system/alpha-robustness-ranking/latest')
+def system_alpha_robustness_ranking_latest(limit: int = 20) -> dict:
+    return _alpha_evaluation.alpha_robustness_ranking_latest(limit=limit)
+
+
+@router.get('/system/alpha-selection-decisions/latest')
+def system_alpha_selection_decisions_latest(limit: int = 20) -> dict:
+    return _alpha_evaluation.alpha_selection_decisions_latest(limit=limit)
+
+
+@router.post('/system/alpha-evaluation/run')
+def system_alpha_evaluation_run(limit: int = 20) -> dict:
+    return _alpha_evaluation.run(limit=limit)
+
+
+@router.get('/system/alpha-evaluation/candidate/{alpha_id}')
+def system_alpha_evaluation_candidate(alpha_id: str) -> dict:
+    return _alpha_evaluation.alpha_evaluation_candidate(alpha_id)
+
+
+@router.post('/system/alpha-walk-forward/run')
+def system_alpha_walk_forward_run(limit: int = 20) -> dict:
+    return _alpha_validation.run(limit=limit)
+
+
+@router.get('/system/alpha-walk-forward/latest')
+def system_alpha_walk_forward_latest(limit: int = 20) -> dict:
+    return _alpha_validation.latest(limit=limit)
+
+
+@router.get('/system/alpha-walk-forward/candidate/{alpha_id}')
+def system_alpha_walk_forward_candidate(alpha_id: str) -> dict:
+    return _alpha_validation.alpha_walk_forward_candidate(alpha_id)
+
+
+@router.get('/system/alpha-oos-validation/latest')
+def system_alpha_oos_validation_latest(limit: int = 20) -> dict:
+    return _alpha_validation.alpha_oos_validation_latest(limit=limit)
+
+
+@router.get('/system/alpha-validation-decisions/latest')
+def system_alpha_validation_decisions_latest(limit: int = 20) -> dict:
+    return _alpha_validation.alpha_validation_decisions_latest(limit=limit)
+
+
+@router.get('/system/alpha-validation-failures/latest')
+def system_alpha_validation_failures_latest(limit: int = 20) -> dict:
+    return _alpha_validation.alpha_validation_failures_latest(limit=limit)
+
+
+@router.post('/system/alpha-ensemble/run')
+def system_alpha_ensemble_run(limit: int = 20) -> dict:
+    return _alpha_ensemble.run(limit=limit)
+
+
+@router.get('/system/alpha-ensemble/latest')
+def system_alpha_ensemble_latest(limit: int = 20) -> dict:
+    return _alpha_ensemble.latest(limit=limit)
+
+
+@router.get('/system/alpha-ensemble/candidates/latest')
+def system_alpha_ensemble_candidates_latest(limit: int = 20) -> dict:
+    return _alpha_ensemble.alpha_ensemble_candidates_latest(limit=limit)
+
+
+@router.get('/system/alpha-ensemble/candidate/{ensemble_id}')
+def system_alpha_ensemble_candidate(ensemble_id: str) -> dict:
+    return _alpha_ensemble.alpha_ensemble_candidate(ensemble_id)
+
+
+@router.get('/system/alpha-ensemble-correlation/latest')
+def system_alpha_ensemble_correlation_latest(limit: int = 20) -> dict:
+    return _alpha_ensemble.alpha_ensemble_correlation_latest(limit=limit)
+
+
+@router.get('/system/alpha-marginal-contribution/latest')
+def system_alpha_marginal_contribution_latest(limit: int = 20) -> dict:
+    return _alpha_ensemble.alpha_marginal_contribution_latest(limit=limit)
+
+
+@router.get('/system/alpha-ensemble-selection/latest')
+def system_alpha_ensemble_selection_latest(limit: int = 20) -> dict:
+    return _alpha_ensemble.alpha_ensemble_selection_latest(limit=limit)
+
+
+@router.get('/system/alpha-ensemble-weights/latest')
+def system_alpha_ensemble_weights_latest(limit: int = 20) -> dict:
+    return _alpha_ensemble.alpha_ensemble_weights_latest(limit=limit)

@@ -710,6 +710,178 @@ class RuntimeStore:
                     novelty_verdict VARCHAR,
                     created_at TIMESTAMP
                 );
+                CREATE TABLE IF NOT EXISTS alpha_evaluation_runs (
+                    run_id VARCHAR,
+                    started_at TIMESTAMP,
+                    completed_at TIMESTAMP,
+                    candidate_count INTEGER,
+                    evaluated_count INTEGER,
+                    promoted_count INTEGER,
+                    rejected_count INTEGER,
+                    status VARCHAR
+                );
+                CREATE TABLE IF NOT EXISTS alpha_forward_returns (
+                    run_id VARCHAR,
+                    alpha_id VARCHAR,
+                    horizon VARCHAR,
+                    raw_forward_return DOUBLE,
+                    cost_adjusted_return DOUBLE,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS alpha_evaluation_scores (
+                    run_id VARCHAR,
+                    alpha_id VARCHAR,
+                    mean_return DOUBLE,
+                    median_return DOUBLE,
+                    hit_rate DOUBLE,
+                    sharpe_like DOUBLE,
+                    sharpe_robust DOUBLE,
+                    sharpe_final DOUBLE,
+                    turnover DOUBLE,
+                    cost_penalty DOUBLE,
+                    decay_score DOUBLE,
+                    robustness_score DOUBLE,
+                    overfit_risk DOUBLE,
+                    redundancy_score DOUBLE,
+                    final_score DOUBLE,
+                    decision VARCHAR,
+                    details_json VARCHAR,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS alpha_validation_runs (
+                    run_id VARCHAR,
+                    started_at TIMESTAMP,
+                    completed_at TIMESTAMP,
+                    candidate_count INTEGER,
+                    validated_count INTEGER,
+                    passed_count INTEGER,
+                    failed_count INTEGER,
+                    status VARCHAR,
+                    notes VARCHAR
+                );
+                CREATE TABLE IF NOT EXISTS alpha_walk_forward_windows (
+                    run_id VARCHAR,
+                    alpha_id VARCHAR,
+                    window_id VARCHAR,
+                    train_start TIMESTAMP,
+                    train_end TIMESTAMP,
+                    test_start TIMESTAMP,
+                    test_end TIMESTAMP,
+                    symbol VARCHAR,
+                    regime VARCHAR,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS alpha_oos_scores (
+                    run_id VARCHAR,
+                    alpha_id VARCHAR,
+                    window_id VARCHAR,
+                    sample_count INTEGER,
+                    train_score DOUBLE,
+                    test_score DOUBLE,
+                    train_sharpe DOUBLE,
+                    test_sharpe DOUBLE,
+                    train_hit_rate DOUBLE,
+                    test_hit_rate DOUBLE,
+                    score_gap DOUBLE,
+                    degradation_ratio DOUBLE,
+                    passed BOOLEAN,
+                    fail_reason VARCHAR,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS alpha_validation_summary (
+                    run_id VARCHAR,
+                    alpha_id VARCHAR,
+                    total_windows INTEGER,
+                    passed_windows INTEGER,
+                    pass_rate DOUBLE,
+                    mean_oos_score DOUBLE,
+                    median_oos_score DOUBLE,
+                    mean_degradation_ratio DOUBLE,
+                    worst_window_score DOUBLE,
+                    stability_score DOUBLE,
+                    final_validation_score DOUBLE,
+                    decision VARCHAR,
+                    reason VARCHAR,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS alpha_ensemble_runs (
+                    run_id VARCHAR,
+                    started_at TIMESTAMP,
+                    completed_at TIMESTAMP,
+                    validated_alpha_count INTEGER,
+                    candidate_ensemble_count INTEGER,
+                    selected_alpha_count INTEGER,
+                    portfolio_score DOUBLE,
+                    status VARCHAR,
+                    notes VARCHAR
+                );
+                CREATE TABLE IF NOT EXISTS alpha_ensemble_candidates (
+                    run_id VARCHAR,
+                    ensemble_id VARCHAR,
+                    alpha_ids VARCHAR,
+                    alpha_count INTEGER,
+                    source VARCHAR,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS alpha_ensemble_correlations (
+                    run_id VARCHAR,
+                    ensemble_id VARCHAR,
+                    alpha_id_a VARCHAR,
+                    alpha_id_b VARCHAR,
+                    correlation DOUBLE,
+                    overlap_score DOUBLE,
+                    hard_redundant BOOLEAN,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS alpha_marginal_contributions (
+                    run_id VARCHAR,
+                    ensemble_id VARCHAR,
+                    alpha_id VARCHAR,
+                    contribution_to_return DOUBLE,
+                    contribution_to_risk DOUBLE,
+                    contribution_to_sharpe DOUBLE,
+                    contribution_to_diversification DOUBLE,
+                    marginal_score DOUBLE,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS alpha_ensemble_scores (
+                    run_id VARCHAR,
+                    ensemble_id VARCHAR,
+                    alpha_count INTEGER,
+                    expected_return_score DOUBLE,
+                    expected_risk_score DOUBLE,
+                    sharpe_score DOUBLE,
+                    diversification_score DOUBLE,
+                    stability_score DOUBLE,
+                    capacity_score DOUBLE,
+                    concentration_penalty DOUBLE,
+                    final_ensemble_score DOUBLE,
+                    decision VARCHAR,
+                    reject_reason VARCHAR,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS alpha_ensemble_weights (
+                    run_id VARCHAR,
+                    ensemble_id VARCHAR,
+                    alpha_id VARCHAR,
+                    raw_weight DOUBLE,
+                    normalized_weight DOUBLE,
+                    cap_adjusted_weight DOUBLE,
+                    final_weight DOUBLE,
+                    weight_reason VARCHAR,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS alpha_ensemble_selection (
+                    selection_id VARCHAR,
+                    run_id VARCHAR,
+                    ensemble_id VARCHAR,
+                    selected BOOLEAN,
+                    selected_alpha_ids VARCHAR,
+                    portfolio_ready BOOLEAN,
+                    reason VARCHAR,
+                    payload_json VARCHAR,
+                    created_at TIMESTAMP
+                );
                 CREATE TABLE IF NOT EXISTS live_orders (
                     live_order_id VARCHAR,
                     created_at TIMESTAMP,

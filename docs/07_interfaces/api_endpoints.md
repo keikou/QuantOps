@@ -119,6 +119,31 @@ This file is the short routing index for the current operator-visible API endpoi
 - `GET /system/alpha-feedback-learning-state/latest`
 - `GET /system/alpha-feedback-optimization-effectiveness/latest`
 
+### Alpha Evaluation / Selection
+
+- `GET /system/alpha-evaluation/latest`
+- `GET /system/alpha-decay-analysis/latest`
+- `GET /system/alpha-correlation-matrix/latest`
+- `GET /system/alpha-robustness-ranking/latest`
+- `GET /system/alpha-selection-decisions/latest`
+- `POST /system/alpha-evaluation/run`
+- `GET /system/alpha-evaluation/candidate/{alpha_id}`
+- `POST /system/alpha-walk-forward/run`
+- `GET /system/alpha-walk-forward/latest`
+- `GET /system/alpha-walk-forward/candidate/{alpha_id}`
+- `GET /system/alpha-oos-validation/latest`
+- `GET /system/alpha-validation-decisions/latest`
+- `GET /system/alpha-validation-failures/latest`
+- `POST /system/alpha-factor-attribution/run`
+- `GET /system/alpha-factor-attribution/latest`
+- `GET /system/alpha-factor-attribution/candidate/{alpha_id}`
+- `GET /system/alpha-factor-exposure/latest`
+- `GET /system/alpha-residual-alpha/latest`
+- `GET /system/alpha-economic-risk/latest`
+- `GET /system/alpha-factor-concentration/latest`
+- `GET /system/alpha-economic-meaning/latest`
+- `GET /system/alpha-factor-attribution/ensemble/{ensemble_id}`
+
 ## Read Next
 
 1. `./endpoint_contract_matrix.md`

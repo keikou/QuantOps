@@ -3,8 +3,8 @@
 Date: `2026-04-24`
 Repo: `QuantOps_github`
 Branch: `codex/post-phase7-hardening`
-Track: `alpha_synthesis_structural_discovery_intelligence`
-Status: `asd_v1_checkpoint_complete`
+Track: `alpha_evaluation_selection_intelligence`
+Status: `aes04_active`
 
 ## Purpose
 
@@ -30,14 +30,13 @@ That means:
 
 Current top task:
 
-- establish `Alpha Synthesis / Structural Discovery Intelligence`
-- treat `Alpha Synthesis / Structural Discovery Intelligence v1` as checkpoint-complete through `ASD-05`
-- reselect the next top-level lane
+- establish `Alpha Evaluation / Selection Intelligence`
+- implement `AES-04: Economic Meaning / Factor Attribution`
 
 Current architect-selected candidate:
 
-- `Alpha Synthesis / Structural Discovery Intelligence`
-- current implementation boundary = `ASD v1 checkpoint freeze`
+- `Alpha Evaluation / Selection Intelligence`
+- current implementation boundary = `AES-04`
 - current dependency 1 = `Research / Promotion Intelligence v1 checkpoint through RPI-06`
 - current dependency 2 = `Alpha / Strategy Selection Intelligence v1 checkpoint through ASI-05`
 - current dependency 3 = `Portfolio Intelligence v1 checkpoint through PI-05`
@@ -56,28 +55,30 @@ Architect now treats `Strategy Evolution / Regime Adaptation Intelligence v1` as
 
 The next question is:
 
-- "what is the next missing top-level lane after `ASD v1`?"
-- "is there any real regression that reopens `ASD`?"
-- "should the roadmap move to a new lane instead of extending `ASD` by inertia?"
+- "how should selected alpha and ensembles be explained economically before scaling?"
+- "how should factor exposure, residual alpha, and regime dependency become explicit?"
+- "what concentration and economic-risk surfaces should feed MPI/LCC safely?"
 
 This is the next lane beyond the completed hardening/resume slice, but it is no longer the older `Execution Reality` default.
 
 ## Next Candidate Options
 
-1. `Alpha Synthesis / Structural Discovery Intelligence`
-   - selected by architect as the next top-level lane
-2. `Autonomous Alpha Expansion / Strategy Generation Intelligence`
+1. `Alpha Evaluation / Selection Intelligence`
+   - selected as the next top-level lane from the current repo truth
+2. `Alpha Synthesis / Structural Discovery Intelligence`
    - now treated as checkpoint-complete input, not the active lane
-3. `Strategy Evolution / Regime Adaptation Intelligence`
+3. `Autonomous Alpha Expansion / Strategy Generation Intelligence`
    - now treated as checkpoint-complete input, not the active lane
-4. `Deployment / Rollout Intelligence`
+4. `Strategy Evolution / Regime Adaptation Intelligence`
    - now treated as checkpoint-complete input, not the active lane
-5. `Live Capital Control / Adaptive Runtime Allocation`
+5. `Deployment / Rollout Intelligence`
+   - now treated as checkpoint-complete input, not the active lane
+6. `Live Capital Control / Adaptive Runtime Allocation`
    - now treated as checkpoint-complete input, not the active lane
 
 ## Current Recommendation
 
-Use `ASD v1 checkpoint freeze` as the current active task boundary.
+Use `AES-04` as the current active task.
 
 ## Explicit Non-Tasks
 
@@ -99,6 +100,7 @@ These are not current tasks:
 - extending `AAE` to fake generator-core completion
 - replaying `ASD-01` through `ASD-05` without a real regression
 - inventing `ASD-06` before next-lane reselection
+- using portfolio allocation as a substitute for alpha evaluation
 
 ## Inputs To Read Before Acting
 
@@ -107,29 +109,44 @@ These are not current tasks:
 3. `../Auto_resume_handover_2026-04-24.md`
 4. `../Autonomous_alpha_expansion_strategy_generation_intelligence_checkpoint_v1.md`
 5. `../Alpha_synthesis_structural_discovery_intelligence_checkpoint_v1.md`
-6. `../07_interfaces/asd_alpha_synthesis_contracts.md`
+6. `../AES-01_GitHub_Issues.md`
+7. `../AES_Threshold_Tuning_Strategy.md`
+8. `../AES-02_Walk_Forward_Validation_Design.md`
+9. `../AES-03_Alpha_Ensemble_Selection_Engine_Design.md`
+10. `../AES-03_GitHub_Issues_Implementation.md`
+11. `../AES-03_Weight_Optimization_Algorithms.md`
+12. `../AES-03_Portfolio_Integration_MPI_LCC.md`
+13. `../AES-04_Economic_Meaning_Factor_Attribution_Design.md`
+14. `../AES-05_Capacity_Crowding_Risk_Engine.md`
+15. `../AES-06_Dynamic_Alpha_Weighting_Engine.md`
+16. `../AES-07_Alpha_Kill_Switch_Retirement_Engine.md`
+17. `../AES-08_Self_Improving_Alpha_Loop.md`
+18. `../07_interfaces/aes_alpha_evaluation_contracts.md`
 
 ## Expected Output Of The Next Task
 
 The current lane follow-up should produce:
 
-- one checkpoint doc
-- current docs aligned to checkpoint-complete truth
-- next-lane reselection readiness without replaying completed `ASD`
+- one packet plan doc
+- one verifier script
+- alpha factor attribution latest, factor exposure, residual alpha, economic risk, factor concentration, and economic meaning surfaces
 
-Current `ASD v1` checkpoint outputs now available:
+Current `AES-04` outputs now planned:
 
-- `docs/Alpha_synthesis_structural_discovery_intelligence_packet05_plan.md`
-- `docs/Alpha_synthesis_structural_discovery_intelligence_checkpoint_v1.md`
-- `test_bundle/scripts/verify_alpha_synthesis_structural_discovery_intelligence_packet05.py`
-- `GET /system/alpha-hypothesis-feedback-queue/latest`
-- `GET /system/alpha-hypothesis-prompt-tuning/latest`
-- `GET /system/alpha-synthesis-policy-updates/latest`
-- `GET /system/alpha-feedback-learning-state/latest`
-- `GET /system/alpha-feedback-optimization-effectiveness/latest`
+- `docs/Alpha_evaluation_selection_intelligence_packet04_plan.md`
+- `test_bundle/scripts/verify_alpha_evaluation_selection_intelligence_packet04.py`
+- `POST /system/alpha-factor-attribution/run`
+- `GET /system/alpha-factor-attribution/latest`
+- `GET /system/alpha-factor-attribution/candidate/{alpha_id}`
+- `GET /system/alpha-factor-exposure/latest`
+- `GET /system/alpha-residual-alpha/latest`
+- `GET /system/alpha-economic-risk/latest`
+- `GET /system/alpha-factor-concentration/latest`
+- `GET /system/alpha-economic-meaning/latest`
+- `GET /system/alpha-factor-attribution/ensemble/{ensemble_id}`
 
 ## Single-Block Resume Note
 
 ```text
-Current task is not another hardening packet, not another Execution Reality packet, not another Governance -> Runtime Control packet, not another Portfolio Intelligence packet, not another Alpha / Strategy Selection Intelligence packet, not another Research / Promotion Intelligence packet, and not another active DRI, LCC, MPI, or SERI packet. Current task is `ASD v1 checkpoint freeze`, so completed `ASD-01` through `ASD-05` work should not be replayed unless a real regression is found.
+Current task is not another hardening packet, not another Execution Reality packet, not another Governance -> Runtime Control packet, not another Portfolio Intelligence packet, not another Alpha / Strategy Selection Intelligence packet, not another Research / Promotion Intelligence packet, and not another active DRI, LCC, MPI, or SERI packet. Current task is `AES-04`, so completed `AAE`, `ASD`, `AES-01`, `AES-02`, and `AES-03` work should be treated as input lanes and not replayed unless a real regression is found.
 ```

@@ -3,7 +3,7 @@
 Date: `2026-04-24`
 Repo: `QuantOps_github`
 Branch: `codex/post-phase7-hardening`
-Status: `asd_v1_checkpoint_freeze`
+Status: `aes04_active_boundary`
 
 ## Current Planning Decision
 
@@ -11,9 +11,9 @@ The current hardening/resume slice is treated as sufficiently complete.
 
 So the active planning question is now:
 
-- how should the missing alpha generator core become explicit at the system surface?
-- how should symbolic alpha structures be generated outside the existing template space?
-- how should novelty and synthesis effectiveness become operator-visible?
+- how should generated alpha be evaluated before promotion?
+- how should noise, decay, overfit, and redundancy become explicit at the system surface?
+- how should selection decisions become operator-visible before portfolio intake?
 
 Historical note:
 
@@ -25,9 +25,10 @@ Architect-selected answer:
 
 - `Strategy Evolution / Regime Adaptation Intelligence v1` is checkpoint-complete through `SERI-05`
 - `Autonomous Alpha Expansion / Strategy Generation Intelligence v1` is checkpoint-complete through `AAE-05`
-- next top-level lane is `Alpha Synthesis / Structural Discovery Intelligence`
+- `Autonomous Alpha Expansion / Strategy Generation Intelligence v1` is checkpoint-complete through `AAE-05`
 - `Alpha Synthesis / Structural Discovery Intelligence v1` is checkpoint-complete through `ASD-05`
-- next top-level lane is pending reselection
+- next top-level lane is `Alpha Evaluation / Selection Intelligence`
+- current packet boundary is `AES-04: Economic Meaning / Factor Attribution`
 
 ## Why This Is The Current Plan
 
@@ -51,7 +52,7 @@ Architect re-alignment now treats the following as sufficiently closed for the c
 - `Meta Portfolio Intelligence / Cross-Strategy Capital Allocation v1`
 - `Strategy Evolution / Regime Adaptation Intelligence v1`
 
-That means planning should not continue replaying `SERI`, `AAE`, or `ASD` checkpoint work and should now reselect the next missing lane.
+That means planning should not continue replaying `SERI`, `AAE`, or `ASD` checkpoint work and should now establish the first robust alpha evaluation gate.
 
 ## Explicitly Completed Planning Slice
 
@@ -74,26 +75,40 @@ The following planning sequence is now historical and completed:
 
 ## Current Plan Outputs
 
-Current `ASD v1` checkpoint outputs now available:
+Current `AES-04` outputs now planned:
 
-- `../Alpha_synthesis_structural_discovery_intelligence_packet05_plan.md`
-- `../Alpha_synthesis_structural_discovery_intelligence_checkpoint_v1.md`
-- `../../test_bundle/scripts/verify_alpha_synthesis_structural_discovery_intelligence_packet05.py`
-- `GET /system/alpha-hypothesis-feedback-queue/latest`
-- `GET /system/alpha-hypothesis-prompt-tuning/latest`
-- `GET /system/alpha-synthesis-policy-updates/latest`
-- `GET /system/alpha-feedback-learning-state/latest`
-- `GET /system/alpha-feedback-optimization-effectiveness/latest`
+- `../Alpha_evaluation_selection_intelligence_packet04_plan.md`
+- `../../test_bundle/scripts/verify_alpha_evaluation_selection_intelligence_packet04.py`
+- `POST /system/alpha-factor-attribution/run`
+- `GET /system/alpha-factor-attribution/latest`
+- `GET /system/alpha-factor-attribution/candidate/{alpha_id}`
+- `GET /system/alpha-factor-exposure/latest`
+- `GET /system/alpha-residual-alpha/latest`
+- `GET /system/alpha-economic-risk/latest`
+- `GET /system/alpha-factor-concentration/latest`
+- `GET /system/alpha-economic-meaning/latest`
+- `GET /system/alpha-factor-attribution/ensemble/{ensemble_id}`
 
 ## Current Docs-Ready State
 
-The docs route for `ASD v1` is now prepared and frozen.
+The docs route for `AES-04` is now prepared for implementation startup.
 
 Current docs-ready assets:
 
-- `../04_tasks/asd05_feedback_optimization_2026-04-24.md`
-- `../Alpha_synthesis_structural_discovery_intelligence_checkpoint_v1.md`
-- `../07_interfaces/asd_alpha_synthesis_contracts.md`
+- `../04_tasks/aes04_economic_meaning_factor_attribution_2026-04-25.md`
+- `../AES-01_GitHub_Issues.md`
+- `../AES_Threshold_Tuning_Strategy.md`
+- `../AES-02_Walk_Forward_Validation_Design.md`
+- `../AES-03_Alpha_Ensemble_Selection_Engine_Design.md`
+- `../AES-03_GitHub_Issues_Implementation.md`
+- `../AES-03_Weight_Optimization_Algorithms.md`
+- `../AES-03_Portfolio_Integration_MPI_LCC.md`
+- `../AES-04_Economic_Meaning_Factor_Attribution_Design.md`
+- `../AES-05_Capacity_Crowding_Risk_Engine.md`
+- `../AES-06_Dynamic_Alpha_Weighting_Engine.md`
+- `../AES-07_Alpha_Kill_Switch_Retirement_Engine.md`
+- `../AES-08_Self_Improving_Alpha_Loop.md`
+- `../07_interfaces/aes_alpha_evaluation_contracts.md`
 - `../07_interfaces/lane_surface_inventory.md`
 - `../10_agent/ai_docs_operating_loop.md`
 
@@ -110,6 +125,7 @@ This is not the current plan:
 - replaying completed `AAE-01` through `AAE-05`
 - replaying completed `ASD-01` through `ASD-05`
 - inventing `ASD-06` without a new architect boundary
+- replaying completed `AAE` or `ASD` work instead of building the next `AES` packet
 
 ## Read Before Editing
 

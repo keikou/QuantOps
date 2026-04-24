@@ -197,6 +197,56 @@ Contract progression:
 - feedback learning state
 - feedback optimization effectiveness
 
+## Alpha Evaluation / Selection Intelligence
+
+- `GET /system/alpha-evaluation/latest`
+- `GET /system/alpha-decay-analysis/latest`
+- `GET /system/alpha-correlation-matrix/latest`
+- `GET /system/alpha-robustness-ranking/latest`
+- `GET /system/alpha-selection-decisions/latest`
+- `POST /system/alpha-evaluation/run`
+- `GET /system/alpha-evaluation/candidate/{alpha_id}`
+- `POST /system/alpha-walk-forward/run`
+- `GET /system/alpha-walk-forward/latest`
+- `GET /system/alpha-walk-forward/candidate/{alpha_id}`
+- `GET /system/alpha-oos-validation/latest`
+- `GET /system/alpha-validation-decisions/latest`
+- `GET /system/alpha-validation-failures/latest`
+- `POST /system/alpha-factor-attribution/run`
+- `GET /system/alpha-factor-attribution/latest`
+- `GET /system/alpha-factor-attribution/candidate/{alpha_id}`
+- `GET /system/alpha-factor-exposure/latest`
+- `GET /system/alpha-residual-alpha/latest`
+- `GET /system/alpha-economic-risk/latest`
+- `GET /system/alpha-factor-concentration/latest`
+- `GET /system/alpha-economic-meaning/latest`
+- `GET /system/alpha-factor-attribution/ensemble/{ensemble_id}`
+
+Contract progression:
+
+- evaluation summary
+- decay analysis
+- correlation and redundancy view
+- robustness ranking
+- selection decisions
+- explicit run trigger
+- per-candidate evaluation lookup
+- explicit walk-forward run trigger
+- latest walk-forward validation summary
+- per-candidate walk-forward detail
+- oos validation summary
+- validation decisions
+- validation failures
+- explicit factor attribution run trigger
+- latest factor attribution summary
+- per-alpha attribution detail
+- factor exposure view
+- residual alpha view
+- economic risk view
+- factor concentration view
+- economic meaning labels and scaling recommendation
+- per-ensemble attribution detail
+
 ## Rule
 
 When a lane checkpoint becomes operationally visible through `/system/*`, add its family here as one grouped inventory rather than leaving the surface readable only from isolated endpoint rows.
