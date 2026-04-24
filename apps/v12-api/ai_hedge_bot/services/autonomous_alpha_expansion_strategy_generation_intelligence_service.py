@@ -11,8 +11,18 @@ from ai_hedge_bot.research_factory.service import ResearchFactoryService
 from ai_hedge_bot.services.deployment_rollout_intelligence_service import (
     DeploymentRolloutIntelligenceService,
 )
+from ai_hedge_bot.services.policy_optimization_meta_control_learning_service import (
+    PolicyOptimizationMetaControlLearningService,
+)
+from ai_hedge_bot.services.portfolio_intelligence_service import PortfolioIntelligenceService
 from ai_hedge_bot.services.strategy_evolution_regime_adaptation_intelligence_service import (
     StrategyEvolutionRegimeAdaptationIntelligenceService,
+)
+from ai_hedge_bot.services.system_level_learning_feedback_integration_service import (
+    SystemLevelLearningFeedbackIntegrationService,
+)
+from ai_hedge_bot.services.research_promotion_intelligence_service import (
+    ResearchPromotionIntelligenceService,
 )
 
 
@@ -22,9 +32,13 @@ class AutonomousAlphaExpansionStrategyGenerationIntelligenceService:
         self.alpha_factory = AutonomousAlphaService()
         self.research_factory = ResearchFactoryService()
         self.deployment_rollout = DeploymentRolloutIntelligenceService()
+        self.policy_optimization = PolicyOptimizationMetaControlLearningService()
+        self.portfolio = PortfolioIntelligenceService()
+        self.research_promotion = ResearchPromotionIntelligenceService()
         self.bridge = GovernanceStateBridge()
         self.champion_challenger = ChampionChallenger()
         self.strategy_evolution = StrategyEvolutionRegimeAdaptationIntelligenceService()
+        self.system_learning = SystemLevelLearningFeedbackIntegrationService()
 
     @staticmethod
     def _decode_json(value: Any, default: Any) -> Any:
@@ -1287,5 +1301,721 @@ class AutonomousAlphaExpansionStrategyGenerationIntelligenceService:
                 "autonomous_alpha_expansion_strategy_generation_intelligence": "AAE-03",
                 "deployment_rollout_intelligence": "DRI-05",
                 "research_promotion_intelligence": "RPI-06",
+            },
+        }
+
+    @staticmethod
+    def _family_latest(rows: list[dict[str, Any]], family_key: str = "alpha_family") -> dict[str, dict[str, Any]]:
+        latest: dict[str, dict[str, Any]] = {}
+        for row in rows:
+            family = str(row.get(family_key) or "unknown")
+            if family not in latest:
+                latest[family] = row
+        return latest
+
+    def alpha_next_cycle_learning_input_latest(self, limit: int = 20) -> dict[str, Any]:
+        feedback = self.alpha_runtime_governance_feedback_latest(limit=max(limit * 2, 20))
+        rollback = self.alpha_runtime_rollback_response_latest(limit=max(limit * 2, 20))
+        champion = self.alpha_runtime_champion_challenger_latest(limit=max(limit * 2, 20))
+        learning = self.system_learning.policy_updates_latest(limit=max(limit * 2, 20))
+
+        feedback_by_family = self._family_latest(list(feedback.get("items") or []))
+        rollback_by_family = self._family_latest(list(rollback.get("items") or []))
+        champion_by_family = self._family_latest(list(champion.get("items") or []))
+        learning_by_family = self._family_latest(list(learning.get("items") or []))
+
+        families = sorted(
+            set(feedback_by_family.keys())
+            | set(rollback_by_family.keys())
+            | set(champion_by_family.keys())
+            | set(learning_by_family.keys())
+        )
+
+        items: list[dict[str, Any]] = []
+        reinforce_count = 0
+        caution_count = 0
+        rebalance_count = 0
+        observe_count = 0
+
+        for family in families:
+            feedback_item = dict(feedback_by_family.get(family) or {})
+            rollback_item = dict(rollback_by_family.get(family) or {})
+            champion_item = dict(champion_by_family.get(family) or {})
+            learning_item = dict(learning_by_family.get(family) or {})
+
+            runtime_feedback_status = str(feedback_item.get("runtime_feedback_status") or "healthy")
+            runtime_rollback_response = str(rollback_item.get("runtime_rollback_response") or "hold")
+            learning_action = str(learning_item.get("learning_action") or "observe")
+            competition_action = str(champion_item.get("runtime_competition_action") or "hold_current_runtime_posture")
+
+            next_cycle_learning_input = "observe"
+            reason_codes: list[str] = []
+            if runtime_feedback_status == "intervention_required" or runtime_rollback_response == "rollback":
+                next_cycle_learning_input = "caution"
+                reason_codes.append("runtime_intervention_or_rollback_present")
+            elif runtime_feedback_status == "watch" or runtime_rollback_response == "reduce":
+                next_cycle_learning_input = "rebalance"
+                reason_codes.append("runtime_watch_or_reduce_present")
+            elif learning_action == "reinforce" and competition_action != "switch_runtime_to_challenger":
+                next_cycle_learning_input = "reinforce"
+                reason_codes.append("runtime_feedback_supports_positive_learning")
+            elif learning_action in {"caution", "rebalance"}:
+                next_cycle_learning_input = learning_action
+                reason_codes.append("existing_learning_signal_retained")
+            else:
+                reason_codes.append("collect_more_alpha_runtime_feedback")
+
+            if str(champion_item.get("runtime_competition_role") or "") == "challenger_winner":
+                reason_codes.append("challenger_winner_should_shape_next_cycle")
+            elif str(champion_item.get("runtime_competition_role") or "") == "current_champion":
+                reason_codes.append("champion_posture_remains_reference")
+
+            if next_cycle_learning_input == "reinforce":
+                reinforce_count += 1
+            elif next_cycle_learning_input == "caution":
+                caution_count += 1
+            elif next_cycle_learning_input == "rebalance":
+                rebalance_count += 1
+            else:
+                observe_count += 1
+
+            items.append(
+                {
+                    "alpha_family": family,
+                    "runtime_feedback_status": runtime_feedback_status,
+                    "runtime_rollback_response": runtime_rollback_response,
+                    "runtime_competition_role": champion_item.get("runtime_competition_role"),
+                    "runtime_competition_action": competition_action,
+                    "learning_action": learning_action,
+                    "selection_score_adjustment": float(learning_item.get("selection_score_adjustment", 0.0) or 0.0),
+                    "capital_multiplier_adjustment": float(learning_item.get("capital_multiplier_adjustment", 1.0) or 1.0),
+                    "review_pressure": learning_item.get("review_pressure"),
+                    "runtime_caution": learning_item.get("runtime_caution"),
+                    "next_cycle_learning_input": next_cycle_learning_input,
+                    "next_cycle_learning_reason_codes": reason_codes,
+                }
+            )
+
+        system_action = "collect_more_alpha_runtime_learning"
+        if caution_count > 0:
+            system_action = "tighten_next_cycle_learning_for_fragile_families"
+        elif rebalance_count > 0:
+            system_action = "rebalance_next_cycle_learning_inputs"
+        elif reinforce_count > 0:
+            system_action = "reinforce_next_cycle_learning_for_successful_families"
+
+        return {
+            "status": "ok",
+            "items": items[:limit],
+            "source_packets": {
+                "autonomous_alpha_expansion_strategy_generation_intelligence": "AAE-04",
+                "system_level_learning_feedback_integration": "SLLFI-05",
+                "strategy_evolution_regime_adaptation_intelligence": "SERI-05",
+            },
+            "alpha_next_cycle_learning_input_summary": {
+                "family_count": min(len(items), limit),
+                "reinforce_inputs": min(reinforce_count, len(items[:limit])),
+                "caution_inputs": min(caution_count, len(items[:limit])),
+                "rebalance_inputs": min(rebalance_count, len(items[:limit])),
+                "observe_inputs": min(observe_count, len(items[:limit])),
+                "system_alpha_next_cycle_learning_action": system_action,
+            },
+        }
+
+    def alpha_next_cycle_policy_bridge_latest(self, limit: int = 20) -> dict[str, Any]:
+        learning_input = self.alpha_next_cycle_learning_input_latest(limit=max(limit * 2, 20))
+        learning_policy = self.system_learning.policy_updates_latest(limit=max(limit * 2, 20))
+        policy_by_family = self._family_latest(list(learning_policy.get("items") or []))
+
+        items: list[dict[str, Any]] = []
+        expand_count = 0
+        constrain_count = 0
+        rebalance_count = 0
+        hold_count = 0
+
+        for item in list(learning_input.get("items") or []):
+            family = str(item.get("alpha_family") or "unknown")
+            policy_item = dict(policy_by_family.get(family) or {})
+            next_cycle_learning_input = str(item.get("next_cycle_learning_input") or "observe")
+
+            policy_bridge_state = "hold"
+            expansion_policy_bias = "neutral"
+            if next_cycle_learning_input == "caution":
+                policy_bridge_state = "constrain"
+                expansion_policy_bias = "constrain"
+                constrain_count += 1
+            elif next_cycle_learning_input == "rebalance":
+                policy_bridge_state = "rebalance"
+                expansion_policy_bias = "mixed"
+                rebalance_count += 1
+            elif next_cycle_learning_input == "reinforce":
+                policy_bridge_state = "expand"
+                expansion_policy_bias = "expand"
+                expand_count += 1
+            else:
+                hold_count += 1
+
+            items.append(
+                {
+                    **item,
+                    "policy_bridge_state": policy_bridge_state,
+                    "expansion_policy_bias": expansion_policy_bias,
+                    "selection_score_adjustment": float(
+                        policy_item.get("selection_score_adjustment", item.get("selection_score_adjustment", 0.0)) or 0.0
+                    ),
+                    "capital_multiplier_adjustment": float(
+                        policy_item.get("capital_multiplier_adjustment", item.get("capital_multiplier_adjustment", 1.0)) or 1.0
+                    ),
+                    "review_pressure": policy_item.get("review_pressure", item.get("review_pressure")),
+                    "runtime_caution": policy_item.get("runtime_caution", item.get("runtime_caution")),
+                    "policy_update_reason_codes": policy_item.get("policy_update_reason_codes")
+                    or item.get("next_cycle_learning_reason_codes")
+                    or [],
+                }
+            )
+
+        system_action = "hold_current_alpha_policy_bridge"
+        if constrain_count > 0:
+            system_action = "constrain_alpha_expansion_policy_for_fragile_families"
+        elif rebalance_count > 0:
+            system_action = "rebalance_alpha_expansion_policy_across_families"
+        elif expand_count > 0:
+            system_action = "expand_alpha_policy_support_for_successful_families"
+
+        return {
+            "status": "ok",
+            "items": items[:limit],
+            "source_packets": {
+                "autonomous_alpha_expansion_strategy_generation_intelligence": "AAE-04",
+                "system_level_learning_feedback_integration": "SLLFI-05",
+            },
+            "alpha_next_cycle_policy_bridge_summary": {
+                "family_count": min(len(items), limit),
+                "expand_families": min(expand_count, len(items[:limit])),
+                "constrain_families": min(constrain_count, len(items[:limit])),
+                "rebalance_families": min(rebalance_count, len(items[:limit])),
+                "hold_families": min(hold_count, len(items[:limit])),
+                "system_alpha_policy_bridge_action": system_action,
+            },
+        }
+
+    def alpha_regime_adaptation_input_latest(self, limit: int = 20) -> dict[str, Any]:
+        policy_bridge = self.alpha_next_cycle_policy_bridge_latest(limit=max(limit * 2, 20))
+        regime = self.strategy_evolution.strategy_gating_decision_latest(limit=max(limit * 2, 20))
+        regime_by_family = self._family_latest(list(regime.get("items") or []))
+
+        items: list[dict[str, Any]] = []
+        expand_count = 0
+        watch_count = 0
+        prune_count = 0
+
+        for item in list(policy_bridge.get("items") or []):
+            family = str(item.get("alpha_family") or "unknown")
+            regime_item = dict(regime_by_family.get(family) or {})
+            policy_bridge_state = str(item.get("policy_bridge_state") or "hold")
+            gating_decision = str(regime_item.get("strategy_gating_decision") or "shadow")
+            family_regime_state = str(regime_item.get("family_regime_state") or "balanced")
+
+            regime_adaptation_input = "watch"
+            if gating_decision in {"gate", "retire"} or policy_bridge_state == "constrain":
+                regime_adaptation_input = "prune"
+                prune_count += 1
+            elif gating_decision == "allow" and policy_bridge_state == "expand" and family_regime_state == "risk_on":
+                regime_adaptation_input = "expand"
+                expand_count += 1
+            else:
+                watch_count += 1
+
+            items.append(
+                {
+                    **item,
+                    "current_regime": regime.get("current_regime"),
+                    "family_regime_state": family_regime_state,
+                    "strategy_gating_decision": gating_decision,
+                    "system_regime_action": regime.get("system_regime_action"),
+                    "regime_adaptation_input": regime_adaptation_input,
+                    "regime_adaptation_reason_codes": [
+                        f"policy_bridge_state:{policy_bridge_state}",
+                        f"family_regime_state:{family_regime_state}",
+                        f"strategy_gating_decision:{gating_decision}",
+                    ],
+                }
+            )
+
+        system_action = "observe_alpha_regime_adaptation_inputs"
+        if prune_count > 0:
+            system_action = "prune_alpha_expansion_under_regime_stress"
+        elif expand_count > 0:
+            system_action = "expand_alpha_families_aligned_with_current_regime"
+
+        return {
+            "status": "ok",
+            "current_regime": regime.get("current_regime"),
+            "regime_confidence": regime.get("regime_confidence"),
+            "items": items[:limit],
+            "source_packets": {
+                "autonomous_alpha_expansion_strategy_generation_intelligence": "AAE-04",
+                "strategy_evolution_regime_adaptation_intelligence": "SERI-05",
+                "system_level_learning_feedback_integration": "SLLFI-05",
+            },
+            "alpha_regime_adaptation_input_summary": {
+                "family_count": min(len(items), limit),
+                "expand_inputs": min(expand_count, len(items[:limit])),
+                "watch_inputs": min(watch_count, len(items[:limit])),
+                "prune_inputs": min(prune_count, len(items[:limit])),
+                "system_alpha_regime_adaptation_action": system_action,
+            },
+        }
+
+    def alpha_universe_refresh_priorities_latest(self, limit: int = 20) -> dict[str, Any]:
+        regime_input = self.alpha_regime_adaptation_input_latest(limit=max(limit * 2, 20))
+        discovery = self.alpha_discovery_candidates_latest(limit=max(limit * 3, 30))
+        generation = self.alpha_generation_agenda_latest(limit=max(limit * 3, 30))
+
+        discovery_by_family = self._family_latest(list(discovery.get("items") or []))
+        generation_by_family = self._family_latest(list(generation.get("items") or []))
+
+        items: list[dict[str, Any]] = []
+        expand_count = 0
+        replace_count = 0
+        hold_count = 0
+        prune_count = 0
+
+        for item in list(regime_input.get("items") or []):
+            family = str(item.get("alpha_family") or "unknown")
+            discovery_item = dict(discovery_by_family.get(family) or {})
+            generation_item = dict(generation_by_family.get(family) or {})
+            regime_adaptation_input = str(item.get("regime_adaptation_input") or "watch")
+            discovery_priority = str(discovery_item.get("discovery_priority") or "low")
+            generation_action = str(generation_item.get("generation_action") or "hold_generation_capacity")
+
+            universe_refresh_priority = "hold"
+            universe_refresh_action = "hold_family_universe"
+            if regime_adaptation_input == "prune":
+                universe_refresh_priority = "prune"
+                universe_refresh_action = "prune_or_replace_fragile_family_capacity"
+                prune_count += 1
+            elif regime_adaptation_input == "expand" and discovery_priority == "high":
+                universe_refresh_priority = "expand"
+                universe_refresh_action = "expand_family_with_validated_candidates"
+                expand_count += 1
+            elif generation_action == "expand_generation_now":
+                universe_refresh_priority = "replace"
+                universe_refresh_action = "refresh_family_generation_and_replacement_queue"
+                replace_count += 1
+            else:
+                hold_count += 1
+
+            items.append(
+                {
+                    **item,
+                    "discovery_priority": discovery_priority,
+                    "generation_action": generation_action,
+                    "universe_refresh_priority": universe_refresh_priority,
+                    "universe_refresh_action": universe_refresh_action,
+                }
+            )
+
+        system_action = "maintain_alpha_universe_refresh_backlog"
+        if prune_count > 0:
+            system_action = "prune_fragile_alpha_families_and_refresh_capacity"
+        elif expand_count > 0:
+            system_action = "expand_alpha_universe_in_supportive_families"
+        elif replace_count > 0:
+            system_action = "refresh_alpha_universe_with_new_generation"
+
+        return {
+            "status": "ok",
+            "current_regime": regime_input.get("current_regime"),
+            "regime_confidence": regime_input.get("regime_confidence"),
+            "items": items[:limit],
+            "source_packets": {
+                "autonomous_alpha_expansion_strategy_generation_intelligence": "AAE-04",
+                "strategy_evolution_regime_adaptation_intelligence": "SERI-05",
+                "system_level_learning_feedback_integration": "SLLFI-05",
+            },
+            "alpha_universe_refresh_priorities_summary": {
+                "family_count": min(len(items), limit),
+                "expand_priorities": min(expand_count, len(items[:limit])),
+                "replace_priorities": min(replace_count, len(items[:limit])),
+                "hold_priorities": min(hold_count, len(items[:limit])),
+                "prune_priorities": min(prune_count, len(items[:limit])),
+                "system_alpha_universe_refresh_action": system_action,
+            },
+        }
+
+    def alpha_expansion_learning_effectiveness_latest(self, limit: int = 20) -> dict[str, Any]:
+        learning_input = self.alpha_next_cycle_learning_input_latest(limit=max(limit * 2, 20))
+        policy_bridge = self.alpha_next_cycle_policy_bridge_latest(limit=max(limit * 2, 20))
+        regime_input = self.alpha_regime_adaptation_input_latest(limit=max(limit * 2, 20))
+        universe = self.alpha_universe_refresh_priorities_latest(limit=max(limit * 2, 20))
+
+        learning_summary = learning_input.get("alpha_next_cycle_learning_input_summary") or {}
+        policy_summary = policy_bridge.get("alpha_next_cycle_policy_bridge_summary") or {}
+        regime_summary = regime_input.get("alpha_regime_adaptation_input_summary") or {}
+        universe_summary = universe.get("alpha_universe_refresh_priorities_summary") or {}
+
+        effectiveness_status = "closed_loop_ready"
+        if int(regime_summary.get("prune_inputs", 0) or 0) > 0:
+            effectiveness_status = "fragile"
+        elif int(policy_summary.get("rebalance_families", 0) or 0) > 0 or int(learning_summary.get("rebalance_inputs", 0) or 0) > 0:
+            effectiveness_status = "watch"
+
+        return {
+            "status": "ok",
+            "alpha_expansion_learning_effectiveness": {
+                "effectiveness_status": effectiveness_status,
+                "reinforce_input_count": int(learning_summary.get("reinforce_inputs", 0) or 0),
+                "constrain_policy_count": int(policy_summary.get("constrain_families", 0) or 0),
+                "prune_regime_count": int(regime_summary.get("prune_inputs", 0) or 0),
+                "expand_universe_count": int(universe_summary.get("expand_priorities", 0) or 0),
+                "replace_universe_count": int(universe_summary.get("replace_priorities", 0) or 0),
+                "system_alpha_expansion_learning_action": (
+                    "stabilize_alpha_expansion_before_next_cycle"
+                    if effectiveness_status == "fragile"
+                    else (
+                        "monitor_alpha_expansion_learning_bridge"
+                        if effectiveness_status == "watch"
+                        else "apply_alpha_expansion_closed_loop_learning"
+                    )
+                ),
+            },
+            "source_packets": {
+                "autonomous_alpha_expansion_strategy_generation_intelligence": "AAE-04",
+                "system_level_learning_feedback_integration": "SLLFI-05",
+                "strategy_evolution_regime_adaptation_intelligence": "SERI-05",
+            },
+        }
+
+    def alpha_promotion_bridge_latest(self, limit: int = 20) -> dict[str, Any]:
+        universe = self.alpha_universe_refresh_priorities_latest(limit=max(limit * 2, 20))
+        promotion = self.research_promotion.promotion_agenda_latest(limit=max(limit * 3, 30))
+
+        universe_by_family = self._family_latest(list(universe.get("items") or []))
+        items: list[dict[str, Any]] = []
+        accelerate_count = 0
+        hold_count = 0
+        retire_count = 0
+
+        for item in list(promotion.get("items") or []):
+            family = str(item.get("alpha_family") or "unknown")
+            universe_item = dict(universe_by_family.get(family) or {})
+            universe_refresh_priority = str(universe_item.get("universe_refresh_priority") or "hold")
+            promotion_action = str(item.get("promotion_action") or "stay_queued")
+
+            bridge_status = "hold"
+            bridge_action = "hold_alpha_in_review_backlog"
+            if universe_refresh_priority == "expand" and promotion_action in {"promote", "advance"}:
+                bridge_status = "accelerate"
+                bridge_action = "accelerate_alpha_promotion_review"
+                accelerate_count += 1
+            elif universe_refresh_priority == "prune" and promotion_action in {"demote", "retire"}:
+                bridge_status = "retire"
+                bridge_action = "accelerate_alpha_exit_review"
+                retire_count += 1
+            else:
+                hold_count += 1
+
+            items.append(
+                {
+                    **item,
+                    "universe_refresh_priority": universe_refresh_priority,
+                    "universe_refresh_action": universe_item.get("universe_refresh_action"),
+                    "promotion_bridge_status": bridge_status,
+                    "promotion_bridge_action": bridge_action,
+                }
+            )
+
+        items.sort(
+            key=lambda item: (
+                {"accelerate": 0, "retire": 1, "hold": 2}.get(str(item.get("promotion_bridge_status")), 3),
+                {"immediate": 0, "high": 1, "normal": 2, "low": 3}.get(str(item.get("review_priority")), 4),
+                -float(item.get("selection_score", 0.0) or 0.0),
+                str(item.get("alpha_id") or ""),
+            )
+        )
+        items = items[:limit]
+
+        system_action = "hold_alpha_promotion_bridge"
+        if accelerate_count > 0:
+            system_action = "accelerate_alpha_promotion_for_expansion_families"
+        elif retire_count > 0:
+            system_action = "accelerate_alpha_exit_for_pruned_families"
+
+        return {
+            "status": "ok",
+            "items": items,
+            "source_packets": {
+                "autonomous_alpha_expansion_strategy_generation_intelligence": "AAE-05",
+                "research_promotion_intelligence": "RPI-06",
+            },
+            "alpha_promotion_bridge_summary": {
+                "alpha_count": len(items),
+                "accelerate_candidates": sum(1 for item in items if item.get("promotion_bridge_status") == "accelerate"),
+                "hold_candidates": sum(1 for item in items if item.get("promotion_bridge_status") == "hold"),
+                "retire_candidates": sum(1 for item in items if item.get("promotion_bridge_status") == "retire"),
+                "system_alpha_promotion_bridge_action": system_action,
+            },
+        }
+
+    def alpha_family_capital_intent_latest(self, limit: int = 20) -> dict[str, Any]:
+        policy_bridge = self.alpha_next_cycle_policy_bridge_latest(limit=max(limit * 2, 20))
+        policy_effectiveness = self.policy_optimization.outcome_effectiveness_latest(limit=max(limit * 2, 20))
+        universe = self.alpha_universe_refresh_priorities_latest(limit=max(limit * 2, 20))
+
+        policy_effectiveness_by_family = self._family_latest(list(policy_effectiveness.get("items") or []))
+        universe_by_family = self._family_latest(list(universe.get("items") or []))
+        items: list[dict[str, Any]] = []
+        expand_count = 0
+        constrain_count = 0
+        hold_count = 0
+
+        for item in list(policy_bridge.get("items") or []):
+            family = str(item.get("alpha_family") or "unknown")
+            policy_item = dict(policy_effectiveness_by_family.get(family) or {})
+            universe_item = dict(universe_by_family.get(family) or {})
+            policy_bridge_state = str(item.get("policy_bridge_state") or "hold")
+            realized_effect = str(policy_item.get("realized_effect") or "neutral")
+            universe_refresh_priority = str(universe_item.get("universe_refresh_priority") or "hold")
+
+            capital_intent = "hold"
+            target_family_multiplier = float(item.get("capital_multiplier_adjustment", 1.0) or 1.0)
+            if policy_bridge_state == "expand" and realized_effect == "beneficial" and universe_refresh_priority == "expand":
+                capital_intent = "expand"
+                target_family_multiplier = max(target_family_multiplier, 1.15)
+                expand_count += 1
+            elif policy_bridge_state == "constrain" or universe_refresh_priority == "prune":
+                capital_intent = "constrain"
+                target_family_multiplier = min(target_family_multiplier, 0.8)
+                constrain_count += 1
+            else:
+                hold_count += 1
+
+            items.append(
+                {
+                    **item,
+                    "meta_policy_realized_effect": realized_effect,
+                    "universe_refresh_priority": universe_refresh_priority,
+                    "capital_intent": capital_intent,
+                    "target_family_multiplier": round(target_family_multiplier, 6),
+                    "capital_intent_reason_codes": [
+                        f"policy_bridge_state:{policy_bridge_state}",
+                        f"meta_policy_realized_effect:{realized_effect}",
+                        f"universe_refresh_priority:{universe_refresh_priority}",
+                    ],
+                }
+            )
+
+        system_action = "hold_alpha_family_capital_intent"
+        if constrain_count > 0:
+            system_action = "constrain_fragile_alpha_family_capacity"
+        elif expand_count > 0:
+            system_action = "expand_supportive_alpha_family_capacity"
+
+        return {
+            "status": "ok",
+            "items": items[:limit],
+            "source_packets": {
+                "autonomous_alpha_expansion_strategy_generation_intelligence": "AAE-05",
+                "policy_optimization_meta_control_learning": "PO-05",
+                "system_level_learning_feedback_integration": "SLLFI-05",
+            },
+            "alpha_family_capital_intent_summary": {
+                "family_count": min(len(items), limit),
+                "expand_families": min(expand_count, len(items[:limit])),
+                "constrain_families": min(constrain_count, len(items[:limit])),
+                "hold_families": min(hold_count, len(items[:limit])),
+                "system_alpha_family_capital_action": system_action,
+            },
+        }
+
+    def alpha_portfolio_intake_queue_latest(self, limit: int = 20) -> dict[str, Any]:
+        admission = self.alpha_admission_decision_latest(limit=max(limit * 3, 30))
+        promotion_bridge = self.alpha_promotion_bridge_latest(limit=max(limit * 3, 30))
+        capital_intent = self.alpha_family_capital_intent_latest(limit=max(limit * 2, 20))
+
+        promotion_by_alpha = self._latest_by_key(list(promotion_bridge.get("items") or []), "alpha_id")
+        capital_by_family = self._family_latest(list(capital_intent.get("items") or []))
+        items: list[dict[str, Any]] = []
+        queue_now_count = 0
+        shadow_count = 0
+        hold_count = 0
+        reject_count = 0
+
+        for item in list(admission.get("items") or []):
+            alpha_id = str(item.get("alpha_id") or "")
+            family = str(item.get("alpha_family") or "unknown")
+            promotion_item = dict(promotion_by_alpha.get(alpha_id) or {})
+            capital_item = dict(capital_by_family.get(family) or {})
+            admission_decision = str(item.get("alpha_admission_decision") or "hold")
+            promotion_bridge_status = str(promotion_item.get("promotion_bridge_status") or "hold")
+            capital_family_intent = str(capital_item.get("capital_intent") or "hold")
+
+            intake_status = "hold"
+            intake_action = "hold_alpha_outside_portfolio"
+            if admission_decision == "admit" and promotion_bridge_status == "accelerate" and capital_family_intent != "constrain":
+                intake_status = "queue_now"
+                intake_action = "queue_alpha_for_portfolio_intake"
+                queue_now_count += 1
+            elif admission_decision == "shadow":
+                intake_status = "shadow"
+                intake_action = "queue_alpha_for_shadow_intake"
+                shadow_count += 1
+            elif admission_decision == "reject":
+                intake_status = "reject"
+                intake_action = "reject_alpha_from_portfolio_intake"
+                reject_count += 1
+            else:
+                hold_count += 1
+
+            items.append(
+                {
+                    **item,
+                    "promotion_bridge_status": promotion_bridge_status,
+                    "promotion_bridge_action": promotion_item.get("promotion_bridge_action"),
+                    "capital_intent": capital_family_intent,
+                    "target_family_multiplier": capital_item.get("target_family_multiplier"),
+                    "portfolio_intake_status": intake_status,
+                    "portfolio_intake_action": intake_action,
+                }
+            )
+
+        items.sort(
+            key=lambda item: (
+                {"queue_now": 0, "shadow": 1, "hold": 2, "reject": 3}.get(str(item.get("portfolio_intake_status")), 4),
+                -float(item.get("rank_score", 0.0) or 0.0),
+                str(item.get("alpha_id") or ""),
+            )
+        )
+        items = items[:limit]
+
+        system_action = "hold_alpha_portfolio_intake_queue"
+        if queue_now_count > 0:
+            system_action = "queue_expansion_alphas_for_portfolio_intake"
+        elif shadow_count > 0:
+            system_action = "maintain_shadow_alpha_portfolio_intake"
+
+        return {
+            "status": "ok",
+            "items": items,
+            "source_packets": {
+                "autonomous_alpha_expansion_strategy_generation_intelligence": "AAE-05",
+                "research_promotion_intelligence": "RPI-06",
+                "portfolio_intelligence": "PI-05",
+            },
+            "alpha_portfolio_intake_queue_summary": {
+                "alpha_count": len(items),
+                "queue_now_candidates": sum(1 for item in items if item.get("portfolio_intake_status") == "queue_now"),
+                "shadow_candidates": sum(1 for item in items if item.get("portfolio_intake_status") == "shadow"),
+                "hold_candidates": sum(1 for item in items if item.get("portfolio_intake_status") == "hold"),
+                "reject_candidates": sum(1 for item in items if item.get("portfolio_intake_status") == "reject"),
+                "system_alpha_portfolio_intake_action": system_action,
+            },
+        }
+
+    def alpha_governed_universe_state_latest(self, limit: int = 20) -> dict[str, Any]:
+        intake = self.alpha_portfolio_intake_queue_latest(limit=max(limit * 2, 20))
+        transitions = self.research_promotion.persisted_governed_state_transitions_latest(limit=max(limit * 3, 30))
+        transition_by_alpha = self._latest_by_key(list(transitions.get("items") or []), "alpha_id")
+
+        items: list[dict[str, Any]] = []
+        expand_count = 0
+        shadow_count = 0
+        prune_count = 0
+        hold_count = 0
+
+        for item in list(intake.get("items") or []):
+            alpha_id = str(item.get("alpha_id") or "")
+            transition = dict(transition_by_alpha.get(alpha_id) or {})
+            intake_status = str(item.get("portfolio_intake_status") or "hold")
+            governed_state = str(transition.get("new_governed_state") or item.get("current_lifecycle_state") or "candidate")
+
+            governed_universe_state = "hold"
+            if intake_status == "queue_now" and governed_state in {"promoted", "shadow", "candidate"}:
+                governed_universe_state = "expand"
+                expand_count += 1
+            elif intake_status == "shadow" or governed_state == "shadow":
+                governed_universe_state = "shadow"
+                shadow_count += 1
+            elif intake_status == "reject" or governed_state in {"retired", "rejected"}:
+                governed_universe_state = "prune"
+                prune_count += 1
+            else:
+                hold_count += 1
+
+            items.append(
+                {
+                    **item,
+                    "new_governed_state": governed_state,
+                    "transition_id": transition.get("transition_id"),
+                    "authority_surface": transition.get("authority_surface"),
+                    "governed_universe_state": governed_universe_state,
+                    "governed_universe_reason_codes": [
+                        f"portfolio_intake_status:{intake_status}",
+                        f"new_governed_state:{governed_state}",
+                    ],
+                }
+            )
+
+        system_action = "hold_alpha_governed_universe_state"
+        if prune_count > 0:
+            system_action = "prune_alpha_universe_under_governed_constraints"
+        elif expand_count > 0:
+            system_action = "expand_governed_alpha_universe"
+
+        return {
+            "status": "ok",
+            "items": items[:limit],
+            "source_packets": {
+                "autonomous_alpha_expansion_strategy_generation_intelligence": "AAE-05",
+                "research_promotion_intelligence": "RPI-06",
+            },
+            "alpha_governed_universe_state_summary": {
+                "alpha_count": min(len(items), limit),
+                "expand_alphas": min(expand_count, len(items[:limit])),
+                "shadow_alphas": min(shadow_count, len(items[:limit])),
+                "prune_alphas": min(prune_count, len(items[:limit])),
+                "hold_alphas": min(hold_count, len(items[:limit])),
+                "system_alpha_governed_universe_action": system_action,
+            },
+        }
+
+    def alpha_strategy_factory_readiness_latest(self, limit: int = 20) -> dict[str, Any]:
+        promotion_bridge = self.alpha_promotion_bridge_latest(limit=max(limit * 2, 20))
+        capital_intent = self.alpha_family_capital_intent_latest(limit=max(limit * 2, 20))
+        intake = self.alpha_portfolio_intake_queue_latest(limit=max(limit * 2, 20))
+        governed = self.alpha_governed_universe_state_latest(limit=max(limit * 2, 20))
+
+        promotion_summary = promotion_bridge.get("alpha_promotion_bridge_summary") or {}
+        capital_summary = capital_intent.get("alpha_family_capital_intent_summary") or {}
+        intake_summary = intake.get("alpha_portfolio_intake_queue_summary") or {}
+        governed_summary = governed.get("alpha_governed_universe_state_summary") or {}
+
+        readiness_status = "ready"
+        if int(governed_summary.get("prune_alphas", 0) or 0) > 0:
+            readiness_status = "fragile"
+        elif int(intake_summary.get("hold_candidates", 0) or 0) > int(intake_summary.get("queue_now_candidates", 0) or 0):
+            readiness_status = "watch"
+
+        return {
+            "status": "ok",
+            "alpha_strategy_factory_readiness": {
+                "readiness_status": readiness_status,
+                "accelerated_promotion_count": int(promotion_summary.get("accelerate_candidates", 0) or 0),
+                "expand_family_count": int(capital_summary.get("expand_families", 0) or 0),
+                "queue_now_intake_count": int(intake_summary.get("queue_now_candidates", 0) or 0),
+                "expand_governed_alpha_count": int(governed_summary.get("expand_alphas", 0) or 0),
+                "prune_governed_alpha_count": int(governed_summary.get("prune_alphas", 0) or 0),
+                "system_alpha_strategy_factory_action": (
+                    "stabilize_alpha_strategy_factory"
+                    if readiness_status == "fragile"
+                    else ("monitor_alpha_strategy_factory_backlog" if readiness_status == "watch" else "run_alpha_strategy_factory_forward")
+                ),
+            },
+            "source_packets": {
+                "autonomous_alpha_expansion_strategy_generation_intelligence": "AAE-05",
+                "research_promotion_intelligence": "RPI-06",
+                "portfolio_intelligence": "PI-05",
+                "policy_optimization_meta_control_learning": "PO-05",
             },
         }

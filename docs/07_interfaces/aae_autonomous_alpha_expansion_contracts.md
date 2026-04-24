@@ -2,7 +2,7 @@
 
 Date: `2026-04-24`
 Repo: `QuantOps_github`
-Status: `aae01_initial_contracts`
+Status: `aae04_extended_contracts`
 
 ## Canonical AAE Surfaces
 
@@ -99,3 +99,23 @@ The next `AAE` family extends from replacement into runtime deployment and runti
 3. `GET /system/alpha-runtime-rollback-response/latest`
 4. `GET /system/alpha-runtime-champion-challenger/latest`
 5. `GET /system/alpha-runtime-expansion-effectiveness/latest`
+
+## AAE-04 Extension
+
+The next `AAE` family extends from runtime alpha control into next-cycle learning and universe refresh:
+
+1. `GET /system/alpha-next-cycle-learning-input/latest`
+2. `GET /system/alpha-next-cycle-policy-bridge/latest`
+3. `GET /system/alpha-regime-adaptation-input/latest`
+4. `GET /system/alpha-universe-refresh-priorities/latest`
+5. `GET /system/alpha-expansion-learning-effectiveness/latest`
+
+## AAE-05 Extension
+
+The next `AAE` family extends from next-cycle bridge logic into operating intake and governed readiness:
+
+1. `GET /system/alpha-promotion-bridge/latest`
+2. `GET /system/alpha-family-capital-intent/latest`
+3. `GET /system/alpha-portfolio-intake-queue/latest`
+4. `GET /system/alpha-governed-universe-state/latest`
+5. `GET /system/alpha-strategy-factory-readiness/latest`

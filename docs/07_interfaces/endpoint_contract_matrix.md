@@ -85,6 +85,16 @@ This file is the compact routing matrix for the current `system` contract surfac
 | `GET /system/alpha-runtime-rollback-response/latest` | runtime rollback | rollback and reduction response |
 | `GET /system/alpha-runtime-champion-challenger/latest` | runtime competition | runtime winner control |
 | `GET /system/alpha-runtime-expansion-effectiveness/latest` | runtime expansion effectiveness | runtime alpha expansion posture |
+| `GET /system/alpha-next-cycle-learning-input/latest` | next-cycle learning input | alpha runtime feedback for next-cycle learning |
+| `GET /system/alpha-next-cycle-policy-bridge/latest` | next-cycle policy bridge | alpha-family bridge into policy posture |
+| `GET /system/alpha-regime-adaptation-input/latest` | regime adaptation input | alpha-family adaptation pressure |
+| `GET /system/alpha-universe-refresh-priorities/latest` | universe refresh priorities | family expansion or prune queue |
+| `GET /system/alpha-expansion-learning-effectiveness/latest` | expansion learning effectiveness | closed-loop alpha expansion posture |
+| `GET /system/alpha-promotion-bridge/latest` | promotion bridge | alpha promotion acceleration pressure |
+| `GET /system/alpha-family-capital-intent/latest` | family capital intent | family capacity expansion or constraint |
+| `GET /system/alpha-portfolio-intake-queue/latest` | portfolio intake queue | alpha intake ordering and posture |
+| `GET /system/alpha-governed-universe-state/latest` | governed universe state | governed alpha expansion or prune state |
+| `GET /system/alpha-strategy-factory-readiness/latest` | strategy factory readiness | operational alpha factory readiness |
 
 ## Rule
 

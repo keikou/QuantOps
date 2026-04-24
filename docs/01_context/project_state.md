@@ -54,11 +54,12 @@ The repo is no longer asking:
 
 The repo is now asking:
 
-- "Which next lane should start beyond the completed hardening/resume slice?"
+- "Which next lane should follow the completed `AAE v1` checkpoint?"
 
 ## Current Default Next Candidate
 
-- `Strategy Evolution / Regime Adaptation Intelligence`
+- current next lane is not yet reselected from canonical docs
+- `AAE v1` freeze is the current boundary
 
 ## Current Docs-Ready State
 
@@ -66,17 +67,18 @@ The repo now has a docs-ready startup path for the next lane.
 
 Current prepared assets include:
 
-- `../04_tasks/seri01_regime_detection_and_strategy_gating_engine_2026-04-05.md`
-- `../07_interfaces/seri_regime_adaptation_contracts.md`
+- `../Autonomous_alpha_expansion_strategy_generation_intelligence_checkpoint_v1.md`
+- `../04_tasks/current.md`
+- `../03_plans/current.md`
 - `../10_agent/ai_docs_operating_loop.md`
 
-This means the next implementation step can start from canonical docs rather than rebuilding context from conversation history.
+This means the next planning step can start from canonical docs rather than rebuilding context from conversation history.
 
 ## Other Candidate Next Lanes
 
-- `Meta Portfolio Intelligence / Cross-Strategy Capital Allocation`
-- `Live Capital Control / Adaptive Runtime Allocation`
+- next lane reselection is pending
+- completed `SERI`, `AAE`, `DRI`, `LCC`, and `MPI` are inputs, not active candidates
 
 ## Historical Candidate Note
 
-- `Execution Reality` was the earliest post-hardening next-lane candidate before later completed lane checkpoints changed the repo state
+- `Execution Reality` and `SERI` were earlier next-lane candidates before later completed lane checkpoints changed the repo state

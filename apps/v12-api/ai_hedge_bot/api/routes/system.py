@@ -339,3 +339,53 @@ def system_alpha_runtime_champion_challenger_latest(limit: int = 20) -> dict:
 @router.get('/system/alpha-runtime-expansion-effectiveness/latest')
 def system_alpha_runtime_expansion_effectiveness_latest(limit: int = 20) -> dict:
     return _autonomous_alpha_expansion.alpha_runtime_expansion_effectiveness_latest(limit=limit)
+
+
+@router.get('/system/alpha-next-cycle-learning-input/latest')
+def system_alpha_next_cycle_learning_input_latest(limit: int = 20) -> dict:
+    return _autonomous_alpha_expansion.alpha_next_cycle_learning_input_latest(limit=limit)
+
+
+@router.get('/system/alpha-next-cycle-policy-bridge/latest')
+def system_alpha_next_cycle_policy_bridge_latest(limit: int = 20) -> dict:
+    return _autonomous_alpha_expansion.alpha_next_cycle_policy_bridge_latest(limit=limit)
+
+
+@router.get('/system/alpha-regime-adaptation-input/latest')
+def system_alpha_regime_adaptation_input_latest(limit: int = 20) -> dict:
+    return _autonomous_alpha_expansion.alpha_regime_adaptation_input_latest(limit=limit)
+
+
+@router.get('/system/alpha-universe-refresh-priorities/latest')
+def system_alpha_universe_refresh_priorities_latest(limit: int = 20) -> dict:
+    return _autonomous_alpha_expansion.alpha_universe_refresh_priorities_latest(limit=limit)
+
+
+@router.get('/system/alpha-expansion-learning-effectiveness/latest')
+def system_alpha_expansion_learning_effectiveness_latest(limit: int = 20) -> dict:
+    return _autonomous_alpha_expansion.alpha_expansion_learning_effectiveness_latest(limit=limit)
+
+
+@router.get('/system/alpha-promotion-bridge/latest')
+def system_alpha_promotion_bridge_latest(limit: int = 20) -> dict:
+    return _autonomous_alpha_expansion.alpha_promotion_bridge_latest(limit=limit)
+
+
+@router.get('/system/alpha-family-capital-intent/latest')
+def system_alpha_family_capital_intent_latest(limit: int = 20) -> dict:
+    return _autonomous_alpha_expansion.alpha_family_capital_intent_latest(limit=limit)
+
+
+@router.get('/system/alpha-portfolio-intake-queue/latest')
+def system_alpha_portfolio_intake_queue_latest(limit: int = 20) -> dict:
+    return _autonomous_alpha_expansion.alpha_portfolio_intake_queue_latest(limit=limit)
+
+
+@router.get('/system/alpha-governed-universe-state/latest')
+def system_alpha_governed_universe_state_latest(limit: int = 20) -> dict:
+    return _autonomous_alpha_expansion.alpha_governed_universe_state_latest(limit=limit)
+
+
+@router.get('/system/alpha-strategy-factory-readiness/latest')
+def system_alpha_strategy_factory_readiness_latest(limit: int = 20) -> dict:
+    return _autonomous_alpha_expansion.alpha_strategy_factory_readiness_latest(limit=limit)

@@ -84,12 +84,14 @@ Until the migration is complete, the closest current files are:
 
 - `Phase1` through `Phase7` are complete
 - hardening/resume plus `Execution Reality`, `Governance -> Runtime Control`, `Portfolio Intelligence`, `Alpha / Strategy Selection Intelligence`, `Research / Promotion Intelligence`, `System-Level Learning / Feedback Integration`, `Policy Optimization`, `Deployment / Rollout Intelligence`, `Live Capital Control`, and `Meta Portfolio Intelligence` first checkpoints are complete
+- `Strategy Evolution / Regime Adaptation Intelligence v1` is checkpoint-complete through `SERI-05`
+- `Autonomous Alpha Expansion / Strategy Generation Intelligence v1` is checkpoint-complete through `AAE-05`
 - do not reopen completed closure or checkpoint work unless a real regression is found
-- current next top-level lane is `Strategy Evolution / Regime Adaptation Intelligence`
-- `SERI-01` is docs-ready through task, interface, and agent entrypoints
+- current top-level planning state is `next_lane_reselection_after_aae_v1`
+- `AAE v1` is frozen unless a real regression is found
 - current AI operating mode is `docs-first`, then `code`, then `narrow verifier`, then `docs writeback`
 - current branch remains `codex/post-phase7-hardening`
-- latest pushed commit is `59c234b`
+- latest pushed commit in canonical docs is no longer the stale early-`SERI` tip
 
 ## Immediate Migration Rule
 

@@ -33,11 +33,12 @@ The repo has already moved beyond:
 - hardening packet sequencing
 - initial `DRI`, `LCC`, and `MPI` packet construction
 
-The current planning job is to start the next lane after the completed hardening/resume slice and the completed first `MPI` checkpoint.
+The current planning job is to reselect the next lane after the completed `AAE v1` checkpoint freeze.
 
 ## Current Default Direction
 
-- `Strategy Evolution / Regime Adaptation Intelligence`
+- freeze completed `AAE v1`
+- select the next top-level lane from current repo truth
 
 Historical note:
 
@@ -45,8 +46,7 @@ Historical note:
 
 ## Alternative Directions
 
-- `Meta Portfolio Intelligence / Cross-Strategy Capital Allocation`
-- `Live Capital Control / Adaptive Runtime Allocation`
+- no stale pre-`SERI` or pre-`AAE` direction should be treated as active by default
 
 ## Guardrails
 

@@ -21,7 +21,7 @@ Use this workflow when a task touches runtime truth, execution evidence, accepta
 
 ## Current Example
 
-For the current next lane, `Autonomous Alpha Expansion / Strategy Generation Intelligence` should likely begin with one narrow alpha-expansion check such as:
+For the current next lane, do not assume `Autonomous Alpha Expansion / Strategy Generation Intelligence` is still active; `AAE v1` is now frozen and the next lane must be reselected from canonical current docs.
 
 - discovery candidate freshness
 - validation pass visibility

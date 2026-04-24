@@ -4,7 +4,7 @@ Date: `2026-04-24`
 Repo: `QuantOps_github`
 Branch: `codex/post-phase7-hardening`
 Track: `autonomous_alpha_expansion_strategy_generation_intelligence`
-Status: `aae03_active`
+Status: `aae_v1_checkpoint_complete`
 
 ## Purpose
 
@@ -30,13 +30,14 @@ That means:
 
 Current top task:
 
-- establish `Autonomous Alpha Expansion / Strategy Generation Intelligence`
-- implement `AAE-03: Runtime Deployment, Feedback, And Winner Control`
+- freeze `Autonomous Alpha Expansion / Strategy Generation Intelligence v1`
+- treat `AAE-01` through `AAE-05` as checkpoint-complete
+- do not open a new `AAE` packet unless a real regression is found
 
 Current architect-selected candidate:
 
-- `Autonomous Alpha Expansion / Strategy Generation Intelligence`
-- current implementation boundary = `AAE-03`
+- `Autonomous Alpha Expansion / Strategy Generation Intelligence v1`
+- current implementation boundary = `checkpoint_complete_through_aae05`
 - current dependency 1 = `Research / Promotion Intelligence v1 checkpoint through RPI-06`
 - current dependency 2 = `Alpha / Strategy Selection Intelligence v1 checkpoint through ASI-05`
 - current dependency 3 = `Portfolio Intelligence v1 checkpoint through PI-05`
@@ -53,11 +54,12 @@ Current architect-selected candidate:
 
 Architect now treats `Strategy Evolution / Regime Adaptation Intelligence v1` as checkpoint-complete.
 
+The next question is no longer another `AAE` packet.
+
 The next question is:
 
-- "which replacement candidates are ready for runtime deployment?"
-- "what are live review and decay saying about runtime alpha candidates?"
-- "when should runtime alpha candidates be rolled back or switched?"
+- "which top-level lane should follow `AAE v1`?"
+- "what `AAE` surfaces are now frozen unless a real regression appears?"
 
 This is the next lane beyond the completed hardening/resume slice, but it is no longer the older `Execution Reality` default.
 
@@ -76,7 +78,7 @@ This is the next lane beyond the completed hardening/resume slice, but it is no 
 
 ## Current Recommendation
 
-Use `AAE-03` as the current active task.
+Use `AAE v1 checkpoint freeze` as the current active task.
 
 ## Explicit Non-Tasks
 
@@ -94,6 +96,7 @@ These are not current tasks:
 - reopening `SLLFI` as the active packet lane
 - reopening `Policy Optimization` as the active packet lane
 - continuing `DRI`, `LCC`, `MPI`, or `SERI` packet expansion as the active lane
+- replaying `AAE-01` through `AAE-05` without a real regression
 
 ## Inputs To Read Before Acting
 
@@ -101,29 +104,26 @@ These are not current tasks:
 2. `../Cross_thread_resume_handover_2026-04-24.md`
 3. `../Auto_resume_handover_2026-04-24.md`
 4. `../Strategy_evolution_regime_adaptation_intelligence_checkpoint_v1.md`
-5. `../Autonomous_alpha_expansion_strategy_generation_intelligence_packet03_plan.md`
+5. `../Autonomous_alpha_expansion_strategy_generation_intelligence_checkpoint_v1.md`
 6. `../07_interfaces/aae_autonomous_alpha_expansion_contracts.md`
 
 ## Expected Output Of The Next Task
 
 The current lane follow-up should produce:
 
-- one packet plan doc
-- one verifier script
-- runtime deployment, runtime feedback, runtime rollback, runtime competition, and runtime-effectiveness surfaces
+- one checkpoint doc
+- current-doc freeze guidance
+- explicit confirmation that `AAE-01` through `AAE-05` are checkpoint-complete
 
-Current `AAE-03` outputs now available:
+Current `AAE v1` outputs now available:
 
-- `docs/Autonomous_alpha_expansion_strategy_generation_intelligence_packet03_plan.md`
-- `test_bundle/scripts/verify_autonomous_alpha_expansion_strategy_generation_intelligence_packet03.py`
-- `GET /system/alpha-runtime-deployment-candidates/latest`
-- `GET /system/alpha-runtime-governance-feedback/latest`
-- `GET /system/alpha-runtime-rollback-response/latest`
-- `GET /system/alpha-runtime-champion-challenger/latest`
-- `GET /system/alpha-runtime-expansion-effectiveness/latest`
+- `docs/Autonomous_alpha_expansion_strategy_generation_intelligence_checkpoint_v1.md`
+- `docs/Autonomous_alpha_expansion_strategy_generation_intelligence_packet05_plan.md`
+- `test_bundle/scripts/verify_autonomous_alpha_expansion_strategy_generation_intelligence_packet05.py`
+- all `AAE-01` through `AAE-05` surfaces under `/system/alpha-*`
 
 ## Single-Block Resume Note
 
 ```text
-Current task is not another hardening packet, not another Execution Reality packet, not another Governance -> Runtime Control packet, not another Portfolio Intelligence packet, not another Alpha / Strategy Selection Intelligence packet, not another Research / Promotion Intelligence packet, and not another active DRI, LCC, MPI, or SERI packet. Current task is `AAE-03` so the system can decide which replacement candidates are runtime-ready, how runtime feedback affects them, and when runtime rollback or winner switching is required.
+Current task is not another hardening packet, not another Execution Reality packet, not another Governance -> Runtime Control packet, not another Portfolio Intelligence packet, not another Alpha / Strategy Selection Intelligence packet, not another Research / Promotion Intelligence packet, and not another active DRI, LCC, MPI, or SERI packet. Current task is `AAE v1 checkpoint freeze`, so `AAE-01` through `AAE-05` are treated as complete and should not be replayed unless a real regression is found.
 ```

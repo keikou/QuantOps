@@ -3,17 +3,17 @@
 Date: `2026-04-24`
 Repo: `QuantOps_github`
 Branch: `codex/post-phase7-hardening`
-Status: `aae03_active_boundary`
+Status: `aae_v1_checkpoint_complete`
 
 ## Current Planning Decision
 
 The current hardening/resume slice is treated as sufficiently complete.
 
-So the active planning question is:
+So the active planning question is now:
 
-- how should newly discovered alpha candidates become explicit at the system surface?
-- how should validation pass or fail under the current or emerging regime become explicit?
-- how should the system know whether dead alpha is being replaced fast enough?
+- which top-level lane should follow `AAE v1`?
+- what should remain frozen as part of the completed `AAE` checkpoint?
+- what should not be replayed unless a real regression is found?
 
 Historical note:
 
@@ -24,8 +24,8 @@ Historical note:
 Architect-selected answer:
 
 - `Strategy Evolution / Regime Adaptation Intelligence v1` is checkpoint-complete through `SERI-05`
-- next top-level lane is `Autonomous Alpha Expansion / Strategy Generation Intelligence`
-- current packet boundary is `AAE-03: Runtime Deployment, Feedback, And Winner Control`
+- `Autonomous Alpha Expansion / Strategy Generation Intelligence v1` is checkpoint-complete through `AAE-05`
+- current planning boundary is checkpoint freeze plus next-lane reselection
 
 ## Why This Is The Current Plan
 
@@ -49,7 +49,7 @@ Architect re-alignment now treats the following as sufficiently closed for the c
 - `Meta Portfolio Intelligence / Cross-Strategy Capital Allocation v1`
 - `Strategy Evolution / Regime Adaptation Intelligence v1`
 
-That means planning should not continue replaying `SERI` checkpoint work and should now make runtime alpha expansion deterministic.
+That means planning should not continue replaying `SERI` or `AAE` checkpoint work and should now move to next-lane reselection.
 
 ## Explicitly Completed Planning Slice
 
@@ -72,23 +72,25 @@ The following planning sequence is now historical and completed:
 
 ## Current Plan Outputs
 
-Current `AAE-03` outputs now available:
+Current `AAE v1` checkpoint outputs now available:
 
-- `../Autonomous_alpha_expansion_strategy_generation_intelligence_packet03_plan.md`
-- `../../test_bundle/scripts/verify_autonomous_alpha_expansion_strategy_generation_intelligence_packet03.py`
-- `GET /system/alpha-runtime-deployment-candidates/latest`
-- `GET /system/alpha-runtime-governance-feedback/latest`
-- `GET /system/alpha-runtime-rollback-response/latest`
-- `GET /system/alpha-runtime-champion-challenger/latest`
-- `GET /system/alpha-runtime-expansion-effectiveness/latest`
+- `../Autonomous_alpha_expansion_strategy_generation_intelligence_packet05_plan.md`
+- `../Autonomous_alpha_expansion_strategy_generation_intelligence_checkpoint_v1.md`
+- `../../test_bundle/scripts/verify_autonomous_alpha_expansion_strategy_generation_intelligence_packet05.py`
+- `GET /system/alpha-promotion-bridge/latest`
+- `GET /system/alpha-family-capital-intent/latest`
+- `GET /system/alpha-portfolio-intake-queue/latest`
+- `GET /system/alpha-governed-universe-state/latest`
+- `GET /system/alpha-strategy-factory-readiness/latest`
 
 ## Current Docs-Ready State
 
-The docs route for `AAE-03` is now prepared and implemented.
+The docs route for `AAE v1` checkpoint freeze is now prepared and implemented.
 
 Current docs-ready assets:
 
-- `../04_tasks/aae03_runtime_deployment_feedback_and_winner_control_2026-04-24.md`
+- `../04_tasks/aae05_intake_governance_and_strategy_factory_readiness_2026-04-24.md`
+- `../Autonomous_alpha_expansion_strategy_generation_intelligence_checkpoint_v1.md`
 - `../07_interfaces/aae_autonomous_alpha_expansion_contracts.md`
 - `../07_interfaces/lane_surface_inventory.md`
 - `../10_agent/ai_docs_operating_loop.md`
@@ -103,7 +105,7 @@ This is not the current plan:
 - another `Execution Reality` expansion
 - replaying completed `DRI`, `LCC`, `MPI`, or `SERI` packets
 - inventing `SERI-06`
-- treating `AAE` lane selection as undecided
+- replaying completed `AAE-01` through `AAE-05`
 
 ## Read Before Editing
 

@@ -102,6 +102,16 @@ Contract progression:
 - `GET /system/alpha-runtime-rollback-response/latest`
 - `GET /system/alpha-runtime-champion-challenger/latest`
 - `GET /system/alpha-runtime-expansion-effectiveness/latest`
+- `GET /system/alpha-next-cycle-learning-input/latest`
+- `GET /system/alpha-next-cycle-policy-bridge/latest`
+- `GET /system/alpha-regime-adaptation-input/latest`
+- `GET /system/alpha-universe-refresh-priorities/latest`
+- `GET /system/alpha-expansion-learning-effectiveness/latest`
+- `GET /system/alpha-promotion-bridge/latest`
+- `GET /system/alpha-family-capital-intent/latest`
+- `GET /system/alpha-portfolio-intake-queue/latest`
+- `GET /system/alpha-governed-universe-state/latest`
+- `GET /system/alpha-strategy-factory-readiness/latest`
 
 Contract progression:
 
@@ -120,6 +130,16 @@ Contract progression:
 - runtime rollback response
 - runtime champion-challenger control
 - runtime expansion effectiveness
+- next-cycle learning input
+- next-cycle policy bridge
+- regime adaptation input
+- universe refresh priorities
+- alpha expansion learning effectiveness
+- promotion bridge
+- family capital intent
+- portfolio intake queue
+- governed universe state
+- strategy factory readiness
 
 ## Rule
 

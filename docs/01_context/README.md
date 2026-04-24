@@ -38,14 +38,15 @@ For active priorities, continue from:
 - `Phase1` through `Phase7` remain complete
 - current branch work is still under `codex/post-phase7-hardening`
 - the current hardening/resume slice is already treated as sufficiently complete
-- `Meta Portfolio Intelligence` first checkpoint is complete
-- next top-level lane is `Strategy Evolution / Regime Adaptation Intelligence`
-- `SERI-01` is docs-ready before code implementation starts
+- `Meta Portfolio Intelligence v1` first checkpoint is complete
+- `Strategy Evolution / Regime Adaptation Intelligence v1` is checkpoint-complete through `SERI-05`
+- `Autonomous Alpha Expansion / Strategy Generation Intelligence v1` is checkpoint-complete through `AAE-05`
+- next top-level lane is currently under reselection after the completed `AAE v1` checkpoint
 - current execution mode is `docs-first`, then `code`, then `narrow verifier`, then `docs writeback`
 
 Historical note:
 
-- `Execution Reality` was an earlier post-hardening next-lane candidate, but it is no longer the active next lane
+- `Execution Reality`, then `SERI`, then `AAE` were earlier post-hardening next-lane candidates, but none of them is now the active next lane
 
 ## Guardrails
 

@@ -48,12 +48,13 @@ If work continues, prefer starting the next lane beyond hardening/resume.
 
 ## Default Next Lane
 
-- `Strategy Evolution / Regime Adaptation Intelligence`
-- current docs-ready packet is `SERI-01`
+- no stale default lane should override `docs/03_plans/current.md`
+- current boundary is `AAE v1 checkpoint freeze`
+- next lane must be selected from current repo truth before new packet work starts
 
 Historical note:
 
-- `Execution Reality` was the earlier next-lane default before the repo advanced through later completed checkpoints
+- `Execution Reality`, then `SERI`, then `AAE` were earlier next-lane defaults before the repo advanced through later completed checkpoints
 
 ## Read Next For Details
 

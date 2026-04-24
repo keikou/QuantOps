@@ -24,10 +24,10 @@ The repo currently stands in this state:
 - `Live Capital Control / Adaptive Runtime Allocation v1` is checkpoint-complete through `LCC-05`
 - `Meta Portfolio Intelligence / Cross-Strategy Capital Allocation v1` is checkpoint-complete through `MPI-05`
 - `Strategy Evolution / Regime Adaptation Intelligence v1` is checkpoint-complete through `SERI-05`
-- latest local `HEAD` is `8fcbd9e`
-- latest pushed commit remains `4f84926`
-- local branch is ahead by one commit because `SERI` checkpoint completion was committed locally but not pushed
-- canonical current-state docs are now aligned to `AAE-01`
+- latest local `HEAD` is `d586baf`
+- latest pushed commit is `d586baf`
+- branch working tree now includes `AAE-01` through `AAE-05`
+- canonical current-state docs are now aligned to `AAE-05`
 - `AAE-01` now exposes `GET /system/alpha-discovery-candidates/latest`
 - `AAE-01` now exposes `GET /system/alpha-validation-results/latest`
 - `AAE-01` now exposes `GET /system/alpha-admission-decision/latest`
@@ -43,6 +43,17 @@ The repo currently stands in this state:
 - `AAE-03` now exposes `GET /system/alpha-runtime-rollback-response/latest`
 - `AAE-03` now exposes `GET /system/alpha-runtime-champion-challenger/latest`
 - `AAE-03` now exposes `GET /system/alpha-runtime-expansion-effectiveness/latest`
+- `AAE-04` now exposes `GET /system/alpha-next-cycle-learning-input/latest`
+- `AAE-04` now exposes `GET /system/alpha-next-cycle-policy-bridge/latest`
+- `AAE-04` now exposes `GET /system/alpha-regime-adaptation-input/latest`
+- `AAE-04` now exposes `GET /system/alpha-universe-refresh-priorities/latest`
+- `AAE-04` now exposes `GET /system/alpha-expansion-learning-effectiveness/latest`
+- `AAE-05` now exposes `GET /system/alpha-promotion-bridge/latest`
+- `AAE-05` now exposes `GET /system/alpha-family-capital-intent/latest`
+- `AAE-05` now exposes `GET /system/alpha-portfolio-intake-queue/latest`
+- `AAE-05` now exposes `GET /system/alpha-governed-universe-state/latest`
+- `AAE-05` now exposes `GET /system/alpha-strategy-factory-readiness/latest`
+- `Autonomous Alpha Expansion / Strategy Generation Intelligence v1` is now checkpoint-complete through `AAE-05`
 
 ## Current Reports To Trust First
 
@@ -82,6 +93,16 @@ The current reporting state now says:
 - runtime alpha rollback response is now explicit
 - runtime alpha champion-challenger control is now explicit
 - runtime alpha expansion effectiveness is now explicit
+- alpha next-cycle learning input is now explicit
+- alpha next-cycle policy bridge is now explicit
+- alpha regime adaptation input is now explicit
+- alpha universe refresh priorities are now explicit
+- alpha expansion learning effectiveness is now explicit
+- alpha promotion bridge is now explicit
+- alpha family capital intent is now explicit
+- alpha portfolio intake queue is now explicit
+- alpha governed universe state is now explicit
+- alpha strategy factory readiness is now explicit
 
 ## Current Decision Summary
 
@@ -90,21 +111,21 @@ Architect re-alignment now supports:
 - completed hardening slice
 - completed first checkpoints through `SERI-05`
 - no replay of `DRI`, `LCC`, `MPI`, or `SERI` unless a real regression appears
-- current work has shifted into `AAE-03`
+- current work has shifted into `AAE v1 checkpoint freeze`
 
 ## Default Next Candidate
 
-- `Autonomous Alpha Expansion / Strategy Generation Intelligence Packet 01`
+- `Autonomous Alpha Expansion / Strategy Generation Intelligence Checkpoint v1`
 
-## Current AAE-03 Docs-Ready State
+## Current AAE v1 Docs-Ready State
 
-- `AAE-03` task spec exists
+- `AAE v1` checkpoint doc exists
 - `AAE` interface contract doc exists
 - `lane_surface_inventory.md` and `api_endpoints.md` include the `AAE` family
 - `10_agent` still exposes the docs-first operating loop for implementation startup
 
-## Current AAE-03 Runtime State
+## Current AAE v1 Runtime State
 
 - packet plan doc exists
-- verifier exists
-- runtime deployment, runtime feedback, runtime rollback, runtime competition, and runtime-effectiveness system surfaces exist
+- packet verifiers exist through `AAE-05`
+- discovery through strategy-factory-readiness system surfaces exist
