@@ -4,7 +4,7 @@ Date: `2026-04-24`
 Repo: `QuantOps_github`
 Branch: `codex/post-phase7-hardening`
 Track: `operational_risk_control_intelligence`
-Status: `orc02_active`
+Status: `orc04_active`
 
 ## Purpose
 
@@ -31,12 +31,12 @@ That means:
 Current top task:
 
 - establish `Operational Risk & Control Intelligence`
-- implement `ORC-02: Global Kill Switch / Risk Response Orchestrator`
+- implement `ORC-04: Data Integrity & Market Feed Reliability Engine`
 
 Current architect-selected candidate:
 
 - `Operational Risk & Control Intelligence`
-- current implementation boundary = `ORC-02`
+- current implementation boundary = `ORC-04`
 - current dependency 1 = `Research / Promotion Intelligence v1 checkpoint through RPI-06`
 - current dependency 2 = `Alpha / Strategy Selection Intelligence v1 checkpoint through ASI-05`
 - current dependency 3 = `Portfolio Intelligence v1 checkpoint through PI-05`
@@ -55,9 +55,9 @@ Architect now treats `Strategy Evolution / Regime Adaptation Intelligence v1` as
 
 The next question is:
 
-- "can system-level risk enter safe mode faster than it creates new risk?"
-- "can LCC and execution read explicit safe-mode payloads?"
-- "can recovery readiness and recovery requests become auditable?"
+- "can stale, missing, corrupted, or inconsistent market data be detected before trading?"
+- "can feed, symbol, and mark reliability become explicit?"
+- "can data-specific safe-mode recommendations feed ORC-01/02?"
 
 This is the next lane beyond the completed hardening/resume slice, but it is no longer the older `Execution Reality` default.
 
@@ -78,7 +78,7 @@ This is the next lane beyond the completed hardening/resume slice, but it is no 
 
 ## Current Recommendation
 
-Use `ORC-02` as the current active task.
+Use `ORC-04` as the current active task.
 
 ## Explicit Non-Tasks
 
@@ -129,21 +129,25 @@ The current lane follow-up should produce:
 
 - one packet plan doc
 - one verifier script
-- risk response orchestration, runtime safe mode, order permission matrix, and recovery readiness surfaces
+- data integrity, market feed health, symbol health, data anomalies, incidents, mark reliability, and safe-mode recommendation surfaces
 
-Current `ORC-02` outputs now planned:
+Current `ORC-04` outputs now planned:
 
-- `docs/Operational_risk_control_intelligence_packet02_plan.md`
-- `test_bundle/scripts/verify_operational_risk_control_intelligence_packet02.py`
-- `POST /system/risk-response/orchestrate`
-- `GET /system/risk-response-orchestration/latest`
-- `GET /system/runtime-safe-mode/latest`
-- `GET /system/order-permission-matrix/latest`
-- `GET /system/risk-recovery-readiness/latest`
-- `POST /system/risk-recovery/request`
+- `docs/Operational_risk_control_intelligence_packet04_plan.md`
+- `test_bundle/scripts/verify_operational_risk_control_intelligence_packet04.py`
+- `POST /system/data-integrity/run`
+- `GET /system/data-integrity/latest`
+- `GET /system/market-feed-health/latest`
+- `GET /system/market-feed-health/{feed_id}`
+- `GET /system/symbol-data-health/latest`
+- `GET /system/symbol-data-health/{symbol}`
+- `GET /system/data-anomalies/latest`
+- `GET /system/data-incidents/latest`
+- `GET /system/mark-reliability/latest`
+- `GET /system/data-safe-mode-recommendation/latest`
 
 ## Single-Block Resume Note
 
 ```text
-Current task is not another hardening packet, not another Execution Reality packet, not another Governance -> Runtime Control packet, not another Portfolio Intelligence packet, not another Alpha / Strategy Selection Intelligence packet, not another Research / Promotion Intelligence packet, and not another active DRI, LCC, MPI, SERI, AAE, ASD, or AES packet. Current task is `ORC-02`, so completed `AES-01` through `AES-08` and `ORC-01` work should be treated as input lanes and not replayed unless a real regression is found.
+Current task is not another hardening packet, not another Execution Reality packet, not another Governance -> Runtime Control packet, not another Portfolio Intelligence packet, not another Alpha / Strategy Selection Intelligence packet, not another Research / Promotion Intelligence packet, and not another active DRI, LCC, MPI, SERI, AAE, ASD, or AES packet. Current task is `ORC-04`, so completed `AES-01` through `AES-08` and `ORC-01` through `ORC-03` work should be treated as input lanes and not replayed unless a real regression is found.
 ```

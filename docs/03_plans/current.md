@@ -3,7 +3,7 @@
 Date: `2026-04-24`
 Repo: `QuantOps_github`
 Branch: `codex/post-phase7-hardening`
-Status: `orc02_active_boundary`
+Status: `orc04_active_boundary`
 
 ## Current Planning Decision
 
@@ -29,7 +29,7 @@ Architect-selected answer:
 - `Alpha Synthesis / Structural Discovery Intelligence v1` is checkpoint-complete through `ASD-05`
 - `Alpha Evaluation / Selection Intelligence v1` is checkpoint-complete through `AES-08`
 - next top-level lane is `Operational Risk & Control Intelligence`
-- current packet boundary is `ORC-02: Global Kill Switch / Risk Response Orchestrator`
+- current packet boundary is `ORC-04: Data Integrity & Market Feed Reliability Engine`
 
 ## Why This Is The Current Plan
 
@@ -76,20 +76,24 @@ The following planning sequence is now historical and completed:
 
 ## Current Plan Outputs
 
-Current `ORC-02` outputs now planned:
+Current `ORC-04` outputs now planned:
 
-- `../Operational_risk_control_intelligence_packet02_plan.md`
-- `../../test_bundle/scripts/verify_operational_risk_control_intelligence_packet02.py`
-- `POST /system/risk-response/orchestrate`
-- `GET /system/risk-response-orchestration/latest`
-- `GET /system/runtime-safe-mode/latest`
-- `GET /system/order-permission-matrix/latest`
-- `GET /system/risk-recovery-readiness/latest`
-- `POST /system/risk-recovery/request`
+- `../Operational_risk_control_intelligence_packet04_plan.md`
+- `../../test_bundle/scripts/verify_operational_risk_control_intelligence_packet04.py`
+- `POST /system/data-integrity/run`
+- `GET /system/data-integrity/latest`
+- `GET /system/market-feed-health/latest`
+- `GET /system/market-feed-health/{feed_id}`
+- `GET /system/symbol-data-health/latest`
+- `GET /system/symbol-data-health/{symbol}`
+- `GET /system/data-anomalies/latest`
+- `GET /system/data-incidents/latest`
+- `GET /system/mark-reliability/latest`
+- `GET /system/data-safe-mode-recommendation/latest`
 
 ## Current Docs-Ready State
 
-The docs route for `ORC-02` is now prepared for implementation startup.
+The docs route for `ORC-04` is now prepared for implementation startup.
 
 Current docs-ready assets:
 
@@ -108,6 +112,8 @@ Current docs-ready assets:
 - `../AES-08_Self_Improving_Alpha_Loop.md`
 - `../Operational_risk_control_intelligence_packet01_plan.md`
 - `../Operational_risk_control_intelligence_packet02_plan.md`
+- `../Operational_risk_control_intelligence_packet03_plan.md`
+- `../Operational_risk_control_intelligence_packet04_plan.md`
 - `../07_interfaces/orc_operational_risk_contracts.md`
 - `../07_interfaces/aes_alpha_evaluation_contracts.md`
 - `../07_interfaces/lane_surface_inventory.md`

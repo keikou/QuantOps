@@ -1357,6 +1357,184 @@ class RuntimeStore:
                     request_status VARCHAR,
                     created_at TIMESTAMP
                 );
+                CREATE TABLE IF NOT EXISTS execution_health_runs (
+                    run_id VARCHAR,
+                    started_at TIMESTAMP,
+                    completed_at TIMESTAMP,
+                    order_count INTEGER,
+                    fill_count INTEGER,
+                    reject_count INTEGER,
+                    anomaly_count INTEGER,
+                    incident_count INTEGER,
+                    max_risk_level VARCHAR,
+                    status VARCHAR,
+                    notes VARCHAR
+                );
+                CREATE TABLE IF NOT EXISTS execution_health_metrics (
+                    run_id VARCHAR,
+                    broker_id VARCHAR,
+                    venue_id VARCHAR,
+                    metric_name VARCHAR,
+                    metric_value DOUBLE,
+                    baseline_value DOUBLE,
+                    threshold_value DOUBLE,
+                    z_score DOUBLE,
+                    breach BOOLEAN,
+                    severity VARCHAR,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS broker_health_state (
+                    run_id VARCHAR,
+                    broker_id VARCHAR,
+                    heartbeat_ok BOOLEAN,
+                    api_latency_ms DOUBLE,
+                    reject_rate DOUBLE,
+                    cancel_success_rate DOUBLE,
+                    replace_success_rate DOUBLE,
+                    position_sync_ok BOOLEAN,
+                    open_order_sync_ok BOOLEAN,
+                    broker_health_score DOUBLE,
+                    health_state VARCHAR,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS venue_health_state (
+                    run_id VARCHAR,
+                    venue_id VARCHAR,
+                    fill_rate DOUBLE,
+                    realized_slippage_bps DOUBLE,
+                    latency_ms DOUBLE,
+                    reject_rate DOUBLE,
+                    partial_fill_rate DOUBLE,
+                    venue_health_score DOUBLE,
+                    health_state VARCHAR,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS execution_anomalies (
+                    anomaly_id VARCHAR,
+                    run_id VARCHAR,
+                    broker_id VARCHAR,
+                    venue_id VARCHAR,
+                    order_id VARCHAR,
+                    anomaly_type VARCHAR,
+                    observed_value DOUBLE,
+                    expected_value DOUBLE,
+                    anomaly_score DOUBLE,
+                    severity VARCHAR,
+                    evidence_json VARCHAR,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS execution_incidents (
+                    incident_id VARCHAR,
+                    run_id VARCHAR,
+                    incident_type VARCHAR,
+                    broker_id VARCHAR,
+                    venue_id VARCHAR,
+                    affected_orders VARCHAR,
+                    risk_level VARCHAR,
+                    recommended_action VARCHAR,
+                    summary VARCHAR,
+                    evidence_json VARCHAR,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS execution_safe_mode_recommendations (
+                    recommendation_id VARCHAR,
+                    run_id VARCHAR,
+                    scope VARCHAR,
+                    target_id VARCHAR,
+                    recommended_mode VARCHAR,
+                    allowed_order_modes VARCHAR,
+                    blocked_order_modes VARCHAR,
+                    reason VARCHAR,
+                    requires_orc_escalation BOOLEAN,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS data_integrity_runs (
+                    run_id VARCHAR,
+                    started_at TIMESTAMP,
+                    completed_at TIMESTAMP,
+                    feed_count INTEGER,
+                    symbol_count INTEGER,
+                    anomaly_count INTEGER,
+                    incident_count INTEGER,
+                    max_risk_level VARCHAR,
+                    status VARCHAR,
+                    notes VARCHAR
+                );
+                CREATE TABLE IF NOT EXISTS market_feed_health (
+                    run_id VARCHAR,
+                    feed_id VARCHAR,
+                    freshness_seconds DOUBLE,
+                    missing_ratio DOUBLE,
+                    bad_tick_count INTEGER,
+                    latency_ms DOUBLE,
+                    coverage_ratio DOUBLE,
+                    feed_health_score DOUBLE,
+                    health_state VARCHAR,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS symbol_data_health (
+                    run_id VARCHAR,
+                    symbol VARCHAR,
+                    latest_timestamp TIMESTAMP,
+                    stale_seconds DOUBLE,
+                    missing_bar_count INTEGER,
+                    bad_tick_count INTEGER,
+                    ohlcv_valid BOOLEAN,
+                    cross_source_deviation_bps DOUBLE,
+                    mark_reliable BOOLEAN,
+                    health_score DOUBLE,
+                    health_state VARCHAR,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS data_anomalies (
+                    anomaly_id VARCHAR,
+                    run_id VARCHAR,
+                    feed_id VARCHAR,
+                    symbol VARCHAR,
+                    anomaly_type VARCHAR,
+                    observed_value DOUBLE,
+                    expected_value DOUBLE,
+                    anomaly_score DOUBLE,
+                    severity VARCHAR,
+                    evidence_json VARCHAR,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS data_incidents (
+                    incident_id VARCHAR,
+                    run_id VARCHAR,
+                    incident_type VARCHAR,
+                    affected_scope VARCHAR,
+                    affected_entities VARCHAR,
+                    risk_level VARCHAR,
+                    recommended_action VARCHAR,
+                    summary VARCHAR,
+                    evidence_json VARCHAR,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS mark_reliability_state (
+                    run_id VARCHAR,
+                    symbol VARCHAR,
+                    mark_price DOUBLE,
+                    mark_source VARCHAR,
+                    source_count INTEGER,
+                    cross_source_dispersion_bps DOUBLE,
+                    stale_seconds DOUBLE,
+                    mark_reliability_score DOUBLE,
+                    reliable BOOLEAN,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS data_safe_mode_recommendations (
+                    recommendation_id VARCHAR,
+                    run_id VARCHAR,
+                    scope VARCHAR,
+                    target_id VARCHAR,
+                    recommended_mode VARCHAR,
+                    reason VARCHAR,
+                    allowed_order_modes VARCHAR,
+                    blocked_order_modes VARCHAR,
+                    requires_orc_escalation BOOLEAN,
+                    created_at TIMESTAMP
+                );
                 CREATE TABLE IF NOT EXISTS live_orders (
                     live_order_id VARCHAR,
                     created_at TIMESTAMP,

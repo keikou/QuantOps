@@ -2,7 +2,7 @@
 
 Date: `2026-04-25`
 Repo: `QuantOps_github`
-Status: `orc02_contracts`
+Status: `orc04_contracts`
 
 ## Contract Intent
 
@@ -52,3 +52,48 @@ the system must detect and respond to system-level risk before capital is irreve
 - execution safe-mode payload
 - recovery readiness
 - recovery request record
+
+## ORC-03 Surfaces
+
+1. `POST /system/execution-health/run`
+2. `GET /system/execution-health/latest`
+3. `GET /system/broker-health/latest`
+4. `GET /system/venue-health/latest`
+5. `GET /system/execution-anomalies/latest`
+6. `GET /system/execution-incidents/latest`
+7. `GET /system/execution-safe-mode-recommendation/latest`
+8. `GET /system/broker-health/{broker_id}`
+9. `GET /system/venue-health/{venue_id}`
+
+## ORC-03 Contract Progression
+
+- execution telemetry ingestion
+- broker health state
+- venue health state
+- order lifecycle anomaly detection
+- slippage and latency anomaly detection
+- execution incident classification
+- ORC-compatible execution safe-mode recommendation
+
+## ORC-04 Surfaces
+
+1. `POST /system/data-integrity/run`
+2. `GET /system/data-integrity/latest`
+3. `GET /system/market-feed-health/latest`
+4. `GET /system/market-feed-health/{feed_id}`
+5. `GET /system/symbol-data-health/latest`
+6. `GET /system/symbol-data-health/{symbol}`
+7. `GET /system/data-anomalies/latest`
+8. `GET /system/data-incidents/latest`
+9. `GET /system/mark-reliability/latest`
+10. `GET /system/data-safe-mode-recommendation/latest`
+
+## ORC-04 Contract Progression
+
+- market feed freshness
+- symbol data health
+- missing and bad tick detection
+- OHLCV integrity
+- mark reliability
+- data incident classification
+- ORC-compatible data safe-mode recommendation

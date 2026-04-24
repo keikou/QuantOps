@@ -9,6 +9,8 @@ from ai_hedge_bot.alpha_weighting.weighting_service import AlphaWeightingService
 from ai_hedge_bot.alpha_ensemble.ensemble_service import AlphaEnsembleService
 from ai_hedge_bot.alpha_evaluation.evaluation_service import AlphaEvaluationService
 from ai_hedge_bot.alpha_validation.validation_service import AlphaValidationService
+from ai_hedge_bot.data_integrity.data_integrity_service import DataIntegrityService
+from ai_hedge_bot.execution_health.execution_health_service import ExecutionHealthService
 from ai_hedge_bot.operational_risk.operational_risk_service import OperationalRiskService
 from ai_hedge_bot.alpha_synthesis.alpha_synthesis_service import AlphaSynthesisService
 from ai_hedge_bot.services.autonomous_alpha_expansion_strategy_generation_intelligence_service import (
@@ -66,6 +68,8 @@ _alpha_weighting = AlphaWeightingService()
 _alpha_retirement = AlphaRetirementService()
 _alpha_feedback = AlphaFeedbackService()
 _operational_risk = OperationalRiskService()
+_execution_health = ExecutionHealthService()
+_data_integrity = DataIntegrityService()
 
 
 def _payload() -> dict:
@@ -932,3 +936,98 @@ def system_risk_recovery_readiness_latest(limit: int = 20) -> dict:
 @router.post('/system/risk-recovery/request')
 def system_risk_recovery_request(operator_id: str = "operator", reason: str = "operator_recovery_request") -> dict:
     return _operational_risk.request_risk_recovery(operator_id=operator_id, reason=reason)
+
+
+@router.post('/system/execution-health/run')
+def system_execution_health_run(limit: int = 20) -> dict:
+    return _execution_health.run(limit=limit)
+
+
+@router.get('/system/execution-health/latest')
+def system_execution_health_latest(limit: int = 20) -> dict:
+    return _execution_health.latest(limit=limit)
+
+
+@router.get('/system/broker-health/latest')
+def system_broker_health_latest(limit: int = 20) -> dict:
+    return _execution_health.broker_health_latest(limit=limit)
+
+
+@router.get('/system/venue-health/latest')
+def system_venue_health_latest(limit: int = 20) -> dict:
+    return _execution_health.venue_health_latest(limit=limit)
+
+
+@router.get('/system/execution-anomalies/latest')
+def system_execution_anomalies_latest(limit: int = 20) -> dict:
+    return _execution_health.execution_anomalies_latest(limit=limit)
+
+
+@router.get('/system/execution-incidents/latest')
+def system_execution_incidents_latest(limit: int = 20) -> dict:
+    return _execution_health.execution_incidents_latest(limit=limit)
+
+
+@router.get('/system/execution-safe-mode-recommendation/latest')
+def system_execution_safe_mode_recommendation_latest(limit: int = 20) -> dict:
+    return _execution_health.execution_safe_mode_recommendation_latest(limit=limit)
+
+
+@router.get('/system/broker-health/{broker_id}')
+def system_broker_health(broker_id: str) -> dict:
+    return _execution_health.broker_health(broker_id)
+
+
+@router.get('/system/venue-health/{venue_id}')
+def system_venue_health(venue_id: str) -> dict:
+    return _execution_health.venue_health(venue_id)
+
+
+@router.post('/system/data-integrity/run')
+def system_data_integrity_run(limit: int = 20) -> dict:
+    return _data_integrity.run(limit=limit)
+
+
+@router.get('/system/data-integrity/latest')
+def system_data_integrity_latest(limit: int = 20) -> dict:
+    return _data_integrity.latest(limit=limit)
+
+
+@router.get('/system/market-feed-health/latest')
+def system_market_feed_health_latest(limit: int = 20) -> dict:
+    return _data_integrity.market_feed_health_latest(limit=limit)
+
+
+@router.get('/system/market-feed-health/{feed_id}')
+def system_market_feed_health(feed_id: str) -> dict:
+    return _data_integrity.market_feed_health(feed_id)
+
+
+@router.get('/system/symbol-data-health/latest')
+def system_symbol_data_health_latest(limit: int = 20) -> dict:
+    return _data_integrity.symbol_data_health_latest(limit=limit)
+
+
+@router.get('/system/symbol-data-health/{symbol}')
+def system_symbol_data_health(symbol: str) -> dict:
+    return _data_integrity.symbol_data_health(symbol)
+
+
+@router.get('/system/data-anomalies/latest')
+def system_data_anomalies_latest(limit: int = 20) -> dict:
+    return _data_integrity.data_anomalies_latest(limit=limit)
+
+
+@router.get('/system/data-incidents/latest')
+def system_data_incidents_latest(limit: int = 20) -> dict:
+    return _data_integrity.data_incidents_latest(limit=limit)
+
+
+@router.get('/system/mark-reliability/latest')
+def system_mark_reliability_latest(limit: int = 20) -> dict:
+    return _data_integrity.mark_reliability_latest(limit=limit)
+
+
+@router.get('/system/data-safe-mode-recommendation/latest')
+def system_data_safe_mode_recommendation_latest(limit: int = 20) -> dict:
+    return _data_integrity.data_safe_mode_recommendation_latest(limit=limit)

@@ -192,6 +192,25 @@ This file is the short routing index for the current operator-visible API endpoi
 - `GET /system/order-permission-matrix/latest`
 - `GET /system/risk-recovery-readiness/latest`
 - `POST /system/risk-recovery/request`
+- `POST /system/execution-health/run`
+- `GET /system/execution-health/latest`
+- `GET /system/broker-health/latest`
+- `GET /system/venue-health/latest`
+- `GET /system/execution-anomalies/latest`
+- `GET /system/execution-incidents/latest`
+- `GET /system/execution-safe-mode-recommendation/latest`
+- `GET /system/broker-health/{broker_id}`
+- `GET /system/venue-health/{venue_id}`
+- `POST /system/data-integrity/run`
+- `GET /system/data-integrity/latest`
+- `GET /system/market-feed-health/latest`
+- `GET /system/market-feed-health/{feed_id}`
+- `GET /system/symbol-data-health/latest`
+- `GET /system/symbol-data-health/{symbol}`
+- `GET /system/data-anomalies/latest`
+- `GET /system/data-incidents/latest`
+- `GET /system/mark-reliability/latest`
+- `GET /system/data-safe-mode-recommendation/latest`
 
 ## Read Next
 

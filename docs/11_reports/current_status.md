@@ -24,10 +24,10 @@ The repo currently stands in this state:
 - `Live Capital Control / Adaptive Runtime Allocation v1` is checkpoint-complete through `LCC-05`
 - `Meta Portfolio Intelligence / Cross-Strategy Capital Allocation v1` is checkpoint-complete through `MPI-05`
 - `Strategy Evolution / Regime Adaptation Intelligence v1` is checkpoint-complete through `SERI-05`
-- latest local `HEAD` is `40fd56a`
-- latest pushed commit is `40fd56a`
+- latest local `HEAD` is `d89892c`
+- latest pushed commit is `d89892c`
 - branch working tree now includes `AAE-01` through `AAE-05` and `ASD-01`
-- canonical current-state docs are now aligned to `ORC-02 active`
+- canonical current-state docs are now aligned to `ORC-04 active`
 - `AAE-01` now exposes `GET /system/alpha-discovery-candidates/latest`
 - `AAE-01` now exposes `GET /system/alpha-validation-results/latest`
 - `AAE-01` now exposes `GET /system/alpha-admission-decision/latest`
@@ -157,6 +157,25 @@ The repo currently stands in this state:
 - `ORC-02` now exposes `GET /system/order-permission-matrix/latest`
 - `ORC-02` now exposes `GET /system/risk-recovery-readiness/latest`
 - `ORC-02` now exposes `POST /system/risk-recovery/request`
+- `ORC-03` now exposes `POST /system/execution-health/run`
+- `ORC-03` now exposes `GET /system/execution-health/latest`
+- `ORC-03` now exposes `GET /system/broker-health/latest`
+- `ORC-03` now exposes `GET /system/venue-health/latest`
+- `ORC-03` now exposes `GET /system/execution-anomalies/latest`
+- `ORC-03` now exposes `GET /system/execution-incidents/latest`
+- `ORC-03` now exposes `GET /system/execution-safe-mode-recommendation/latest`
+- `ORC-03` now exposes `GET /system/broker-health/{broker_id}`
+- `ORC-03` now exposes `GET /system/venue-health/{venue_id}`
+- `ORC-04` now exposes `POST /system/data-integrity/run`
+- `ORC-04` now exposes `GET /system/data-integrity/latest`
+- `ORC-04` now exposes `GET /system/market-feed-health/latest`
+- `ORC-04` now exposes `GET /system/market-feed-health/{feed_id}`
+- `ORC-04` now exposes `GET /system/symbol-data-health/latest`
+- `ORC-04` now exposes `GET /system/symbol-data-health/{symbol}`
+- `ORC-04` now exposes `GET /system/data-anomalies/latest`
+- `ORC-04` now exposes `GET /system/data-incidents/latest`
+- `ORC-04` now exposes `GET /system/mark-reliability/latest`
+- `ORC-04` now exposes `GET /system/data-safe-mode-recommendation/latest`
 
 ## Current Reports To Trust First
 
@@ -262,22 +281,22 @@ Architect re-alignment now supports:
 - completed hardening slice
 - completed first checkpoints through `SERI-05`
 - no replay of `DRI`, `LCC`, `MPI`, or `SERI` unless a real regression appears
-- current work has shifted into `ORC-02`
+- current work has shifted into `ORC-04`
 
 ## Default Next Candidate
 
-- `Operational Risk & Control Intelligence Packet 02`
+- `Operational Risk & Control Intelligence Packet 04`
 
-## Current ORC-02 Docs-Ready State
+## Current ORC-04 Docs-Ready State
 
-- `ORC-02` task spec exists
+- `ORC-04` task spec exists
 - packet plan doc exists
 - `ORC` interface contract doc exists
 - `lane_surface_inventory.md` and `api_endpoints.md` include the `ORC` family
 - `10_agent` still exposes the docs-first operating loop for implementation startup
 
-## Current ORC-02 Runtime State
+## Current ORC-04 Runtime State
 
 - packet plan doc exists
 - verifier exists
-- risk response orchestration, runtime safe mode, order permission matrix, and recovery readiness surfaces are implemented
+- data integrity, market feed health, symbol data health, data anomaly, data incident, mark reliability, and data safe-mode recommendation surfaces are implemented

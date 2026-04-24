@@ -203,6 +203,25 @@ This file is the compact routing matrix for the current `system` contract surfac
 | `GET /system/order-permission-matrix/latest` | order permission matrix | risk-level order permission matrix |
 | `GET /system/risk-recovery-readiness/latest` | recovery readiness | required checks and readiness state for risk recovery |
 | `POST /system/risk-recovery/request` | risk recovery request | operator recovery request record |
+| `POST /system/execution-health/run` | execution health run trigger | explicit execution and broker health evaluation request |
+| `GET /system/execution-health/latest` | execution health latest | latest broker, venue, and execution health summary |
+| `GET /system/broker-health/latest` | broker health latest | broker heartbeat, reject, cancel, replace, and sync health |
+| `GET /system/venue-health/latest` | venue health latest | venue fill, slippage, latency, reject, and partial fill health |
+| `GET /system/execution-anomalies/latest` | execution anomalies | execution-domain anomaly records |
+| `GET /system/execution-incidents/latest` | execution incidents | grouped execution incidents and recommended actions |
+| `GET /system/execution-safe-mode-recommendation/latest` | execution safe-mode recommendation | ORC-compatible execution safe-mode recommendation |
+| `GET /system/broker-health/{broker_id}` | broker health lookup | per-broker health detail |
+| `GET /system/venue-health/{venue_id}` | venue health lookup | per-venue health detail |
+| `POST /system/data-integrity/run` | data integrity run trigger | explicit data integrity and feed reliability evaluation request |
+| `GET /system/data-integrity/latest` | data integrity latest | latest feed and symbol data health summary |
+| `GET /system/market-feed-health/latest` | market feed health latest | feed freshness, missing, bad tick, latency, and coverage health |
+| `GET /system/market-feed-health/{feed_id}` | market feed health lookup | per-feed health detail |
+| `GET /system/symbol-data-health/latest` | symbol data health latest | per-symbol data health and mark reliability view |
+| `GET /system/symbol-data-health/{symbol}` | symbol data health lookup | per-symbol data integrity detail |
+| `GET /system/data-anomalies/latest` | data anomalies | data-domain anomaly records |
+| `GET /system/data-incidents/latest` | data incidents | grouped data incidents and recommended actions |
+| `GET /system/mark-reliability/latest` | mark reliability | mark price reliability state |
+| `GET /system/data-safe-mode-recommendation/latest` | data safe-mode recommendation | ORC-compatible data safe-mode recommendation |
 
 ## Rule
 
