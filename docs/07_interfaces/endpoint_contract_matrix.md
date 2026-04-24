@@ -80,6 +80,11 @@ This file is the compact routing matrix for the current `system` contract surfac
 | `GET /system/alpha-replacement-decision/latest` | replacement decision | deterministic replacement action |
 | `GET /system/alpha-replacement-state/latest` | replacement state | replacement state view |
 | `GET /system/alpha-expansion-effectiveness/latest` | expansion effectiveness | replacement effectiveness posture |
+| `GET /system/alpha-runtime-deployment-candidates/latest` | runtime deployment | deployable runtime alpha candidates |
+| `GET /system/alpha-runtime-governance-feedback/latest` | runtime feedback | live review and decay posture |
+| `GET /system/alpha-runtime-rollback-response/latest` | runtime rollback | rollback and reduction response |
+| `GET /system/alpha-runtime-champion-challenger/latest` | runtime competition | runtime winner control |
+| `GET /system/alpha-runtime-expansion-effectiveness/latest` | runtime expansion effectiveness | runtime alpha expansion posture |
 
 ## Rule
 

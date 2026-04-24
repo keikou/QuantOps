@@ -89,3 +89,13 @@ The next `AAE` family extends from visibility into deterministic replacement act
 3. `GET /system/alpha-replacement-decision/latest`
 4. `GET /system/alpha-replacement-state/latest`
 5. `GET /system/alpha-expansion-effectiveness/latest`
+
+## AAE-03 Extension
+
+The next `AAE` family extends from replacement into runtime deployment and runtime feedback:
+
+1. `GET /system/alpha-runtime-deployment-candidates/latest`
+2. `GET /system/alpha-runtime-governance-feedback/latest`
+3. `GET /system/alpha-runtime-rollback-response/latest`
+4. `GET /system/alpha-runtime-champion-challenger/latest`
+5. `GET /system/alpha-runtime-expansion-effectiveness/latest`

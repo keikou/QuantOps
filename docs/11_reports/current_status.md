@@ -38,6 +38,11 @@ The repo currently stands in this state:
 - `AAE-02` now exposes `GET /system/alpha-replacement-decision/latest`
 - `AAE-02` now exposes `GET /system/alpha-replacement-state/latest`
 - `AAE-02` now exposes `GET /system/alpha-expansion-effectiveness/latest`
+- `AAE-03` now exposes `GET /system/alpha-runtime-deployment-candidates/latest`
+- `AAE-03` now exposes `GET /system/alpha-runtime-governance-feedback/latest`
+- `AAE-03` now exposes `GET /system/alpha-runtime-rollback-response/latest`
+- `AAE-03` now exposes `GET /system/alpha-runtime-champion-challenger/latest`
+- `AAE-03` now exposes `GET /system/alpha-runtime-expansion-effectiveness/latest`
 
 ## Current Reports To Trust First
 
@@ -72,6 +77,11 @@ The current reporting state now says:
 - alpha replacement decision is now explicit
 - alpha replacement state is now explicit
 - alpha expansion effectiveness is now explicit
+- runtime alpha deployment candidates are now explicit
+- runtime alpha governance feedback is now explicit
+- runtime alpha rollback response is now explicit
+- runtime alpha champion-challenger control is now explicit
+- runtime alpha expansion effectiveness is now explicit
 
 ## Current Decision Summary
 
@@ -80,21 +90,21 @@ Architect re-alignment now supports:
 - completed hardening slice
 - completed first checkpoints through `SERI-05`
 - no replay of `DRI`, `LCC`, `MPI`, or `SERI` unless a real regression appears
-- current work has shifted into `AAE-02`
+- current work has shifted into `AAE-03`
 
 ## Default Next Candidate
 
 - `Autonomous Alpha Expansion / Strategy Generation Intelligence Packet 01`
 
-## Current AAE-02 Docs-Ready State
+## Current AAE-03 Docs-Ready State
 
-- `AAE-02` task spec exists
+- `AAE-03` task spec exists
 - `AAE` interface contract doc exists
 - `lane_surface_inventory.md` and `api_endpoints.md` include the `AAE` family
 - `10_agent` still exposes the docs-first operating loop for implementation startup
 
-## Current AAE-02 Runtime State
+## Current AAE-03 Runtime State
 
 - packet plan doc exists
 - verifier exists
-- generation agenda, experiment docket, replacement decision, replacement state, and expansion-effectiveness system surfaces exist
+- runtime deployment, runtime feedback, runtime rollback, runtime competition, and runtime-effectiveness system surfaces exist

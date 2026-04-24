@@ -97,6 +97,11 @@ Contract progression:
 - `GET /system/alpha-replacement-decision/latest`
 - `GET /system/alpha-replacement-state/latest`
 - `GET /system/alpha-expansion-effectiveness/latest`
+- `GET /system/alpha-runtime-deployment-candidates/latest`
+- `GET /system/alpha-runtime-governance-feedback/latest`
+- `GET /system/alpha-runtime-rollback-response/latest`
+- `GET /system/alpha-runtime-champion-challenger/latest`
+- `GET /system/alpha-runtime-expansion-effectiveness/latest`
 
 Contract progression:
 
@@ -110,6 +115,11 @@ Contract progression:
 - replacement decision
 - replacement state
 - expansion effectiveness
+- runtime deployment candidates
+- runtime governance feedback
+- runtime rollback response
+- runtime champion-challenger control
+- runtime expansion effectiveness
 
 ## Rule
 

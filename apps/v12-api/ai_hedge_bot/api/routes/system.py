@@ -314,3 +314,28 @@ def system_alpha_replacement_state_latest(limit: int = 20) -> dict:
 @router.get('/system/alpha-expansion-effectiveness/latest')
 def system_alpha_expansion_effectiveness_latest(limit: int = 20) -> dict:
     return _autonomous_alpha_expansion.alpha_expansion_effectiveness_latest(limit=limit)
+
+
+@router.get('/system/alpha-runtime-deployment-candidates/latest')
+def system_alpha_runtime_deployment_candidates_latest(limit: int = 20) -> dict:
+    return _autonomous_alpha_expansion.alpha_runtime_deployment_candidates_latest(limit=limit)
+
+
+@router.get('/system/alpha-runtime-governance-feedback/latest')
+def system_alpha_runtime_governance_feedback_latest(limit: int = 20) -> dict:
+    return _autonomous_alpha_expansion.alpha_runtime_governance_feedback_latest(limit=limit)
+
+
+@router.get('/system/alpha-runtime-rollback-response/latest')
+def system_alpha_runtime_rollback_response_latest(limit: int = 20) -> dict:
+    return _autonomous_alpha_expansion.alpha_runtime_rollback_response_latest(limit=limit)
+
+
+@router.get('/system/alpha-runtime-champion-challenger/latest')
+def system_alpha_runtime_champion_challenger_latest(limit: int = 20) -> dict:
+    return _autonomous_alpha_expansion.alpha_runtime_champion_challenger_latest(limit=limit)
+
+
+@router.get('/system/alpha-runtime-expansion-effectiveness/latest')
+def system_alpha_runtime_expansion_effectiveness_latest(limit: int = 20) -> dict:
+    return _autonomous_alpha_expansion.alpha_runtime_expansion_effectiveness_latest(limit=limit)

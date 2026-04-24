@@ -5,7 +5,12 @@ from typing import Any
 
 from ai_hedge_bot.app.container import CONTAINER
 from ai_hedge_bot.autonomous_alpha.service import AutonomousAlphaService
+from ai_hedge_bot.learning.champion_challenger import ChampionChallenger
+from ai_hedge_bot.research_factory.governance_state import GovernanceStateBridge
 from ai_hedge_bot.research_factory.service import ResearchFactoryService
+from ai_hedge_bot.services.deployment_rollout_intelligence_service import (
+    DeploymentRolloutIntelligenceService,
+)
 from ai_hedge_bot.services.strategy_evolution_regime_adaptation_intelligence_service import (
     StrategyEvolutionRegimeAdaptationIntelligenceService,
 )
@@ -16,6 +21,9 @@ class AutonomousAlphaExpansionStrategyGenerationIntelligenceService:
         self.store = CONTAINER.runtime_store
         self.alpha_factory = AutonomousAlphaService()
         self.research_factory = ResearchFactoryService()
+        self.deployment_rollout = DeploymentRolloutIntelligenceService()
+        self.bridge = GovernanceStateBridge()
+        self.champion_challenger = ChampionChallenger()
         self.strategy_evolution = StrategyEvolutionRegimeAdaptationIntelligenceService()
 
     @staticmethod
@@ -135,6 +143,26 @@ class AutonomousAlphaExpansionStrategyGenerationIntelligenceService:
             [max(limit, 25)],
         )
         return list(self._latest_by_key(rows, "alpha_id").values())[:limit]
+
+    def _latest_model_rows(self, limit: int = 200) -> list[dict[str, Any]]:
+        rows = self.research_factory.models.list_latest(limit=max(limit, 25))
+        return list(self._latest_by_key(rows, "model_id").values())[:limit]
+
+    def _latest_live_review_rows(self, limit: int = 200) -> list[dict[str, Any]]:
+        rows = self.research_factory.live_reviews.list_latest(limit=max(limit, 25))
+        return list(self._latest_by_key(rows, "model_id").values())[:limit]
+
+    def _latest_decay_rows(self, limit: int = 200) -> list[dict[str, Any]]:
+        rows = self.research_factory.decay_monitor.list_latest(limit=max(limit, 25))
+        return list(self._latest_by_key(rows, "model_id").values())[:limit]
+
+    def _latest_rollback_rows(self, limit: int = 200) -> list[dict[str, Any]]:
+        rows = self.research_factory.rollback_policy.list_latest(limit=max(limit, 25))
+        return list(self._latest_by_key(rows, "model_id").values())[:limit]
+
+    def _latest_champion_challenger_rows(self, limit: int = 200) -> list[dict[str, Any]]:
+        rows = self.champion_challenger.list_latest(limit=max(limit, 25))
+        return rows[:limit]
 
     def _regime_context(self, limit: int = 20) -> dict[str, Any]:
         regime = self.strategy_evolution.latest(limit=limit)
@@ -938,5 +966,326 @@ class AutonomousAlphaExpansionStrategyGenerationIntelligenceService:
                 "autonomous_alpha_expansion_strategy_generation_intelligence": "AAE-02",
                 "research_promotion_intelligence": "RPI-06",
                 "strategy_evolution_regime_adaptation_intelligence": "SERI-05",
+            },
+        }
+
+    def alpha_runtime_deployment_candidates_latest(self, limit: int = 20) -> dict[str, Any]:
+        replacement = self.alpha_replacement_decision_latest(limit=max(limit * 2, 20))
+        rollout = self.deployment_rollout.candidate_docket_latest(limit=max(limit * 2, 20))
+        models = self._latest_model_rows(limit=max(limit * 4, 50))
+
+        rollout_by_family = self._latest_by_key(list(rollout.get("items") or []), "alpha_family")
+        model_by_alpha: dict[str, dict[str, Any]] = {}
+        experiments = self._latest_experiment_rows(limit=max(limit * 4, 50))
+        experiment_by_alpha = self._latest_by_key(experiments, "alpha_id")
+        model_by_experiment = self._latest_by_key(models, "experiment_id")
+        for alpha_id, experiment in experiment_by_alpha.items():
+            model = model_by_experiment.get(str(experiment.get("experiment_id") or ""))
+            if model:
+                model_by_alpha[alpha_id] = model
+
+        items: list[dict[str, Any]] = []
+        ready_count = 0
+        shadow_count = 0
+        blocked_count = 0
+
+        for item in list(replacement.get("items") or []):
+            alpha_id = str(item.get("alpha_id") or "")
+            alpha_family = str(item.get("alpha_family") or "unknown")
+            rollout_item = dict(rollout_by_family.get(alpha_family) or {})
+            model = dict(model_by_alpha.get(alpha_id) or {})
+            replacement_decision = str(item.get("alpha_replacement_decision") or "hold")
+            approval_status = str(rollout_item.get("approval_status") or "pending_evidence")
+
+            deployment_candidate_status = "shadow"
+            runtime_deployment_action = "keep_in_shadow"
+            if replacement_decision == "replace" and approval_status == "ready_for_review":
+                deployment_candidate_status = "ready"
+                runtime_deployment_action = str(rollout_item.get("deployment_action") or "prepare_limited_rollout")
+                ready_count += 1
+            elif replacement_decision == "shadow":
+                shadow_count += 1
+            else:
+                deployment_candidate_status = "blocked"
+                runtime_deployment_action = "hold_runtime_deployment"
+                blocked_count += 1
+
+            items.append(
+                {
+                    **item,
+                    "model_id": model.get("model_id"),
+                    "model_state": model.get("state"),
+                    "deployment_candidate_status": deployment_candidate_status,
+                    "recommended_rollout_stage": rollout_item.get("recommended_rollout_stage"),
+                    "approval_status": approval_status,
+                    "runtime_deployment_action": runtime_deployment_action,
+                    "rollout_priority": rollout_item.get("rollout_priority"),
+                }
+            )
+
+        items.sort(
+            key=lambda item: (
+                {"ready": 0, "shadow": 1, "blocked": 2}.get(str(item.get("deployment_candidate_status")), 3),
+                str(item.get("alpha_id") or ""),
+            )
+        )
+        items = items[:limit]
+
+        system_action = "maintain_runtime_alpha_shadow_inventory"
+        if ready_count > 0:
+            system_action = "prepare_runtime_deployment_for_replacement_alphas"
+        elif shadow_count > 0:
+            system_action = "continue_shadow_runtime_evidence_collection"
+
+        return {
+            "status": "ok",
+            "items": items,
+            "source_packets": {
+                "autonomous_alpha_expansion_strategy_generation_intelligence": "AAE-02",
+                "deployment_rollout_intelligence": "DRI-05",
+            },
+            "alpha_runtime_deployment_candidates_summary": {
+                "candidate_count": len(items),
+                "ready_candidates": min(ready_count, len(items)),
+                "shadow_candidates": min(shadow_count, len(items)),
+                "blocked_candidates": min(blocked_count, len(items)),
+                "system_alpha_runtime_deployment_action": system_action,
+            },
+        }
+
+    def alpha_runtime_governance_feedback_latest(self, limit: int = 20) -> dict[str, Any]:
+        deployment = self.alpha_runtime_deployment_candidates_latest(limit=max(limit * 2, 20))
+        reviews_by_model = self._latest_by_key(self._latest_live_review_rows(limit=max(limit * 4, 50)), "model_id")
+        decay_by_model = self._latest_by_key(self._latest_decay_rows(limit=max(limit * 4, 50)), "model_id")
+
+        items: list[dict[str, Any]] = []
+        healthy_count = 0
+        watch_count = 0
+        intervention_count = 0
+
+        for item in list(deployment.get("items") or []):
+            model_id = str(item.get("model_id") or "")
+            review = dict(reviews_by_model.get(model_id) or {})
+            decay = dict(decay_by_model.get(model_id) or {})
+            review_decision = str(review.get("decision") or "keep")
+            decay_status = str(decay.get("status") or "monitor")
+
+            runtime_feedback_status = "healthy"
+            runtime_feedback_action = "keep_runtime_candidate_on_track"
+            if review_decision == "rollback" or decay_status == "demote_candidate":
+                runtime_feedback_status = "intervention_required"
+                runtime_feedback_action = "prepare_runtime_rollback"
+                intervention_count += 1
+            elif review_decision in {"reduce_capital", "shadow"} or decay_status == "review_required":
+                runtime_feedback_status = "watch"
+                runtime_feedback_action = "tighten_runtime_review_watch"
+                watch_count += 1
+            else:
+                healthy_count += 1
+
+            items.append(
+                {
+                    **item,
+                    "live_review_decision": review_decision,
+                    "live_review_flags": review.get("flags") or [],
+                    "alpha_decay_severity": decay.get("severity"),
+                    "alpha_decay_status": decay_status,
+                    "runtime_feedback_status": runtime_feedback_status,
+                    "runtime_feedback_action": runtime_feedback_action,
+                }
+            )
+
+        items.sort(
+            key=lambda item: (
+                {"intervention_required": 0, "watch": 1, "healthy": 2}.get(str(item.get("runtime_feedback_status")), 3),
+                str(item.get("alpha_id") or ""),
+            )
+        )
+        items = items[:limit]
+
+        system_action = "maintain_runtime_feedback_watch"
+        if intervention_count > 0:
+            system_action = "prepare_runtime_intervention_for_alpha_candidates"
+        elif watch_count > 0:
+            system_action = "monitor_runtime_feedback_drift"
+
+        return {
+            "status": "ok",
+            "items": items,
+            "source_packets": {
+                "autonomous_alpha_expansion_strategy_generation_intelligence": "AAE-03",
+                "research_promotion_intelligence": "RPI-06",
+            },
+            "alpha_runtime_governance_feedback_summary": {
+                "candidate_count": len(items),
+                "healthy_candidates": min(healthy_count, len(items)),
+                "watch_candidates": min(watch_count, len(items)),
+                "intervention_required_candidates": min(intervention_count, len(items)),
+                "system_alpha_runtime_feedback_action": system_action,
+            },
+        }
+
+    def alpha_runtime_rollback_response_latest(self, limit: int = 20) -> dict[str, Any]:
+        feedback = self.alpha_runtime_governance_feedback_latest(limit=max(limit * 2, 20))
+        rollback_by_model = self._latest_by_key(self._latest_rollback_rows(limit=max(limit * 4, 50)), "model_id")
+
+        items: list[dict[str, Any]] = []
+        rollback_count = 0
+        reduce_count = 0
+        hold_count = 0
+
+        for item in list(feedback.get("items") or []):
+            model_id = str(item.get("model_id") or "")
+            rollback = dict(rollback_by_model.get(model_id) or {})
+            runtime_feedback_status = str(item.get("runtime_feedback_status") or "healthy")
+            rollback_action = str(rollback.get("action") or "hold")
+
+            runtime_rollback_response = "hold"
+            runtime_rollback_reason = "runtime_candidate_remains_acceptable"
+            if rollback_action == "rollback" or runtime_feedback_status == "intervention_required":
+                runtime_rollback_response = "rollback"
+                runtime_rollback_reason = "runtime_feedback_or_decay_requires_rollback"
+                rollback_count += 1
+            elif str(item.get("live_review_decision") or "") == "reduce_capital":
+                runtime_rollback_response = "reduce"
+                runtime_rollback_reason = "candidate_should_trade_with_reduced_runtime_risk"
+                reduce_count += 1
+            else:
+                hold_count += 1
+
+            items.append(
+                {
+                    **item,
+                    "trigger_reason": rollback.get("trigger_reason"),
+                    "selected_model_id": rollback.get("selected_model_id"),
+                    "runtime_rollback_response": runtime_rollback_response,
+                    "runtime_rollback_reason": runtime_rollback_reason,
+                }
+            )
+
+        items.sort(
+            key=lambda item: (
+                {"rollback": 0, "reduce": 1, "hold": 2}.get(str(item.get("runtime_rollback_response")), 3),
+                str(item.get("alpha_id") or ""),
+            )
+        )
+        items = items[:limit]
+
+        system_action = "hold_runtime_alpha_candidates"
+        if rollback_count > 0:
+            system_action = "rollback_runtime_alpha_candidates_under_stress"
+        elif reduce_count > 0:
+            system_action = "reduce_runtime_alpha_candidate_risk"
+
+        return {
+            "status": "ok",
+            "items": items,
+            "source_packets": {
+                "autonomous_alpha_expansion_strategy_generation_intelligence": "AAE-03",
+                "research_promotion_intelligence": "RPI-06",
+            },
+            "alpha_runtime_rollback_response_summary": {
+                "candidate_count": len(items),
+                "rollback_candidates": min(rollback_count, len(items)),
+                "reduce_candidates": min(reduce_count, len(items)),
+                "hold_candidates": min(hold_count, len(items)),
+                "system_alpha_runtime_rollback_action": system_action,
+            },
+        }
+
+    def alpha_runtime_champion_challenger_latest(self, limit: int = 20) -> dict[str, Any]:
+        replacement = self.alpha_runtime_rollback_response_latest(limit=max(limit * 2, 20))
+        cc_runs = self._latest_champion_challenger_rows(limit=max(limit, 10))
+        latest_cc = dict(cc_runs[0] if cc_runs else {})
+        champion_alpha_id = self.bridge.alpha_id_for_model(str(latest_cc.get("champion_model_id") or "")) if latest_cc else None
+        challenger_alpha_id = self.bridge.alpha_id_for_model(str(latest_cc.get("challenger_model_id") or "")) if latest_cc else None
+
+        items: list[dict[str, Any]] = []
+        switch_count = 0
+        keep_count = 0
+
+        for item in list(replacement.get("items") or []):
+            alpha_id = str(item.get("alpha_id") or "")
+            champion_role = "observer"
+            runtime_competition_action = "hold_current_runtime_posture"
+            if alpha_id and alpha_id == challenger_alpha_id and str(latest_cc.get("recommended_action") or "") == "switch_live":
+                champion_role = "challenger_winner"
+                runtime_competition_action = "switch_runtime_to_challenger"
+                switch_count += 1
+            elif alpha_id and alpha_id == champion_alpha_id:
+                champion_role = "current_champion"
+                runtime_competition_action = "keep_runtime_champion_live"
+                keep_count += 1
+
+            items.append(
+                {
+                    **item,
+                    "champion_model_id": latest_cc.get("champion_model_id"),
+                    "challenger_model_id": latest_cc.get("challenger_model_id"),
+                    "winner": latest_cc.get("winner"),
+                    "recommended_action": latest_cc.get("recommended_action"),
+                    "capital_shift": latest_cc.get("capital_shift"),
+                    "runtime_competition_role": champion_role,
+                    "runtime_competition_action": runtime_competition_action,
+                }
+            )
+
+        items = items[:limit]
+        system_action = "maintain_current_runtime_winner"
+        if switch_count > 0:
+            system_action = "switch_runtime_to_challenger_winner"
+        elif keep_count > 0:
+            system_action = "preserve_runtime_champion"
+
+        return {
+            "status": "ok",
+            "items": items,
+            "source_packets": {
+                "autonomous_alpha_expansion_strategy_generation_intelligence": "AAE-03",
+                "research_promotion_intelligence": "RPI-06",
+            },
+            "alpha_runtime_champion_challenger_summary": {
+                "candidate_count": len(items),
+                "switch_candidates": min(switch_count, len(items)),
+                "keep_candidates": min(keep_count, len(items)),
+                "system_alpha_runtime_competition_action": system_action,
+            },
+        }
+
+    def alpha_runtime_expansion_effectiveness_latest(self, limit: int = 20) -> dict[str, Any]:
+        deployment = self.alpha_runtime_deployment_candidates_latest(limit=max(limit * 2, 20))
+        feedback = self.alpha_runtime_governance_feedback_latest(limit=max(limit * 2, 20))
+        rollback = self.alpha_runtime_rollback_response_latest(limit=max(limit * 2, 20))
+        champion = self.alpha_runtime_champion_challenger_latest(limit=max(limit * 2, 20))
+
+        deployment_summary = deployment.get("alpha_runtime_deployment_candidates_summary") or {}
+        feedback_summary = feedback.get("alpha_runtime_governance_feedback_summary") or {}
+        rollback_summary = rollback.get("alpha_runtime_rollback_response_summary") or {}
+        champion_summary = champion.get("alpha_runtime_champion_challenger_summary") or {}
+
+        effectiveness_status = "effective"
+        if int(rollback_summary.get("rollback_candidates", 0) or 0) > 0:
+            effectiveness_status = "fragile"
+        elif int(feedback_summary.get("watch_candidates", 0) or 0) > int(feedback_summary.get("healthy_candidates", 0) or 0):
+            effectiveness_status = "watch"
+
+        return {
+            "status": "ok",
+            "alpha_runtime_expansion_effectiveness": {
+                "effectiveness_status": effectiveness_status,
+                "deployment_ready_count": int(deployment_summary.get("ready_candidates", 0) or 0),
+                "healthy_runtime_count": int(feedback_summary.get("healthy_candidates", 0) or 0),
+                "rollback_runtime_count": int(rollback_summary.get("rollback_candidates", 0) or 0),
+                "switch_runtime_count": int(champion_summary.get("switch_candidates", 0) or 0),
+                "system_alpha_runtime_expansion_action": (
+                    "stabilize_runtime_alpha_expansion"
+                    if effectiveness_status == "fragile"
+                    else ("monitor_runtime_alpha_expansion_drift" if effectiveness_status == "watch" else "maintain_runtime_alpha_expansion")
+                ),
+            },
+            "source_packets": {
+                "autonomous_alpha_expansion_strategy_generation_intelligence": "AAE-03",
+                "deployment_rollout_intelligence": "DRI-05",
+                "research_promotion_intelligence": "RPI-06",
             },
         }

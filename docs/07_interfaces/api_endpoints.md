@@ -75,6 +75,11 @@ This file is the short routing index for the current operator-visible API endpoi
 - `GET /system/alpha-replacement-decision/latest`
 - `GET /system/alpha-replacement-state/latest`
 - `GET /system/alpha-expansion-effectiveness/latest`
+- `GET /system/alpha-runtime-deployment-candidates/latest`
+- `GET /system/alpha-runtime-governance-feedback/latest`
+- `GET /system/alpha-runtime-rollback-response/latest`
+- `GET /system/alpha-runtime-champion-challenger/latest`
+- `GET /system/alpha-runtime-expansion-effectiveness/latest`
 
 ## Read Next
 
