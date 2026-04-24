@@ -882,6 +882,98 @@ class RuntimeStore:
                     payload_json VARCHAR,
                     created_at TIMESTAMP
                 );
+                CREATE TABLE IF NOT EXISTS alpha_attribution_runs (
+                    run_id VARCHAR,
+                    started_at TIMESTAMP,
+                    completed_at TIMESTAMP,
+                    alpha_count INTEGER,
+                    ensemble_count INTEGER,
+                    factor_count INTEGER,
+                    status VARCHAR,
+                    notes VARCHAR
+                );
+                CREATE TABLE IF NOT EXISTS alpha_factor_exposures (
+                    run_id VARCHAR,
+                    alpha_id VARCHAR,
+                    factor_name VARCHAR,
+                    factor_group VARCHAR,
+                    beta DOUBLE,
+                    t_stat DOUBLE,
+                    p_value DOUBLE,
+                    exposure_strength DOUBLE,
+                    exposure_direction VARCHAR,
+                    significant BOOLEAN,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS alpha_factor_model_fit (
+                    run_id VARCHAR,
+                    alpha_id VARCHAR,
+                    model_name VARCHAR,
+                    sample_count INTEGER,
+                    r_squared DOUBLE,
+                    adjusted_r_squared DOUBLE,
+                    residual_volatility DOUBLE,
+                    intercept_alpha DOUBLE,
+                    intercept_t_stat DOUBLE,
+                    model_valid BOOLEAN,
+                    fail_reason VARCHAR,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS alpha_residual_alpha_scores (
+                    run_id VARCHAR,
+                    alpha_id VARCHAR,
+                    raw_alpha_score DOUBLE,
+                    factor_explained_score DOUBLE,
+                    residual_alpha_score DOUBLE,
+                    residual_sharpe DOUBLE,
+                    residual_hit_rate DOUBLE,
+                    residual_mean_return DOUBLE,
+                    residual_volatility DOUBLE,
+                    residual_quality VARCHAR,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS alpha_regime_dependency (
+                    run_id VARCHAR,
+                    alpha_id VARCHAR,
+                    regime_name VARCHAR,
+                    regime_sample_count INTEGER,
+                    regime_mean_return DOUBLE,
+                    regime_sharpe DOUBLE,
+                    regime_hit_rate DOUBLE,
+                    dependency_score DOUBLE,
+                    regime_dependency_flag BOOLEAN,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS alpha_factor_concentration (
+                    run_id VARCHAR,
+                    ensemble_id VARCHAR,
+                    factor_name VARCHAR,
+                    weighted_exposure DOUBLE,
+                    absolute_weighted_exposure DOUBLE,
+                    concentration_score DOUBLE,
+                    concentration_flag BOOLEAN,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS alpha_hidden_driver_flags (
+                    run_id VARCHAR,
+                    alpha_id_a VARCHAR,
+                    alpha_id_b VARCHAR,
+                    common_driver_score DOUBLE,
+                    residual_correlation DOUBLE,
+                    suspected_driver VARCHAR,
+                    flag BOOLEAN,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS alpha_economic_meaning_labels (
+                    run_id VARCHAR,
+                    alpha_id VARCHAR,
+                    primary_label VARCHAR,
+                    secondary_labels VARCHAR,
+                    explanation VARCHAR,
+                    confidence DOUBLE,
+                    production_recommendation VARCHAR,
+                    created_at TIMESTAMP
+                );
                 CREATE TABLE IF NOT EXISTS live_orders (
                     live_order_id VARCHAR,
                     created_at TIMESTAMP,

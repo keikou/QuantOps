@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from fastapi import APIRouter
+from ai_hedge_bot.alpha_attribution.attribution_service import AlphaAttributionService
 from ai_hedge_bot.alpha_ensemble.ensemble_service import AlphaEnsembleService
 from ai_hedge_bot.alpha_evaluation.evaluation_service import AlphaEvaluationService
 from ai_hedge_bot.alpha_validation.validation_service import AlphaValidationService
@@ -54,6 +55,7 @@ _alpha_synthesis = AlphaSynthesisService()
 _alpha_evaluation = AlphaEvaluationService()
 _alpha_validation = AlphaValidationService()
 _alpha_ensemble = AlphaEnsembleService()
+_alpha_attribution = AlphaAttributionService()
 
 
 def _payload() -> dict:
@@ -627,3 +629,48 @@ def system_alpha_ensemble_selection_latest(limit: int = 20) -> dict:
 @router.get('/system/alpha-ensemble-weights/latest')
 def system_alpha_ensemble_weights_latest(limit: int = 20) -> dict:
     return _alpha_ensemble.alpha_ensemble_weights_latest(limit=limit)
+
+
+@router.post('/system/alpha-factor-attribution/run')
+def system_alpha_factor_attribution_run(limit: int = 20) -> dict:
+    return _alpha_attribution.run(limit=limit)
+
+
+@router.get('/system/alpha-factor-attribution/latest')
+def system_alpha_factor_attribution_latest(limit: int = 20) -> dict:
+    return _alpha_attribution.latest(limit=limit)
+
+
+@router.get('/system/alpha-factor-attribution/candidate/{alpha_id}')
+def system_alpha_factor_attribution_candidate(alpha_id: str) -> dict:
+    return _alpha_attribution.alpha_factor_attribution_candidate(alpha_id)
+
+
+@router.get('/system/alpha-factor-exposure/latest')
+def system_alpha_factor_exposure_latest(limit: int = 20) -> dict:
+    return _alpha_attribution.alpha_factor_exposure_latest(limit=limit)
+
+
+@router.get('/system/alpha-residual-alpha/latest')
+def system_alpha_residual_alpha_latest(limit: int = 20) -> dict:
+    return _alpha_attribution.alpha_residual_alpha_latest(limit=limit)
+
+
+@router.get('/system/alpha-economic-risk/latest')
+def system_alpha_economic_risk_latest(limit: int = 20) -> dict:
+    return _alpha_attribution.alpha_economic_risk_latest(limit=limit)
+
+
+@router.get('/system/alpha-factor-concentration/latest')
+def system_alpha_factor_concentration_latest(limit: int = 20) -> dict:
+    return _alpha_attribution.alpha_factor_concentration_latest(limit=limit)
+
+
+@router.get('/system/alpha-economic-meaning/latest')
+def system_alpha_economic_meaning_latest(limit: int = 20) -> dict:
+    return _alpha_attribution.alpha_economic_meaning_latest(limit=limit)
+
+
+@router.get('/system/alpha-factor-attribution/ensemble/{ensemble_id}')
+def system_alpha_factor_attribution_ensemble(ensemble_id: str) -> dict:
+    return _alpha_attribution.alpha_factor_attribution_ensemble(ensemble_id)
