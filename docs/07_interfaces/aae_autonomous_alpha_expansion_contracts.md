@@ -79,3 +79,13 @@ Primary fields:
 - `admit_count`
 - `live_inventory_count`
 - `system_inventory_action`
+
+## AAE-02 Extension
+
+The next `AAE` family extends from visibility into deterministic replacement action:
+
+1. `GET /system/alpha-generation-agenda/latest`
+2. `GET /system/alpha-experiment-docket/latest`
+3. `GET /system/alpha-replacement-decision/latest`
+4. `GET /system/alpha-replacement-state/latest`
+5. `GET /system/alpha-expansion-effectiveness/latest`

@@ -289,3 +289,28 @@ def system_alpha_lifecycle_state_latest(limit: int = 20) -> dict:
 @router.get('/system/alpha-inventory-health/latest')
 def system_alpha_inventory_health_latest(limit: int = 20) -> dict:
     return _autonomous_alpha_expansion.alpha_inventory_health_latest(limit=limit)
+
+
+@router.get('/system/alpha-generation-agenda/latest')
+def system_alpha_generation_agenda_latest(limit: int = 20) -> dict:
+    return _autonomous_alpha_expansion.alpha_generation_agenda_latest(limit=limit)
+
+
+@router.get('/system/alpha-experiment-docket/latest')
+def system_alpha_experiment_docket_latest(limit: int = 20) -> dict:
+    return _autonomous_alpha_expansion.alpha_experiment_docket_latest(limit=limit)
+
+
+@router.get('/system/alpha-replacement-decision/latest')
+def system_alpha_replacement_decision_latest(limit: int = 20) -> dict:
+    return _autonomous_alpha_expansion.alpha_replacement_decision_latest(limit=limit)
+
+
+@router.get('/system/alpha-replacement-state/latest')
+def system_alpha_replacement_state_latest(limit: int = 20) -> dict:
+    return _autonomous_alpha_expansion.alpha_replacement_state_latest(limit=limit)
+
+
+@router.get('/system/alpha-expansion-effectiveness/latest')
+def system_alpha_expansion_effectiveness_latest(limit: int = 20) -> dict:
+    return _autonomous_alpha_expansion.alpha_expansion_effectiveness_latest(limit=limit)

@@ -92,6 +92,11 @@ Contract progression:
 - `GET /system/alpha-admission-decision/latest`
 - `GET /system/alpha-lifecycle-state/latest`
 - `GET /system/alpha-inventory-health/latest`
+- `GET /system/alpha-generation-agenda/latest`
+- `GET /system/alpha-experiment-docket/latest`
+- `GET /system/alpha-replacement-decision/latest`
+- `GET /system/alpha-replacement-state/latest`
+- `GET /system/alpha-expansion-effectiveness/latest`
 
 Contract progression:
 
@@ -100,6 +105,11 @@ Contract progression:
 - admission decision
 - lifecycle visibility
 - inventory replacement health
+- generation agenda
+- experiment docket
+- replacement decision
+- replacement state
+- expansion effectiveness
 
 ## Rule
 

@@ -112,6 +112,30 @@ class AutonomousAlphaExpansionStrategyGenerationIntelligenceService:
         rows = self.research_factory.validations.list_latest(limit=max(limit, 25))
         return rows[:limit]
 
+    def _latest_promotion_rows(self, limit: int = 200) -> list[dict[str, Any]]:
+        rows = self.store.fetchall_dict(
+            """
+            SELECT *
+            FROM alpha_promotions
+            ORDER BY created_at DESC, alpha_id ASC
+            LIMIT ?
+            """,
+            [max(limit, 25)],
+        )
+        return list(self._latest_by_key(rows, "alpha_id").values())[:limit]
+
+    def _latest_demotion_rows(self, limit: int = 200) -> list[dict[str, Any]]:
+        rows = self.store.fetchall_dict(
+            """
+            SELECT *
+            FROM alpha_demotions
+            ORDER BY created_at DESC, alpha_id ASC
+            LIMIT ?
+            """,
+            [max(limit, 25)],
+        )
+        return list(self._latest_by_key(rows, "alpha_id").values())[:limit]
+
     def _regime_context(self, limit: int = 20) -> dict[str, Any]:
         regime = self.strategy_evolution.latest(limit=limit)
         family_state = {
@@ -576,5 +600,343 @@ class AutonomousAlphaExpansionStrategyGenerationIntelligenceService:
                 "strategy_evolution_regime_adaptation_intelligence": "SERI-05",
                 "alpha_strategy_selection_intelligence": "ASI-05",
                 "research_promotion_intelligence": "RPI-06",
+            },
+        }
+
+    def alpha_generation_agenda_latest(self, limit: int = 20) -> dict[str, Any]:
+        discovery = self.alpha_discovery_candidates_latest(limit=max(limit * 2, 20))
+        inventory = self.alpha_inventory_health_latest(limit=max(limit * 2, 20))
+        regime = self._regime_context(limit=limit)
+
+        items: list[dict[str, Any]] = []
+        high_count = 0
+        medium_count = 0
+        low_count = 0
+
+        for item in list(discovery.get("items") or []):
+            family_regime_state = str(item.get("family_regime_state") or "balanced")
+            discovery_priority = str(item.get("discovery_priority") or "low")
+            replacement_pressure = str((inventory.get("alpha_inventory_health") or {}).get("replacement_pressure") or "balanced")
+
+            generation_priority = "defer"
+            generation_action = "hold_generation_capacity"
+            if replacement_pressure == "high" and family_regime_state != "risk_off":
+                generation_priority = "expand_now"
+                generation_action = "generate_and_register_new_candidates"
+                high_count += 1
+            elif discovery_priority in {"high", "medium"} and family_regime_state != "risk_off":
+                generation_priority = "prepare"
+                generation_action = "prepare_generation_designs"
+                medium_count += 1
+            else:
+                low_count += 1
+
+            items.append(
+                {
+                    "alpha_id": item.get("alpha_id"),
+                    "alpha_family": item.get("alpha_family"),
+                    "candidate_state": item.get("candidate_state"),
+                    "family_regime_state": family_regime_state,
+                    "replacement_pressure": replacement_pressure,
+                    "generation_priority": generation_priority,
+                    "generation_action": generation_action,
+                    "generation_theme": item.get("alpha_family"),
+                    "feature_dependencies": item.get("feature_dependencies") or [],
+                }
+            )
+
+        items.sort(
+            key=lambda item: (
+                {"expand_now": 0, "prepare": 1, "defer": 2}.get(str(item.get("generation_priority")), 3),
+                str(item.get("alpha_id") or ""),
+            )
+        )
+        items = items[:limit]
+
+        system_action = "maintain_alpha_generation_backlog"
+        if high_count > 0:
+            system_action = "expand_alpha_generation_now"
+        elif medium_count > 0:
+            system_action = "prepare_next_alpha_generation_batch"
+
+        return {
+            "status": "ok",
+            "current_regime": regime["current_regime"],
+            "regime_confidence": regime["regime_confidence"],
+            "items": items,
+            "source_packets": {
+                "autonomous_alpha_expansion_strategy_generation_intelligence": "AAE-01",
+                "strategy_evolution_regime_adaptation_intelligence": "SERI-05",
+            },
+            "alpha_generation_agenda_summary": {
+                "agenda_count": len(items),
+                "expand_now_count": min(high_count, len(items)),
+                "prepare_count": min(medium_count, len(items)),
+                "defer_count": min(low_count, len(items)),
+                "system_alpha_generation_action": system_action,
+            },
+        }
+
+    def alpha_experiment_docket_latest(self, limit: int = 20) -> dict[str, Any]:
+        agenda = self.alpha_generation_agenda_latest(limit=max(limit * 2, 20))
+        experiments = self._latest_experiment_rows(limit=max(limit * 4, 50))
+        validations = self._latest_validation_rows(limit=max(limit * 4, 50))
+        validations_by_experiment = self._latest_by_key(validations, "experiment_id")
+        experiment_by_alpha = self._latest_by_key(experiments, "alpha_id")
+
+        items: list[dict[str, Any]] = []
+        ready_count = 0
+        active_count = 0
+        blocked_count = 0
+
+        for agenda_item in list(agenda.get("items") or []):
+            alpha_id = str(agenda_item.get("alpha_id") or "")
+            experiment = dict(experiment_by_alpha.get(alpha_id) or {})
+            validation = dict(validations_by_experiment.get(str(experiment.get("experiment_id") or "")) or {})
+            generation_priority = str(agenda_item.get("generation_priority") or "defer")
+            validation_score = float(validation.get("summary_score", 0.0) or 0.0)
+
+            experiment_status = str(experiment.get("status") or "missing")
+            docket_state = "blocked"
+            docket_action = "wait_for_generation"
+            if experiment_status in {"generated", "tested"} and generation_priority in {"expand_now", "prepare"}:
+                docket_state = "ready"
+                docket_action = "run_or_refresh_experiment_validation"
+                ready_count += 1
+            elif experiment_status in {"generated", "tested"}:
+                docket_state = "active"
+                docket_action = "monitor_current_experiment"
+                active_count += 1
+            else:
+                blocked_count += 1
+
+            items.append(
+                {
+                    "alpha_id": alpha_id,
+                    "alpha_family": agenda_item.get("alpha_family"),
+                    "generation_priority": generation_priority,
+                    "experiment_id": experiment.get("experiment_id"),
+                    "experiment_status": experiment_status,
+                    "validation_summary_score": round(validation_score, 6),
+                    "docket_state": docket_state,
+                    "docket_action": docket_action,
+                }
+            )
+
+        items.sort(
+            key=lambda item: (
+                {"ready": 0, "active": 1, "blocked": 2}.get(str(item.get("docket_state")), 3),
+                str(item.get("alpha_id") or ""),
+            )
+        )
+        items = items[:limit]
+
+        system_action = "maintain_alpha_experiment_docket"
+        if ready_count > 0:
+            system_action = "run_ready_alpha_experiments"
+        elif active_count > 0:
+            system_action = "monitor_active_alpha_experiments"
+
+        return {
+            "status": "ok",
+            "items": items,
+            "source_packets": {
+                "autonomous_alpha_expansion_strategy_generation_intelligence": "AAE-01",
+                "research_promotion_intelligence": "RPI-06",
+            },
+            "alpha_experiment_docket_summary": {
+                "docket_count": len(items),
+                "ready_experiments": min(ready_count, len(items)),
+                "active_experiments": min(active_count, len(items)),
+                "blocked_experiments": min(blocked_count, len(items)),
+                "system_alpha_experiment_action": system_action,
+            },
+        }
+
+    def alpha_replacement_decision_latest(self, limit: int = 20) -> dict[str, Any]:
+        admission = self.alpha_admission_decision_latest(limit=max(limit * 2, 20))
+        lifecycle_by_alpha = self._latest_by_key(self.alpha_lifecycle_state_latest(limit=max(limit * 2, 20)).get("items") or [], "alpha_id")
+        experiment_by_alpha = self._latest_by_key(self.alpha_experiment_docket_latest(limit=max(limit * 2, 20)).get("items") or [], "alpha_id")
+
+        items: list[dict[str, Any]] = []
+        replace_count = 0
+        shadow_count = 0
+        hold_count = 0
+        drop_count = 0
+
+        for item in list(admission.get("items") or []):
+            alpha_id = str(item.get("alpha_id") or "")
+            lifecycle = dict(lifecycle_by_alpha.get(alpha_id) or {})
+            experiment = dict(experiment_by_alpha.get(alpha_id) or {})
+            decision = str(item.get("alpha_admission_decision") or "hold")
+            lifecycle_stage = str(lifecycle.get("lifecycle_stage") or "discovery")
+            docket_state = str(experiment.get("docket_state") or "blocked")
+
+            replacement_decision = "hold"
+            replacement_reason = "candidate_is_not_ready_for_inventory_change"
+            if decision == "admit" and docket_state in {"ready", "active"}:
+                replacement_decision = "replace"
+                replacement_reason = "validated_candidate_can_replace_fragile_inventory"
+                replace_count += 1
+            elif decision == "shadow":
+                replacement_decision = "shadow"
+                replacement_reason = "candidate_should_prove_itself_in_shadow_inventory"
+                shadow_count += 1
+            elif decision == "reject":
+                replacement_decision = "drop"
+                replacement_reason = "candidate_should_not_compete_for_inventory_slots"
+                drop_count += 1
+            else:
+                hold_count += 1
+
+            items.append(
+                {
+                    **item,
+                    "lifecycle_stage": lifecycle_stage,
+                    "docket_state": docket_state,
+                    "alpha_replacement_decision": replacement_decision,
+                    "replacement_reason": replacement_reason,
+                }
+            )
+
+        items.sort(
+            key=lambda item: (
+                {"replace": 0, "shadow": 1, "hold": 2, "drop": 3}.get(str(item.get("alpha_replacement_decision")), 4),
+                -float(item.get("rank_score") or 0.0),
+                str(item.get("alpha_id") or ""),
+            )
+        )
+        items = items[:limit]
+
+        system_action = "maintain_alpha_replacement_watch"
+        if replace_count > 0:
+            system_action = "replace_fragile_alpha_inventory"
+        elif shadow_count > 0:
+            system_action = "expand_shadow_replacement_candidates"
+
+        return {
+            "status": "ok",
+            "items": items,
+            "source_packets": {
+                "autonomous_alpha_expansion_strategy_generation_intelligence": "AAE-01",
+                "strategy_evolution_regime_adaptation_intelligence": "SERI-05",
+            },
+            "alpha_replacement_decision_summary": {
+                "candidate_count": len(items),
+                "replace_count": min(replace_count, len(items)),
+                "shadow_count": min(shadow_count, len(items)),
+                "hold_count": min(hold_count, len(items)),
+                "drop_count": min(drop_count, len(items)),
+                "system_alpha_replacement_action": system_action,
+            },
+        }
+
+    def alpha_replacement_state_latest(self, limit: int = 20) -> dict[str, Any]:
+        replacement = self.alpha_replacement_decision_latest(limit=max(limit * 2, 20))
+        promotions_by_alpha = self._latest_by_key(self._latest_promotion_rows(limit=max(limit * 4, 50)), "alpha_id")
+        demotions_by_alpha = self._latest_by_key(self._latest_demotion_rows(limit=max(limit * 4, 50)), "alpha_id")
+
+        items: list[dict[str, Any]] = []
+        active_count = 0
+        shadow_count = 0
+        pending_count = 0
+        stopped_count = 0
+
+        for item in list(replacement.get("items") or []):
+            alpha_id = str(item.get("alpha_id") or "")
+            promotion = dict(promotions_by_alpha.get(alpha_id) or {})
+            demotion = dict(demotions_by_alpha.get(alpha_id) or {})
+            replacement_decision = str(item.get("alpha_replacement_decision") or "hold")
+
+            replacement_state = "pending"
+            if replacement_decision == "replace" and promotion:
+                replacement_state = "active"
+                active_count += 1
+            elif replacement_decision == "shadow":
+                replacement_state = "shadow"
+                shadow_count += 1
+            elif replacement_decision == "drop" and demotion:
+                replacement_state = "stopped"
+                stopped_count += 1
+            else:
+                pending_count += 1
+
+            items.append(
+                {
+                    **item,
+                    "replacement_state": replacement_state,
+                    "promotion_id": promotion.get("promotion_id"),
+                    "demotion_id": demotion.get("demotion_id"),
+                    "state_transition_note": promotion.get("notes") or demotion.get("notes") or "awaiting_next_inventory_cycle",
+                }
+            )
+
+        items.sort(
+            key=lambda item: (
+                {"active": 0, "shadow": 1, "pending": 2, "stopped": 3}.get(str(item.get("replacement_state")), 4),
+                str(item.get("alpha_id") or ""),
+            )
+        )
+        items = items[:limit]
+
+        system_action = "maintain_alpha_replacement_state"
+        if active_count > 0:
+            system_action = "track_active_alpha_replacements"
+        elif shadow_count > 0:
+            system_action = "monitor_shadow_replacement_candidates"
+
+        return {
+            "status": "ok",
+            "items": items,
+            "source_packets": {
+                "autonomous_alpha_expansion_strategy_generation_intelligence": "AAE-02",
+                "research_promotion_intelligence": "RPI-06",
+            },
+            "alpha_replacement_state_summary": {
+                "tracked_count": len(items),
+                "active_replacements": min(active_count, len(items)),
+                "shadow_replacements": min(shadow_count, len(items)),
+                "pending_replacements": min(pending_count, len(items)),
+                "stopped_replacements": min(stopped_count, len(items)),
+                "system_alpha_replacement_state_action": system_action,
+            },
+        }
+
+    def alpha_expansion_effectiveness_latest(self, limit: int = 20) -> dict[str, Any]:
+        generation = self.alpha_generation_agenda_latest(limit=max(limit * 2, 20))
+        replacement = self.alpha_replacement_decision_latest(limit=max(limit * 2, 20))
+        replacement_state = self.alpha_replacement_state_latest(limit=max(limit * 2, 20))
+        inventory = self.alpha_inventory_health_latest(limit=max(limit * 2, 20))
+
+        generation_summary = generation.get("alpha_generation_agenda_summary") or {}
+        replacement_summary = replacement.get("alpha_replacement_decision_summary") or {}
+        state_summary = replacement_state.get("alpha_replacement_state_summary") or {}
+        health = inventory.get("alpha_inventory_health") or {}
+
+        expansion_status = "effective"
+        if int(replacement_summary.get("replace_count", 0) or 0) == 0 and str(health.get("replacement_pressure") or "") == "high":
+            expansion_status = "insufficient"
+        elif int(state_summary.get("pending_replacements", 0) or 0) > int(state_summary.get("active_replacements", 0) or 0):
+            expansion_status = "watch"
+
+        return {
+            "status": "ok",
+            "alpha_expansion_effectiveness": {
+                "expansion_status": expansion_status,
+                "generation_ready_count": int(generation_summary.get("expand_now_count", 0) or 0),
+                "replacement_ready_count": int(replacement_summary.get("replace_count", 0) or 0),
+                "active_replacement_count": int(state_summary.get("active_replacements", 0) or 0),
+                "shadow_replacement_count": int(state_summary.get("shadow_replacements", 0) or 0),
+                "replacement_pressure": health.get("replacement_pressure"),
+                "system_alpha_expansion_action": (
+                    "accelerate_alpha_expansion_replacement"
+                    if expansion_status == "insufficient"
+                    else ("clear_pending_alpha_replacements" if expansion_status == "watch" else "maintain_alpha_expansion_effectiveness")
+                ),
+            },
+            "source_packets": {
+                "autonomous_alpha_expansion_strategy_generation_intelligence": "AAE-02",
+                "research_promotion_intelligence": "RPI-06",
+                "strategy_evolution_regime_adaptation_intelligence": "SERI-05",
             },
         }

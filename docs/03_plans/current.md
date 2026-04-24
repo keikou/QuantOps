@@ -3,7 +3,7 @@
 Date: `2026-04-24`
 Repo: `QuantOps_github`
 Branch: `codex/post-phase7-hardening`
-Status: `aae01_active_boundary`
+Status: `aae02_active_boundary`
 
 ## Current Planning Decision
 
@@ -25,7 +25,7 @@ Architect-selected answer:
 
 - `Strategy Evolution / Regime Adaptation Intelligence v1` is checkpoint-complete through `SERI-05`
 - next top-level lane is `Autonomous Alpha Expansion / Strategy Generation Intelligence`
-- current packet boundary is `AAE-01: Alpha Discovery & Validation Loop`
+- current packet boundary is `AAE-02: Alpha Generation Agenda & Replacement Loop`
 
 ## Why This Is The Current Plan
 
@@ -49,7 +49,7 @@ Architect re-alignment now treats the following as sufficiently closed for the c
 - `Meta Portfolio Intelligence / Cross-Strategy Capital Allocation v1`
 - `Strategy Evolution / Regime Adaptation Intelligence v1`
 
-That means planning should not continue replaying `SERI` checkpoint work and should now make alpha expansion explicit.
+That means planning should not continue replaying `SERI` checkpoint work and should now make alpha generation and replacement deterministic.
 
 ## Explicitly Completed Planning Slice
 
@@ -72,23 +72,23 @@ The following planning sequence is now historical and completed:
 
 ## Current Plan Outputs
 
-Current `AAE-01` outputs now available:
+Current `AAE-02` outputs now available:
 
-- `../Autonomous_alpha_expansion_strategy_generation_intelligence_packet01_plan.md`
-- `../../test_bundle/scripts/verify_autonomous_alpha_expansion_strategy_generation_intelligence_packet01.py`
-- `GET /system/alpha-discovery-candidates/latest`
-- `GET /system/alpha-validation-results/latest`
-- `GET /system/alpha-admission-decision/latest`
-- `GET /system/alpha-lifecycle-state/latest`
-- `GET /system/alpha-inventory-health/latest`
+- `../Autonomous_alpha_expansion_strategy_generation_intelligence_packet02_plan.md`
+- `../../test_bundle/scripts/verify_autonomous_alpha_expansion_strategy_generation_intelligence_packet02.py`
+- `GET /system/alpha-generation-agenda/latest`
+- `GET /system/alpha-experiment-docket/latest`
+- `GET /system/alpha-replacement-decision/latest`
+- `GET /system/alpha-replacement-state/latest`
+- `GET /system/alpha-expansion-effectiveness/latest`
 
 ## Current Docs-Ready State
 
-The docs route for `AAE-01` is now prepared and implemented.
+The docs route for `AAE-02` is now prepared and implemented.
 
 Current docs-ready assets:
 
-- `../04_tasks/aae01_alpha_discovery_and_validation_loop_2026-04-24.md`
+- `../04_tasks/aae02_alpha_generation_agenda_and_replacement_loop_2026-04-24.md`
 - `../07_interfaces/aae_autonomous_alpha_expansion_contracts.md`
 - `../07_interfaces/lane_surface_inventory.md`
 - `../10_agent/ai_docs_operating_loop.md`

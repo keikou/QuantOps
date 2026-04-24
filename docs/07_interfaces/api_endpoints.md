@@ -70,6 +70,11 @@ This file is the short routing index for the current operator-visible API endpoi
 - `GET /system/alpha-admission-decision/latest`
 - `GET /system/alpha-lifecycle-state/latest`
 - `GET /system/alpha-inventory-health/latest`
+- `GET /system/alpha-generation-agenda/latest`
+- `GET /system/alpha-experiment-docket/latest`
+- `GET /system/alpha-replacement-decision/latest`
+- `GET /system/alpha-replacement-state/latest`
+- `GET /system/alpha-expansion-effectiveness/latest`
 
 ## Read Next
 

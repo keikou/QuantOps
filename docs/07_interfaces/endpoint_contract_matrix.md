@@ -75,6 +75,11 @@ This file is the compact routing matrix for the current `system` contract surfac
 | `GET /system/alpha-admission-decision/latest` | alpha admission | deterministic inventory admission |
 | `GET /system/alpha-lifecycle-state/latest` | alpha lifecycle | lifecycle stage view |
 | `GET /system/alpha-inventory-health/latest` | inventory health | replacement health posture |
+| `GET /system/alpha-generation-agenda/latest` | generation agenda | next alpha generation queue |
+| `GET /system/alpha-experiment-docket/latest` | experiment docket | experiment execution docket |
+| `GET /system/alpha-replacement-decision/latest` | replacement decision | deterministic replacement action |
+| `GET /system/alpha-replacement-state/latest` | replacement state | replacement state view |
+| `GET /system/alpha-expansion-effectiveness/latest` | expansion effectiveness | replacement effectiveness posture |
 
 ## Rule
 

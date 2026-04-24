@@ -4,7 +4,7 @@ Date: `2026-04-24`
 Repo: `QuantOps_github`
 Branch: `codex/post-phase7-hardening`
 Track: `autonomous_alpha_expansion_strategy_generation_intelligence`
-Status: `aae01_active`
+Status: `aae02_active`
 
 ## Purpose
 
@@ -31,12 +31,12 @@ That means:
 Current top task:
 
 - establish `Autonomous Alpha Expansion / Strategy Generation Intelligence`
-- implement `AAE-01: Alpha Discovery & Validation Loop`
+- implement `AAE-02: Alpha Generation Agenda & Replacement Loop`
 
 Current architect-selected candidate:
 
 - `Autonomous Alpha Expansion / Strategy Generation Intelligence`
-- current implementation boundary = `AAE-01`
+- current implementation boundary = `AAE-02`
 - current dependency 1 = `Research / Promotion Intelligence v1 checkpoint through RPI-06`
 - current dependency 2 = `Alpha / Strategy Selection Intelligence v1 checkpoint through ASI-05`
 - current dependency 3 = `Portfolio Intelligence v1 checkpoint through PI-05`
@@ -55,9 +55,9 @@ Architect now treats `Strategy Evolution / Regime Adaptation Intelligence v1` as
 
 The next question is:
 
-- "how should newly discovered alpha candidates become explicit at the system surface?"
-- "how should validation pass or fail become explicit under the current regime?"
-- "how should dead alpha be replaced before the inventory becomes fragile?"
+- "what should be generated next when inventory replacement pressure is high?"
+- "which alpha experiments are actually ready to run?"
+- "which validated candidates should replace fragile inventory now?"
 
 This is the next lane beyond the completed hardening/resume slice, but it is no longer the older `Execution Reality` default.
 
@@ -76,7 +76,7 @@ This is the next lane beyond the completed hardening/resume slice, but it is no 
 
 ## Current Recommendation
 
-Use `AAE-01` as the current active task.
+Use `AAE-02` as the current active task.
 
 ## Explicit Non-Tasks
 
@@ -101,7 +101,7 @@ These are not current tasks:
 2. `../Cross_thread_resume_handover_2026-04-24.md`
 3. `../Auto_resume_handover_2026-04-24.md`
 4. `../Strategy_evolution_regime_adaptation_intelligence_checkpoint_v1.md`
-5. `../Autonomous_alpha_expansion_strategy_generation_intelligence_packet01_plan.md`
+5. `../Autonomous_alpha_expansion_strategy_generation_intelligence_packet02_plan.md`
 6. `../07_interfaces/aae_autonomous_alpha_expansion_contracts.md`
 
 ## Expected Output Of The Next Task
@@ -110,20 +110,20 @@ The current lane follow-up should produce:
 
 - one packet plan doc
 - one verifier script
-- discovery, validation, admission, lifecycle, and inventory-health surfaces
+- generation agenda, experiment docket, replacement decision, replacement state, and expansion-effectiveness surfaces
 
-Current `AAE-01` outputs now available:
+Current `AAE-02` outputs now available:
 
-- `docs/Autonomous_alpha_expansion_strategy_generation_intelligence_packet01_plan.md`
-- `test_bundle/scripts/verify_autonomous_alpha_expansion_strategy_generation_intelligence_packet01.py`
-- `GET /system/alpha-discovery-candidates/latest`
-- `GET /system/alpha-validation-results/latest`
-- `GET /system/alpha-admission-decision/latest`
-- `GET /system/alpha-lifecycle-state/latest`
-- `GET /system/alpha-inventory-health/latest`
+- `docs/Autonomous_alpha_expansion_strategy_generation_intelligence_packet02_plan.md`
+- `test_bundle/scripts/verify_autonomous_alpha_expansion_strategy_generation_intelligence_packet02.py`
+- `GET /system/alpha-generation-agenda/latest`
+- `GET /system/alpha-experiment-docket/latest`
+- `GET /system/alpha-replacement-decision/latest`
+- `GET /system/alpha-replacement-state/latest`
+- `GET /system/alpha-expansion-effectiveness/latest`
 
 ## Single-Block Resume Note
 
 ```text
-Current task is not another hardening packet, not another Execution Reality packet, not another Governance -> Runtime Control packet, not another Portfolio Intelligence packet, not another Alpha / Strategy Selection Intelligence packet, not another Research / Promotion Intelligence packet, and not another active DRI, LCC, MPI, or SERI packet. Current task is `AAE-01` so the system can discover, validate, admit, and refresh alpha inventory after SERI-05 checkpoint completion.
+Current task is not another hardening packet, not another Execution Reality packet, not another Governance -> Runtime Control packet, not another Portfolio Intelligence packet, not another Alpha / Strategy Selection Intelligence packet, not another Research / Promotion Intelligence packet, and not another active DRI, LCC, MPI, or SERI packet. Current task is `AAE-02` so the system can decide what to generate next, which experiments are ready, and which candidates should replace fragile inventory after AAE-01 visibility was established.
 ```
