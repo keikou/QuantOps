@@ -141,6 +141,22 @@ Contract progression:
 - governed universe state
 - strategy factory readiness
 
+## Alpha Synthesis / Structural Discovery Intelligence
+
+- `GET /system/alpha-synthesis-candidates/latest`
+- `GET /system/alpha-structure-search-state/latest`
+- `GET /system/alpha-novelty-evaluation/latest`
+- `GET /system/alpha-expression-library/latest`
+- `GET /system/alpha-synthesis-effectiveness/latest`
+
+Contract progression:
+
+- generated symbolic structures
+- structure search state
+- novelty scoring
+- expression library visibility
+- synthesis effectiveness
+
 ## Rule
 
 When a lane checkpoint becomes operationally visible through `/system/*`, add its family here as one grouped inventory rather than leaving the surface readable only from isolated endpoint rows.

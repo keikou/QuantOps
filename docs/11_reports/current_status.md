@@ -54,6 +54,11 @@ The repo currently stands in this state:
 - `AAE-05` now exposes `GET /system/alpha-governed-universe-state/latest`
 - `AAE-05` now exposes `GET /system/alpha-strategy-factory-readiness/latest`
 - `Autonomous Alpha Expansion / Strategy Generation Intelligence v1` is now checkpoint-complete through `AAE-05`
+- `ASD-01` now exposes `GET /system/alpha-synthesis-candidates/latest`
+- `ASD-01` now exposes `GET /system/alpha-structure-search-state/latest`
+- `ASD-01` now exposes `GET /system/alpha-novelty-evaluation/latest`
+- `ASD-01` now exposes `GET /system/alpha-expression-library/latest`
+- `ASD-01` now exposes `GET /system/alpha-synthesis-effectiveness/latest`
 
 ## Current Reports To Trust First
 
@@ -103,6 +108,11 @@ The current reporting state now says:
 - alpha portfolio intake queue is now explicit
 - alpha governed universe state is now explicit
 - alpha strategy factory readiness is now explicit
+- symbolic alpha synthesis candidates are now explicit
+- alpha structure search state is now explicit
+- alpha novelty evaluation is now explicit
+- alpha expression library is now explicit
+- alpha synthesis effectiveness is now explicit
 
 ## Current Decision Summary
 
@@ -111,21 +121,21 @@ Architect re-alignment now supports:
 - completed hardening slice
 - completed first checkpoints through `SERI-05`
 - no replay of `DRI`, `LCC`, `MPI`, or `SERI` unless a real regression appears
-- current work has shifted into `AAE v1 checkpoint freeze`
+- current work has shifted into `ASD-01`
 
 ## Default Next Candidate
 
-- `Autonomous Alpha Expansion / Strategy Generation Intelligence Checkpoint v1`
+- `Alpha Synthesis / Structural Discovery Intelligence Packet 01`
 
-## Current AAE v1 Docs-Ready State
+## Current ASD-01 Docs-Ready State
 
-- `AAE v1` checkpoint doc exists
-- `AAE` interface contract doc exists
-- `lane_surface_inventory.md` and `api_endpoints.md` include the `AAE` family
+- `ASD-01` task spec exists
+- `ASD` interface contract doc exists
+- `lane_surface_inventory.md` and `api_endpoints.md` include the `ASD` family
 - `10_agent` still exposes the docs-first operating loop for implementation startup
 
-## Current AAE v1 Runtime State
+## Current ASD-01 Runtime State
 
 - packet plan doc exists
-- packet verifiers exist through `AAE-05`
-- discovery through strategy-factory-readiness system surfaces exist
+- verifier exists
+- synthesis candidates, search state, novelty, expression library, and synthesis-effectiveness system surfaces exist

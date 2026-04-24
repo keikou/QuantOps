@@ -91,6 +91,14 @@ This file is the short routing index for the current operator-visible API endpoi
 - `GET /system/alpha-governed-universe-state/latest`
 - `GET /system/alpha-strategy-factory-readiness/latest`
 
+### Alpha Synthesis / Structural Discovery
+
+- `GET /system/alpha-synthesis-candidates/latest`
+- `GET /system/alpha-structure-search-state/latest`
+- `GET /system/alpha-novelty-evaluation/latest`
+- `GET /system/alpha-expression-library/latest`
+- `GET /system/alpha-synthesis-effectiveness/latest`
+
 ## Read Next
 
 1. `./endpoint_contract_matrix.md`

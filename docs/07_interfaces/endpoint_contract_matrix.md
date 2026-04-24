@@ -96,6 +96,16 @@ This file is the compact routing matrix for the current `system` contract surfac
 | `GET /system/alpha-governed-universe-state/latest` | governed universe state | governed alpha expansion or prune state |
 | `GET /system/alpha-strategy-factory-readiness/latest` | strategy factory readiness | operational alpha factory readiness |
 
+## Alpha Synthesis / Structural Discovery Surfaces
+
+| Endpoint | Contract role | Primary output |
+| --- | --- | --- |
+| `GET /system/alpha-synthesis-candidates/latest` | synthesis candidates | generated symbolic alpha candidates |
+| `GET /system/alpha-structure-search-state/latest` | structure search state | active symbolic search state |
+| `GET /system/alpha-novelty-evaluation/latest` | novelty evaluation | novelty scoring against expression library |
+| `GET /system/alpha-expression-library/latest` | expression library | persisted symbolic expression inventory |
+| `GET /system/alpha-synthesis-effectiveness/latest` | synthesis effectiveness | symbolic generator quality posture |
+
 ## Rule
 
 When a new `system` endpoint is added, update this matrix if the endpoint is operator-visible or part of the lane checkpoint contract surface.

@@ -3,7 +3,7 @@
 Date: `2026-04-24`
 Repo: `QuantOps_github`
 Branch: `codex/post-phase7-hardening`
-Status: `aae_v1_checkpoint_complete`
+Status: `asd01_active_boundary`
 
 ## Current Planning Decision
 
@@ -11,9 +11,9 @@ The current hardening/resume slice is treated as sufficiently complete.
 
 So the active planning question is now:
 
-- which top-level lane should follow `AAE v1`?
-- what should remain frozen as part of the completed `AAE` checkpoint?
-- what should not be replayed unless a real regression is found?
+- how should the missing alpha generator core become explicit at the system surface?
+- how should symbolic alpha structures be generated outside the existing template space?
+- how should novelty and synthesis effectiveness become operator-visible?
 
 Historical note:
 
@@ -25,7 +25,8 @@ Architect-selected answer:
 
 - `Strategy Evolution / Regime Adaptation Intelligence v1` is checkpoint-complete through `SERI-05`
 - `Autonomous Alpha Expansion / Strategy Generation Intelligence v1` is checkpoint-complete through `AAE-05`
-- current planning boundary is checkpoint freeze plus next-lane reselection
+- next top-level lane is `Alpha Synthesis / Structural Discovery Intelligence`
+- current packet boundary is `ASD-01: Symbolic Alpha Generator`
 
 ## Why This Is The Current Plan
 
@@ -49,7 +50,7 @@ Architect re-alignment now treats the following as sufficiently closed for the c
 - `Meta Portfolio Intelligence / Cross-Strategy Capital Allocation v1`
 - `Strategy Evolution / Regime Adaptation Intelligence v1`
 
-That means planning should not continue replaying `SERI` or `AAE` checkpoint work and should now move to next-lane reselection.
+That means planning should not continue replaying `SERI` or `AAE` checkpoint work and should now begin the missing generator core.
 
 ## Explicitly Completed Planning Slice
 
@@ -72,26 +73,24 @@ The following planning sequence is now historical and completed:
 
 ## Current Plan Outputs
 
-Current `AAE v1` checkpoint outputs now available:
+Current `ASD-01` outputs now available:
 
-- `../Autonomous_alpha_expansion_strategy_generation_intelligence_packet05_plan.md`
-- `../Autonomous_alpha_expansion_strategy_generation_intelligence_checkpoint_v1.md`
-- `../../test_bundle/scripts/verify_autonomous_alpha_expansion_strategy_generation_intelligence_packet05.py`
-- `GET /system/alpha-promotion-bridge/latest`
-- `GET /system/alpha-family-capital-intent/latest`
-- `GET /system/alpha-portfolio-intake-queue/latest`
-- `GET /system/alpha-governed-universe-state/latest`
-- `GET /system/alpha-strategy-factory-readiness/latest`
+- `../Alpha_synthesis_structural_discovery_intelligence_packet01_plan.md`
+- `../../test_bundle/scripts/verify_alpha_synthesis_structural_discovery_intelligence_packet01.py`
+- `GET /system/alpha-synthesis-candidates/latest`
+- `GET /system/alpha-structure-search-state/latest`
+- `GET /system/alpha-novelty-evaluation/latest`
+- `GET /system/alpha-expression-library/latest`
+- `GET /system/alpha-synthesis-effectiveness/latest`
 
 ## Current Docs-Ready State
 
-The docs route for `AAE v1` checkpoint freeze is now prepared and implemented.
+The docs route for `ASD-01` is now prepared and implemented.
 
 Current docs-ready assets:
 
-- `../04_tasks/aae05_intake_governance_and_strategy_factory_readiness_2026-04-24.md`
-- `../Autonomous_alpha_expansion_strategy_generation_intelligence_checkpoint_v1.md`
-- `../07_interfaces/aae_autonomous_alpha_expansion_contracts.md`
+- `../04_tasks/asd01_symbolic_alpha_generator_2026-04-24.md`
+- `../07_interfaces/asd_alpha_synthesis_contracts.md`
 - `../07_interfaces/lane_surface_inventory.md`
 - `../10_agent/ai_docs_operating_loop.md`
 
@@ -106,6 +105,7 @@ This is not the current plan:
 - replaying completed `DRI`, `LCC`, `MPI`, or `SERI` packets
 - inventing `SERI-06`
 - replaying completed `AAE-01` through `AAE-05`
+- treating `ASD` generator-core work as already complete
 
 ## Read Before Editing
 

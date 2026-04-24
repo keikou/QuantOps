@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from fastapi import APIRouter
+from ai_hedge_bot.alpha_synthesis.alpha_synthesis_service import AlphaSynthesisService
 from ai_hedge_bot.services.autonomous_alpha_expansion_strategy_generation_intelligence_service import (
     AutonomousAlphaExpansionStrategyGenerationIntelligenceService,
 )
@@ -46,6 +47,7 @@ _resume_operator_packet = ResumeOperatorPacketService()
 _strategy_evolution = StrategyEvolutionRegimeAdaptationIntelligenceService()
 _system_learning_feedback = SystemLevelLearningFeedbackIntegrationService()
 _autonomous_alpha_expansion = AutonomousAlphaExpansionStrategyGenerationIntelligenceService()
+_alpha_synthesis = AlphaSynthesisService()
 
 
 def _payload() -> dict:
@@ -389,3 +391,28 @@ def system_alpha_governed_universe_state_latest(limit: int = 20) -> dict:
 @router.get('/system/alpha-strategy-factory-readiness/latest')
 def system_alpha_strategy_factory_readiness_latest(limit: int = 20) -> dict:
     return _autonomous_alpha_expansion.alpha_strategy_factory_readiness_latest(limit=limit)
+
+
+@router.get('/system/alpha-synthesis-candidates/latest')
+def system_alpha_synthesis_candidates_latest(limit: int = 20) -> dict:
+    return _alpha_synthesis.alpha_synthesis_candidates_latest(limit=limit)
+
+
+@router.get('/system/alpha-structure-search-state/latest')
+def system_alpha_structure_search_state_latest(limit: int = 20) -> dict:
+    return _alpha_synthesis.alpha_structure_search_state_latest(limit=limit)
+
+
+@router.get('/system/alpha-novelty-evaluation/latest')
+def system_alpha_novelty_evaluation_latest(limit: int = 20) -> dict:
+    return _alpha_synthesis.alpha_novelty_evaluation_latest(limit=limit)
+
+
+@router.get('/system/alpha-expression-library/latest')
+def system_alpha_expression_library_latest(limit: int = 20) -> dict:
+    return _alpha_synthesis.alpha_expression_library_latest(limit=limit)
+
+
+@router.get('/system/alpha-synthesis-effectiveness/latest')
+def system_alpha_synthesis_effectiveness_latest(limit: int = 20) -> dict:
+    return _alpha_synthesis.alpha_synthesis_effectiveness_latest(limit=limit)

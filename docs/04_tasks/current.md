@@ -3,8 +3,8 @@
 Date: `2026-04-24`
 Repo: `QuantOps_github`
 Branch: `codex/post-phase7-hardening`
-Track: `autonomous_alpha_expansion_strategy_generation_intelligence`
-Status: `aae_v1_checkpoint_complete`
+Track: `alpha_synthesis_structural_discovery_intelligence`
+Status: `asd01_active`
 
 ## Purpose
 
@@ -30,14 +30,13 @@ That means:
 
 Current top task:
 
-- freeze `Autonomous Alpha Expansion / Strategy Generation Intelligence v1`
-- treat `AAE-01` through `AAE-05` as checkpoint-complete
-- do not open a new `AAE` packet unless a real regression is found
+- establish `Alpha Synthesis / Structural Discovery Intelligence`
+- implement `ASD-01: Symbolic Alpha Generator`
 
 Current architect-selected candidate:
 
-- `Autonomous Alpha Expansion / Strategy Generation Intelligence v1`
-- current implementation boundary = `checkpoint_complete_through_aae05`
+- `Alpha Synthesis / Structural Discovery Intelligence`
+- current implementation boundary = `ASD-01`
 - current dependency 1 = `Research / Promotion Intelligence v1 checkpoint through RPI-06`
 - current dependency 2 = `Alpha / Strategy Selection Intelligence v1 checkpoint through ASI-05`
 - current dependency 3 = `Portfolio Intelligence v1 checkpoint through PI-05`
@@ -54,31 +53,30 @@ Current architect-selected candidate:
 
 Architect now treats `Strategy Evolution / Regime Adaptation Intelligence v1` as checkpoint-complete.
 
-The next question is no longer another `AAE` packet.
-
 The next question is:
 
-- "which top-level lane should follow `AAE v1`?"
-- "what `AAE` surfaces are now frozen unless a real regression appears?"
+- "which symbolic alpha structures are being generated?"
+- "how novel are they versus the current expression library?"
+- "is the generator core effective enough to feed the completed `AAE` orchestration layer?"
 
 This is the next lane beyond the completed hardening/resume slice, but it is no longer the older `Execution Reality` default.
 
 ## Next Candidate Options
 
-1. `Autonomous Alpha Expansion / Strategy Generation Intelligence`
+1. `Alpha Synthesis / Structural Discovery Intelligence`
    - selected by architect as the next top-level lane
-2. `Strategy Evolution / Regime Adaptation Intelligence`
+2. `Autonomous Alpha Expansion / Strategy Generation Intelligence`
    - now treated as checkpoint-complete input, not the active lane
-3. `Deployment / Rollout Intelligence`
+3. `Strategy Evolution / Regime Adaptation Intelligence`
    - now treated as checkpoint-complete input, not the active lane
-4. `Live Capital Control / Adaptive Runtime Allocation`
+4. `Deployment / Rollout Intelligence`
    - now treated as checkpoint-complete input, not the active lane
-5. `Meta Portfolio Intelligence / Cross-Strategy Capital Allocation`
+5. `Live Capital Control / Adaptive Runtime Allocation`
    - now treated as checkpoint-complete input, not the active lane
 
 ## Current Recommendation
 
-Use `AAE v1 checkpoint freeze` as the current active task.
+Use `ASD-01` as the current active task.
 
 ## Explicit Non-Tasks
 
@@ -97,33 +95,37 @@ These are not current tasks:
 - reopening `Policy Optimization` as the active packet lane
 - continuing `DRI`, `LCC`, `MPI`, or `SERI` packet expansion as the active lane
 - replaying `AAE-01` through `AAE-05` without a real regression
+- extending `AAE` to fake generator-core completion
 
 ## Inputs To Read Before Acting
 
 1. `../00_index/README.md`
 2. `../Cross_thread_resume_handover_2026-04-24.md`
 3. `../Auto_resume_handover_2026-04-24.md`
-4. `../Strategy_evolution_regime_adaptation_intelligence_checkpoint_v1.md`
-5. `../Autonomous_alpha_expansion_strategy_generation_intelligence_checkpoint_v1.md`
-6. `../07_interfaces/aae_autonomous_alpha_expansion_contracts.md`
+4. `../Autonomous_alpha_expansion_strategy_generation_intelligence_checkpoint_v1.md`
+5. `../Alpha_synthesis_structural_discovery_intelligence_packet01_plan.md`
+6. `../07_interfaces/asd_alpha_synthesis_contracts.md`
 
 ## Expected Output Of The Next Task
 
 The current lane follow-up should produce:
 
-- one checkpoint doc
-- current-doc freeze guidance
-- explicit confirmation that `AAE-01` through `AAE-05` are checkpoint-complete
+- one packet plan doc
+- one verifier script
+- synthesis candidates, structure search state, novelty evaluation, expression library, and synthesis-effectiveness surfaces
 
-Current `AAE v1` outputs now available:
+Current `ASD-01` outputs now available:
 
-- `docs/Autonomous_alpha_expansion_strategy_generation_intelligence_checkpoint_v1.md`
-- `docs/Autonomous_alpha_expansion_strategy_generation_intelligence_packet05_plan.md`
-- `test_bundle/scripts/verify_autonomous_alpha_expansion_strategy_generation_intelligence_packet05.py`
-- all `AAE-01` through `AAE-05` surfaces under `/system/alpha-*`
+- `docs/Alpha_synthesis_structural_discovery_intelligence_packet01_plan.md`
+- `test_bundle/scripts/verify_alpha_synthesis_structural_discovery_intelligence_packet01.py`
+- `GET /system/alpha-synthesis-candidates/latest`
+- `GET /system/alpha-structure-search-state/latest`
+- `GET /system/alpha-novelty-evaluation/latest`
+- `GET /system/alpha-expression-library/latest`
+- `GET /system/alpha-synthesis-effectiveness/latest`
 
 ## Single-Block Resume Note
 
 ```text
-Current task is not another hardening packet, not another Execution Reality packet, not another Governance -> Runtime Control packet, not another Portfolio Intelligence packet, not another Alpha / Strategy Selection Intelligence packet, not another Research / Promotion Intelligence packet, and not another active DRI, LCC, MPI, or SERI packet. Current task is `AAE v1 checkpoint freeze`, so `AAE-01` through `AAE-05` are treated as complete and should not be replayed unless a real regression is found.
+Current task is not another hardening packet, not another Execution Reality packet, not another Governance -> Runtime Control packet, not another Portfolio Intelligence packet, not another Alpha / Strategy Selection Intelligence packet, not another Research / Promotion Intelligence packet, and not another active DRI, LCC, MPI, or SERI packet. Current task is `ASD-01`, so the missing alpha generator core becomes explicit without replaying completed `AAE` orchestration work.
 ```

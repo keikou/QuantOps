@@ -656,6 +656,60 @@ class RuntimeStore:
                     usage_count INTEGER,
                     tags_json VARCHAR
                 );
+                CREATE TABLE IF NOT EXISTS alpha_expression_library (
+                    expression_id VARCHAR,
+                    expression_hash VARCHAR,
+                    formula VARCHAR,
+                    ast_json VARCHAR,
+                    depth INTEGER,
+                    node_count INTEGER,
+                    feature_set_json VARCHAR,
+                    operator_set_json VARCHAR,
+                    generator_type VARCHAR,
+                    parent_expression_ids_json VARCHAR,
+                    status VARCHAR,
+                    created_at TIMESTAMP,
+                    updated_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS alpha_synthesis_runs (
+                    run_id VARCHAR,
+                    generator_type VARCHAR,
+                    config_json VARCHAR,
+                    requested_count INTEGER,
+                    generated_count INTEGER,
+                    accepted_count INTEGER,
+                    rejected_count INTEGER,
+                    started_at TIMESTAMP,
+                    completed_at TIMESTAMP,
+                    status VARCHAR
+                );
+                CREATE TABLE IF NOT EXISTS alpha_synthesis_candidates (
+                    candidate_id VARCHAR,
+                    run_id VARCHAR,
+                    expression_id VARCHAR,
+                    formula VARCHAR,
+                    generator_type VARCHAR,
+                    novelty_score DOUBLE,
+                    novelty_verdict VARCHAR,
+                    validation_status VARCHAR,
+                    rejection_reason VARCHAR,
+                    aae_submission_status VARCHAR,
+                    alpha_id VARCHAR,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS alpha_synthesis_novelty (
+                    novelty_id VARCHAR,
+                    candidate_id VARCHAR,
+                    expression_id VARCHAR,
+                    nearest_expression_id VARCHAR,
+                    exact_duplicate BOOLEAN,
+                    operator_jaccard_distance DOUBLE,
+                    feature_jaccard_distance DOUBLE,
+                    token_distance DOUBLE,
+                    novelty_score DOUBLE,
+                    novelty_verdict VARCHAR,
+                    created_at TIMESTAMP
+                );
                 CREATE TABLE IF NOT EXISTS live_orders (
                     live_order_id VARCHAR,
                     created_at TIMESTAMP,
@@ -776,3 +830,14 @@ class RuntimeStore:
     @staticmethod
     def to_json(value: Any) -> str:
         return json.dumps(value, ensure_ascii=False, default=str)
+
+    @staticmethod
+    def parse_json(value: Any, default: Any = None) -> Any:
+        if value in (None, ""):
+            return default
+        if isinstance(value, (dict, list)):
+            return value
+        try:
+            return json.loads(str(value))
+        except Exception:
+            return default
