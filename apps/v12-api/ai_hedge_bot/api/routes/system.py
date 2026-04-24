@@ -9,6 +9,7 @@ from ai_hedge_bot.alpha_weighting.weighting_service import AlphaWeightingService
 from ai_hedge_bot.alpha_ensemble.ensemble_service import AlphaEnsembleService
 from ai_hedge_bot.alpha_evaluation.evaluation_service import AlphaEvaluationService
 from ai_hedge_bot.alpha_validation.validation_service import AlphaValidationService
+from ai_hedge_bot.operational_risk.operational_risk_service import OperationalRiskService
 from ai_hedge_bot.alpha_synthesis.alpha_synthesis_service import AlphaSynthesisService
 from ai_hedge_bot.services.autonomous_alpha_expansion_strategy_generation_intelligence_service import (
     AutonomousAlphaExpansionStrategyGenerationIntelligenceService,
@@ -64,6 +65,7 @@ _alpha_capacity = AlphaCapacityService()
 _alpha_weighting = AlphaWeightingService()
 _alpha_retirement = AlphaRetirementService()
 _alpha_feedback = AlphaFeedbackService()
+_operational_risk = OperationalRiskService()
 
 
 def _payload() -> dict:
@@ -832,3 +834,101 @@ def system_alpha_feedback_loop_family(family_id: str) -> dict:
 @router.post('/system/alpha-policy-recommendations/apply')
 def system_alpha_policy_recommendations_apply(recommendation_id: str = "latest", approval: str = "operator_approved") -> dict:
     return _alpha_feedback.apply_policy_recommendations(recommendation_id=recommendation_id, approval=approval)
+
+
+@router.post('/system/operational-risk/run')
+def system_operational_risk_run(limit: int = 20) -> dict:
+    return _operational_risk.run(limit=limit)
+
+
+@router.get('/system/risk-state/latest')
+def system_risk_state_latest() -> dict:
+    return _operational_risk.risk_state_latest()
+
+
+@router.get('/system/global-risk-metrics/latest')
+def system_global_risk_metrics_latest(limit: int = 20) -> dict:
+    return _operational_risk.global_risk_metrics_latest(limit=limit)
+
+
+@router.get('/system/anomaly-detection/latest')
+def system_anomaly_detection_latest(limit: int = 20) -> dict:
+    return _operational_risk.anomaly_detection_latest(limit=limit)
+
+
+@router.get('/system/operational-incidents/latest')
+def system_operational_incidents_latest(limit: int = 20) -> dict:
+    return _operational_risk.operational_incidents_latest(limit=limit)
+
+
+@router.get('/system/risk-response/latest')
+def system_risk_response_latest(limit: int = 20) -> dict:
+    return _operational_risk.risk_response_latest(limit=limit)
+
+
+@router.post('/system/risk-response/execute')
+def system_risk_response_execute(action_id: str = "latest", approved: bool = False) -> dict:
+    return _operational_risk.execute_response(action_id=action_id, approved=approved)
+
+
+@router.post('/system/global-kill-switch')
+def system_global_kill_switch(
+    trigger_reason: str = "operator_requested",
+    risk_level: str = "L5_GLOBAL_HALT",
+    kill_scope: str = "global",
+    operator_id: str = "operator",
+) -> dict:
+    return _operational_risk.trigger_global_kill(
+        trigger_reason=trigger_reason,
+        risk_level=risk_level,
+        kill_scope=kill_scope,
+        operator_id=operator_id,
+    )
+
+
+@router.get('/system/global-kill-switch/latest')
+def system_global_kill_switch_latest(limit: int = 20) -> dict:
+    return _operational_risk.global_kill_switch_latest(limit=limit)
+
+
+@router.post('/system/operational-risk/override')
+def system_operational_risk_override(
+    operator_id: str = "operator",
+    override_scope: str = "system",
+    override_reason: str = "manual_override",
+) -> dict:
+    return _operational_risk.override(
+        operator_id=operator_id,
+        override_scope=override_scope,
+        override_reason=override_reason,
+    )
+
+
+@router.post('/system/risk-response/orchestrate')
+def system_risk_response_orchestrate() -> dict:
+    return _operational_risk.orchestrate_response()
+
+
+@router.get('/system/risk-response-orchestration/latest')
+def system_risk_response_orchestration_latest(limit: int = 20) -> dict:
+    return _operational_risk.risk_response_orchestration_latest(limit=limit)
+
+
+@router.get('/system/runtime-safe-mode/latest')
+def system_runtime_safe_mode_latest(limit: int = 20) -> dict:
+    return _operational_risk.runtime_safe_mode_latest(limit=limit)
+
+
+@router.get('/system/order-permission-matrix/latest')
+def system_order_permission_matrix_latest() -> dict:
+    return _operational_risk.order_permission_matrix_latest()
+
+
+@router.get('/system/risk-recovery-readiness/latest')
+def system_risk_recovery_readiness_latest(limit: int = 20) -> dict:
+    return _operational_risk.recovery_readiness_latest(limit=limit)
+
+
+@router.post('/system/risk-recovery/request')
+def system_risk_recovery_request(operator_id: str = "operator", reason: str = "operator_recovery_request") -> dict:
+    return _operational_risk.request_risk_recovery(operator_id=operator_id, reason=reason)

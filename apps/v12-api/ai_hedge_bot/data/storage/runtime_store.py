@@ -1217,6 +1217,146 @@ class RuntimeStore:
                     application_status VARCHAR,
                     created_at TIMESTAMP
                 );
+                CREATE TABLE IF NOT EXISTS operational_risk_runs (
+                    run_id VARCHAR,
+                    started_at TIMESTAMP,
+                    completed_at TIMESTAMP,
+                    telemetry_points INTEGER,
+                    anomaly_count INTEGER,
+                    incident_count INTEGER,
+                    max_risk_level VARCHAR,
+                    status VARCHAR,
+                    notes VARCHAR
+                );
+                CREATE TABLE IF NOT EXISTS operational_risk_metrics (
+                    run_id VARCHAR,
+                    metric_name VARCHAR,
+                    domain VARCHAR,
+                    metric_value DOUBLE,
+                    baseline_value DOUBLE,
+                    z_score DOUBLE,
+                    threshold_value DOUBLE,
+                    breach BOOLEAN,
+                    severity VARCHAR,
+                    entity_id VARCHAR,
+                    critical BOOLEAN,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS operational_anomalies (
+                    anomaly_id VARCHAR,
+                    run_id VARCHAR,
+                    domain VARCHAR,
+                    anomaly_type VARCHAR,
+                    entity_id VARCHAR,
+                    observed_value DOUBLE,
+                    expected_value DOUBLE,
+                    anomaly_score DOUBLE,
+                    severity VARCHAR,
+                    evidence_json VARCHAR,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS operational_incidents (
+                    incident_id VARCHAR,
+                    run_id VARCHAR,
+                    incident_type VARCHAR,
+                    domain VARCHAR,
+                    affected_entities VARCHAR,
+                    severity VARCHAR,
+                    risk_level VARCHAR,
+                    summary VARCHAR,
+                    evidence_json VARCHAR,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS operational_risk_state (
+                    state_id VARCHAR,
+                    run_id VARCHAR,
+                    global_risk_level VARCHAR,
+                    data_risk_level VARCHAR,
+                    execution_risk_level VARCHAR,
+                    portfolio_risk_level VARCHAR,
+                    alpha_system_risk_level VARCHAR,
+                    infra_risk_level VARCHAR,
+                    recommended_action VARCHAR,
+                    action_required BOOLEAN,
+                    reason VARCHAR,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS risk_response_actions (
+                    action_id VARCHAR,
+                    run_id VARCHAR,
+                    incident_id VARCHAR,
+                    action_type VARCHAR,
+                    target_scope VARCHAR,
+                    target_id VARCHAR,
+                    requested_by VARCHAR,
+                    approved BOOLEAN,
+                    executed BOOLEAN,
+                    execution_status VARCHAR,
+                    reason VARCHAR,
+                    created_at TIMESTAMP,
+                    executed_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS global_kill_switch_events (
+                    event_id VARCHAR,
+                    run_id VARCHAR,
+                    trigger_source VARCHAR,
+                    trigger_reason VARCHAR,
+                    risk_level VARCHAR,
+                    kill_scope VARCHAR,
+                    state_before VARCHAR,
+                    state_after VARCHAR,
+                    operator_id VARCHAR,
+                    reversible BOOLEAN,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS operational_risk_overrides (
+                    override_id VARCHAR,
+                    operator_id VARCHAR,
+                    override_scope VARCHAR,
+                    override_reason VARCHAR,
+                    expires_at VARCHAR,
+                    active BOOLEAN,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS risk_response_orchestrations (
+                    orchestration_id VARCHAR,
+                    run_id VARCHAR,
+                    event_id VARCHAR,
+                    risk_level VARCHAR,
+                    scope VARCHAR,
+                    recommended_action VARCHAR,
+                    requires_operator_approval BOOLEAN,
+                    lcc_payload VARCHAR,
+                    execution_payload VARCHAR,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS runtime_safe_mode_state (
+                    orchestration_id VARCHAR,
+                    risk_state VARCHAR,
+                    scope VARCHAR,
+                    allowed_order_modes VARCHAR,
+                    blocked_order_modes VARCHAR,
+                    reason VARCHAR,
+                    event_id VARCHAR,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS risk_recovery_readiness (
+                    orchestration_id VARCHAR,
+                    risk_level VARCHAR,
+                    required_checks VARCHAR,
+                    ready BOOLEAN,
+                    recovery_action VARCHAR,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS risk_recovery_requests (
+                    recovery_request_id VARCHAR,
+                    orchestration_id VARCHAR,
+                    operator_id VARCHAR,
+                    reason VARCHAR,
+                    approved BOOLEAN,
+                    request_status VARCHAR,
+                    created_at TIMESTAMP
+                );
                 CREATE TABLE IF NOT EXISTS live_orders (
                     live_order_id VARCHAR,
                     created_at TIMESTAMP,

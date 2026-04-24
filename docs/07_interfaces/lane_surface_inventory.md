@@ -307,6 +307,44 @@ Contract progression:
 - per-family feedback detail
 - operator-controlled policy application record
 
+## Operational Risk & Control Intelligence
+
+- `POST /system/operational-risk/run`
+- `GET /system/risk-state/latest`
+- `GET /system/global-risk-metrics/latest`
+- `GET /system/anomaly-detection/latest`
+- `GET /system/operational-incidents/latest`
+- `GET /system/risk-response/latest`
+- `POST /system/risk-response/execute`
+- `POST /system/global-kill-switch`
+- `GET /system/global-kill-switch/latest`
+- `POST /system/operational-risk/override`
+- `POST /system/risk-response/orchestrate`
+- `GET /system/risk-response-orchestration/latest`
+- `GET /system/runtime-safe-mode/latest`
+- `GET /system/order-permission-matrix/latest`
+- `GET /system/risk-recovery-readiness/latest`
+- `POST /system/risk-recovery/request`
+
+Contract progression:
+
+- explicit operational risk run trigger
+- global and domain risk state
+- system-level risk metric view
+- anomaly detection view
+- operational incident grouping
+- response recommendation view
+- response execution record
+- global kill-switch event record
+- kill-switch event log
+- operator override audit record
+- explicit risk response orchestration trigger
+- LCC and execution response payload view
+- runtime safe-mode contract view
+- order permission matrix view
+- recovery readiness view
+- operator recovery request record
+
 ## Rule
 
 When a lane checkpoint becomes operationally visible through `/system/*`, add its family here as one grouped inventory rather than leaving the surface readable only from isolated endpoint rows.

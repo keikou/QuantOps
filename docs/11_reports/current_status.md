@@ -24,10 +24,10 @@ The repo currently stands in this state:
 - `Live Capital Control / Adaptive Runtime Allocation v1` is checkpoint-complete through `LCC-05`
 - `Meta Portfolio Intelligence / Cross-Strategy Capital Allocation v1` is checkpoint-complete through `MPI-05`
 - `Strategy Evolution / Regime Adaptation Intelligence v1` is checkpoint-complete through `SERI-05`
-- latest local `HEAD` is `36d335c`
-- latest pushed commit is `36d335c`
+- latest local `HEAD` is `40fd56a`
+- latest pushed commit is `40fd56a`
 - branch working tree now includes `AAE-01` through `AAE-05` and `ASD-01`
-- canonical current-state docs are now aligned to `AES-08 active`
+- canonical current-state docs are now aligned to `ORC-02 active`
 - `AAE-01` now exposes `GET /system/alpha-discovery-candidates/latest`
 - `AAE-01` now exposes `GET /system/alpha-validation-results/latest`
 - `AAE-01` now exposes `GET /system/alpha-admission-decision/latest`
@@ -140,6 +140,23 @@ The repo currently stands in this state:
 - `AES-08` now exposes `GET /system/alpha-feedback-loop/alpha/{alpha_id}`
 - `AES-08` now exposes `GET /system/alpha-feedback-loop/family/{family_id}`
 - `AES-08` now exposes `POST /system/alpha-policy-recommendations/apply`
+- `Alpha Evaluation / Selection Intelligence v1` is checkpoint-complete through `AES-08`
+- `ORC-01` now exposes `POST /system/operational-risk/run`
+- `ORC-01` now exposes `GET /system/risk-state/latest`
+- `ORC-01` now exposes `GET /system/global-risk-metrics/latest`
+- `ORC-01` now exposes `GET /system/anomaly-detection/latest`
+- `ORC-01` now exposes `GET /system/operational-incidents/latest`
+- `ORC-01` now exposes `GET /system/risk-response/latest`
+- `ORC-01` now exposes `POST /system/risk-response/execute`
+- `ORC-01` now exposes `POST /system/global-kill-switch`
+- `ORC-01` now exposes `GET /system/global-kill-switch/latest`
+- `ORC-01` now exposes `POST /system/operational-risk/override`
+- `ORC-02` now exposes `POST /system/risk-response/orchestrate`
+- `ORC-02` now exposes `GET /system/risk-response-orchestration/latest`
+- `ORC-02` now exposes `GET /system/runtime-safe-mode/latest`
+- `ORC-02` now exposes `GET /system/order-permission-matrix/latest`
+- `ORC-02` now exposes `GET /system/risk-recovery-readiness/latest`
+- `ORC-02` now exposes `POST /system/risk-recovery/request`
 
 ## Current Reports To Trust First
 
@@ -245,22 +262,22 @@ Architect re-alignment now supports:
 - completed hardening slice
 - completed first checkpoints through `SERI-05`
 - no replay of `DRI`, `LCC`, `MPI`, or `SERI` unless a real regression appears
-- current work has shifted into `AES-08`
+- current work has shifted into `ORC-02`
 
 ## Default Next Candidate
 
-- `Alpha Evaluation / Selection Intelligence Packet 08`
+- `Operational Risk & Control Intelligence Packet 02`
 
-## Current AES-08 Docs-Ready State
+## Current ORC-02 Docs-Ready State
 
-- `AES-08` task spec exists
+- `ORC-02` task spec exists
 - packet plan doc exists
-- `AES` interface contract doc exists
-- `lane_surface_inventory.md` and `api_endpoints.md` include the `AES` family
+- `ORC` interface contract doc exists
+- `lane_surface_inventory.md` and `api_endpoints.md` include the `ORC` family
 - `10_agent` still exposes the docs-first operating loop for implementation startup
 
-## Current AES-08 Runtime State
+## Current ORC-02 Runtime State
 
 - packet plan doc exists
 - verifier exists
-- alpha feedback loop, learning signal, prior, family performance, and policy recommendation surfaces are implemented
+- risk response orchestration, runtime safe mode, order permission matrix, and recovery readiness surfaces are implemented

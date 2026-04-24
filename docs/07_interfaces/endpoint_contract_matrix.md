@@ -183,6 +183,27 @@ This file is the compact routing matrix for the current `system` contract surfac
 | `GET /system/alpha-feedback-loop/family/{family_id}` | family feedback lookup | per-family performance and prior context |
 | `POST /system/alpha-policy-recommendations/apply` | policy application record | operator-controlled policy application record |
 
+## Operational Risk & Control Surfaces
+
+| Endpoint | Contract role | Primary output |
+| --- | --- | --- |
+| `POST /system/operational-risk/run` | operational risk run trigger | explicit system-level risk evaluation execution request |
+| `GET /system/risk-state/latest` | risk state latest | global and domain risk levels |
+| `GET /system/global-risk-metrics/latest` | global risk metrics | data, execution, portfolio, alpha-system, and infra risk metrics |
+| `GET /system/anomaly-detection/latest` | anomaly detection | operational anomaly records by domain |
+| `GET /system/operational-incidents/latest` | operational incidents | grouped system-level incidents |
+| `GET /system/risk-response/latest` | risk response | recommended reduce, freeze, halt, or monitor actions |
+| `POST /system/risk-response/execute` | response execution record | operator-approved response execution record |
+| `POST /system/global-kill-switch` | global kill switch event | global or scoped kill-switch event record |
+| `GET /system/global-kill-switch/latest` | global kill switch latest | latest kill-switch event log |
+| `POST /system/operational-risk/override` | operational risk override | operator override audit record |
+| `POST /system/risk-response/orchestrate` | risk response orchestration trigger | explicit safe-mode and response orchestration request |
+| `GET /system/risk-response-orchestration/latest` | response orchestration latest | latest LCC and execution response payloads |
+| `GET /system/runtime-safe-mode/latest` | runtime safe mode latest | current allowed and blocked order modes by risk state |
+| `GET /system/order-permission-matrix/latest` | order permission matrix | risk-level order permission matrix |
+| `GET /system/risk-recovery-readiness/latest` | recovery readiness | required checks and readiness state for risk recovery |
+| `POST /system/risk-recovery/request` | risk recovery request | operator recovery request record |
+
 ## Rule
 
 When a new `system` endpoint is added, update this matrix if the endpoint is operator-visible or part of the lane checkpoint contract surface.

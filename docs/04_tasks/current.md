@@ -3,8 +3,8 @@
 Date: `2026-04-24`
 Repo: `QuantOps_github`
 Branch: `codex/post-phase7-hardening`
-Track: `alpha_evaluation_selection_intelligence`
-Status: `aes08_active`
+Track: `operational_risk_control_intelligence`
+Status: `orc02_active`
 
 ## Purpose
 
@@ -30,13 +30,13 @@ That means:
 
 Current top task:
 
-- establish `Alpha Evaluation / Selection Intelligence`
-- implement `AES-08: Self-Improving Alpha Loop`
+- establish `Operational Risk & Control Intelligence`
+- implement `ORC-02: Global Kill Switch / Risk Response Orchestrator`
 
 Current architect-selected candidate:
 
-- `Alpha Evaluation / Selection Intelligence`
-- current implementation boundary = `AES-08`
+- `Operational Risk & Control Intelligence`
+- current implementation boundary = `ORC-02`
 - current dependency 1 = `Research / Promotion Intelligence v1 checkpoint through RPI-06`
 - current dependency 2 = `Alpha / Strategy Selection Intelligence v1 checkpoint through ASI-05`
 - current dependency 3 = `Portfolio Intelligence v1 checkpoint through PI-05`
@@ -55,9 +55,9 @@ Architect now treats `Strategy Evolution / Regime Adaptation Intelligence v1` as
 
 The next question is:
 
-- "which alpha structures, families, and metrics survive live deployment?"
-- "what bounded policy recommendations should flow back into ASD, AAE, and AES?"
-- "how should the alpha factory improve without silently rewriting production logic?"
+- "can system-level risk enter safe mode faster than it creates new risk?"
+- "can LCC and execution read explicit safe-mode payloads?"
+- "can recovery readiness and recovery requests become auditable?"
 
 This is the next lane beyond the completed hardening/resume slice, but it is no longer the older `Execution Reality` default.
 
@@ -78,7 +78,7 @@ This is the next lane beyond the completed hardening/resume slice, but it is no 
 
 ## Current Recommendation
 
-Use `AES-08` as the current active task.
+Use `ORC-02` as the current active task.
 
 ## Explicit Non-Tasks
 
@@ -129,24 +129,21 @@ The current lane follow-up should produce:
 
 - one packet plan doc
 - one verifier script
-- alpha feedback loop, learning signal, generation prior, family performance, and policy recommendation surfaces
+- risk response orchestration, runtime safe mode, order permission matrix, and recovery readiness surfaces
 
-Current `AES-08` outputs now planned:
+Current `ORC-02` outputs now planned:
 
-- `docs/Alpha_evaluation_selection_intelligence_packet08_plan.md`
-- `test_bundle/scripts/verify_alpha_evaluation_selection_intelligence_packet08.py`
-- `POST /system/alpha-feedback-loop/run`
-- `GET /system/alpha-feedback-loop/latest`
-- `GET /system/alpha-learning-signals/latest`
-- `GET /system/alpha-generation-priors/latest`
-- `GET /system/alpha-family-performance/latest`
-- `GET /system/alpha-policy-recommendations/latest`
-- `GET /system/alpha-feedback-loop/alpha/{alpha_id}`
-- `GET /system/alpha-feedback-loop/family/{family_id}`
-- `POST /system/alpha-policy-recommendations/apply`
+- `docs/Operational_risk_control_intelligence_packet02_plan.md`
+- `test_bundle/scripts/verify_operational_risk_control_intelligence_packet02.py`
+- `POST /system/risk-response/orchestrate`
+- `GET /system/risk-response-orchestration/latest`
+- `GET /system/runtime-safe-mode/latest`
+- `GET /system/order-permission-matrix/latest`
+- `GET /system/risk-recovery-readiness/latest`
+- `POST /system/risk-recovery/request`
 
 ## Single-Block Resume Note
 
 ```text
-Current task is not another hardening packet, not another Execution Reality packet, not another Governance -> Runtime Control packet, not another Portfolio Intelligence packet, not another Alpha / Strategy Selection Intelligence packet, not another Research / Promotion Intelligence packet, and not another active DRI, LCC, MPI, or SERI packet. Current task is `AES-08`, so completed `AAE`, `ASD`, and `AES-01` through `AES-07` work should be treated as input lanes and not replayed unless a real regression is found.
+Current task is not another hardening packet, not another Execution Reality packet, not another Governance -> Runtime Control packet, not another Portfolio Intelligence packet, not another Alpha / Strategy Selection Intelligence packet, not another Research / Promotion Intelligence packet, and not another active DRI, LCC, MPI, SERI, AAE, ASD, or AES packet. Current task is `ORC-02`, so completed `AES-01` through `AES-08` and `ORC-01` work should be treated as input lanes and not replayed unless a real regression is found.
 ```

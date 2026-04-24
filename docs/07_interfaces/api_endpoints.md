@@ -174,6 +174,25 @@ This file is the short routing index for the current operator-visible API endpoi
 - `GET /system/alpha-feedback-loop/family/{family_id}`
 - `POST /system/alpha-policy-recommendations/apply`
 
+### Operational Risk & Control
+
+- `POST /system/operational-risk/run`
+- `GET /system/risk-state/latest`
+- `GET /system/global-risk-metrics/latest`
+- `GET /system/anomaly-detection/latest`
+- `GET /system/operational-incidents/latest`
+- `GET /system/risk-response/latest`
+- `POST /system/risk-response/execute`
+- `POST /system/global-kill-switch`
+- `GET /system/global-kill-switch/latest`
+- `POST /system/operational-risk/override`
+- `POST /system/risk-response/orchestrate`
+- `GET /system/risk-response-orchestration/latest`
+- `GET /system/runtime-safe-mode/latest`
+- `GET /system/order-permission-matrix/latest`
+- `GET /system/risk-recovery-readiness/latest`
+- `POST /system/risk-recovery/request`
+
 ## Read Next
 
 1. `./endpoint_contract_matrix.md`

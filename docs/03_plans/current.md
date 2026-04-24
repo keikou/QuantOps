@@ -3,7 +3,7 @@
 Date: `2026-04-24`
 Repo: `QuantOps_github`
 Branch: `codex/post-phase7-hardening`
-Status: `aes08_active_boundary`
+Status: `orc02_active_boundary`
 
 ## Current Planning Decision
 
@@ -11,9 +11,9 @@ The current hardening/resume slice is treated as sufficiently complete.
 
 So the active planning question is now:
 
-- how should generated alpha be evaluated before promotion?
-- how should noise, decay, overfit, and redundancy become explicit at the system surface?
-- how should selection decisions become operator-visible before portfolio intake?
+- how should system-level risk be detected before capital damage?
+- how should data, execution, portfolio, alpha-system, and infra anomalies become explicit?
+- how should reduce, freeze, halt, and override recommendations become operator-visible?
 
 Historical note:
 
@@ -27,8 +27,9 @@ Architect-selected answer:
 - `Autonomous Alpha Expansion / Strategy Generation Intelligence v1` is checkpoint-complete through `AAE-05`
 - `Autonomous Alpha Expansion / Strategy Generation Intelligence v1` is checkpoint-complete through `AAE-05`
 - `Alpha Synthesis / Structural Discovery Intelligence v1` is checkpoint-complete through `ASD-05`
-- next top-level lane is `Alpha Evaluation / Selection Intelligence`
-- current packet boundary is `AES-08: Self-Improving Alpha Loop`
+- `Alpha Evaluation / Selection Intelligence v1` is checkpoint-complete through `AES-08`
+- next top-level lane is `Operational Risk & Control Intelligence`
+- current packet boundary is `ORC-02: Global Kill Switch / Risk Response Orchestrator`
 
 ## Why This Is The Current Plan
 
@@ -75,23 +76,20 @@ The following planning sequence is now historical and completed:
 
 ## Current Plan Outputs
 
-Current `AES-08` outputs now planned:
+Current `ORC-02` outputs now planned:
 
-- `../Alpha_evaluation_selection_intelligence_packet08_plan.md`
-- `../../test_bundle/scripts/verify_alpha_evaluation_selection_intelligence_packet08.py`
-- `POST /system/alpha-feedback-loop/run`
-- `GET /system/alpha-feedback-loop/latest`
-- `GET /system/alpha-learning-signals/latest`
-- `GET /system/alpha-generation-priors/latest`
-- `GET /system/alpha-family-performance/latest`
-- `GET /system/alpha-policy-recommendations/latest`
-- `GET /system/alpha-feedback-loop/alpha/{alpha_id}`
-- `GET /system/alpha-feedback-loop/family/{family_id}`
-- `POST /system/alpha-policy-recommendations/apply`
+- `../Operational_risk_control_intelligence_packet02_plan.md`
+- `../../test_bundle/scripts/verify_operational_risk_control_intelligence_packet02.py`
+- `POST /system/risk-response/orchestrate`
+- `GET /system/risk-response-orchestration/latest`
+- `GET /system/runtime-safe-mode/latest`
+- `GET /system/order-permission-matrix/latest`
+- `GET /system/risk-recovery-readiness/latest`
+- `POST /system/risk-recovery/request`
 
 ## Current Docs-Ready State
 
-The docs route for `AES-08` is now prepared for implementation startup.
+The docs route for `ORC-02` is now prepared for implementation startup.
 
 Current docs-ready assets:
 
@@ -108,6 +106,9 @@ Current docs-ready assets:
 - `../AES-06_Dynamic_Alpha_Weighting_Engine.md`
 - `../AES-07_Alpha_Kill_Switch_Retirement_Engine.md`
 - `../AES-08_Self_Improving_Alpha_Loop.md`
+- `../Operational_risk_control_intelligence_packet01_plan.md`
+- `../Operational_risk_control_intelligence_packet02_plan.md`
+- `../07_interfaces/orc_operational_risk_contracts.md`
 - `../07_interfaces/aes_alpha_evaluation_contracts.md`
 - `../07_interfaces/lane_surface_inventory.md`
 - `../10_agent/ai_docs_operating_loop.md`
