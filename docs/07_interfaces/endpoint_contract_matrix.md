@@ -152,6 +152,36 @@ This file is the compact routing matrix for the current `system` contract surfac
 | `GET /system/alpha-factor-concentration/latest` | factor concentration | ensemble factor concentration view |
 | `GET /system/alpha-economic-meaning/latest` | economic meaning | economic label and scaling recommendation |
 | `GET /system/alpha-factor-attribution/ensemble/{ensemble_id}` | ensemble attribution lookup | per-ensemble attribution detail |
+| `POST /system/alpha-capacity/run` | capacity run trigger | explicit capacity and crowding execution request |
+| `GET /system/alpha-capacity/latest` | capacity latest | latest per-alpha capacity summary |
+| `GET /system/alpha-capacity/candidate/{alpha_id}` | capacity candidate lookup | per-alpha capacity, impact, and crowding detail |
+| `GET /system/alpha-crowding/latest` | crowding risk | crowding and overlap risk view |
+| `GET /system/alpha-impact/latest` | impact model | market impact and impact-adjusted return view |
+| `GET /system/alpha-capacity/ensemble/{ensemble_id}` | ensemble capacity lookup | per-ensemble capacity limit and scaling decision |
+| `POST /system/alpha-dynamic-weights/run` | dynamic weighting run trigger | explicit dynamic alpha weighting execution request |
+| `GET /system/alpha-dynamic-weights/latest` | dynamic weights latest | latest target, smoothed, and constrained alpha weights |
+| `GET /system/alpha-dynamic-weights/ensemble/{ensemble_id}` | ensemble dynamic weights lookup | per-ensemble dynamic weight proposal detail |
+| `GET /system/alpha-weight-adjustments/latest` | weight adjustments | latest alpha weight adjustment reasons |
+| `GET /system/alpha-weight-drift/latest` | weight drift | weight delta and drift flag view |
+| `GET /system/alpha-weight-constraints/latest` | weight constraints | turnover, max-weight, and capacity constraint events |
+| `GET /system/alpha-weight-proposals/latest` | weight proposals | MPI-ready proposal and LCC review metadata |
+| `POST /system/alpha-kill-switch/run` | kill-switch run trigger | explicit alpha kill-switch and retirement execution request |
+| `GET /system/alpha-kill-switch/latest` | kill-switch latest | latest alpha stop, freeze, reduce, and continue decisions |
+| `GET /system/alpha-kill-switch/alpha/{alpha_id}` | alpha kill-switch lookup | per-alpha health, decision, and event detail |
+| `GET /system/alpha-retirement/latest` | retirement latest | latest retirement decision summary |
+| `GET /system/alpha-retirement/alpha/{alpha_id}` | alpha retirement lookup | per-alpha retirement and lifecycle update detail |
+| `GET /system/alpha-deactivation-decisions/latest` | deactivation decisions | alpha reduce, freeze, and retire action list |
+| `GET /system/alpha-kill-switch-events/latest` | kill-switch events | stop, freeze, and reduce event log |
+| `POST /system/alpha-kill-switch/override` | kill-switch override | operator override record |
+| `POST /system/alpha-feedback-loop/run` | feedback loop run trigger | explicit self-improving alpha loop execution request |
+| `GET /system/alpha-feedback-loop/latest` | feedback loop latest | latest realized alpha outcomes and learning signals |
+| `GET /system/alpha-learning-signals/latest` | learning signals | alpha outcome classes and learning actions |
+| `GET /system/alpha-generation-priors/latest` | generation priors | bounded ASD generation prior recommendations |
+| `GET /system/alpha-family-performance/latest` | family performance | alpha family realized performance and recommendation |
+| `GET /system/alpha-policy-recommendations/latest` | policy recommendations | bounded AES/ASD/AAE policy recommendations |
+| `GET /system/alpha-feedback-loop/alpha/{alpha_id}` | alpha feedback lookup | per-alpha outcome and motif context |
+| `GET /system/alpha-feedback-loop/family/{family_id}` | family feedback lookup | per-family performance and prior context |
+| `POST /system/alpha-policy-recommendations/apply` | policy application record | operator-controlled policy application record |
 
 ## Rule
 

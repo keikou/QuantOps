@@ -974,6 +974,249 @@ class RuntimeStore:
                     production_recommendation VARCHAR,
                     created_at TIMESTAMP
                 );
+                CREATE TABLE IF NOT EXISTS alpha_capacity_runs (
+                    run_id VARCHAR,
+                    started_at TIMESTAMP,
+                    completed_at TIMESTAMP,
+                    alpha_count INTEGER,
+                    ensemble_count INTEGER,
+                    status VARCHAR,
+                    notes VARCHAR
+                );
+                CREATE TABLE IF NOT EXISTS alpha_capacity (
+                    run_id VARCHAR,
+                    ensemble_id VARCHAR,
+                    alpha_id VARCHAR,
+                    weight DOUBLE,
+                    liquidity_score DOUBLE,
+                    turnover DOUBLE,
+                    impact_cost DOUBLE,
+                    capacity DOUBLE,
+                    crowding_score DOUBLE,
+                    impact_adjusted_return DOUBLE,
+                    scaling_recommendation VARCHAR,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS alpha_impact (
+                    run_id VARCHAR,
+                    ensemble_id VARCHAR,
+                    alpha_id VARCHAR,
+                    trade_size_fraction DOUBLE,
+                    impact_cost DOUBLE,
+                    turnover_impact DOUBLE,
+                    impact_adjusted_return DOUBLE,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS alpha_crowding (
+                    run_id VARCHAR,
+                    ensemble_id VARCHAR,
+                    alpha_id VARCHAR,
+                    correlation_cluster_score DOUBLE,
+                    factor_concentration DOUBLE,
+                    signal_overlap DOUBLE,
+                    volume_anomaly DOUBLE,
+                    crowding_score DOUBLE,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS ensemble_capacity (
+                    run_id VARCHAR,
+                    ensemble_id VARCHAR,
+                    total_capacity DOUBLE,
+                    limiting_alpha VARCHAR,
+                    scaling_recommendation VARCHAR,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS alpha_weighting_runs (
+                    run_id VARCHAR,
+                    started_at TIMESTAMP,
+                    completed_at TIMESTAMP,
+                    alpha_count INTEGER,
+                    ensemble_count INTEGER,
+                    proposal_count INTEGER,
+                    status VARCHAR,
+                    notes VARCHAR
+                );
+                CREATE TABLE IF NOT EXISTS alpha_live_state (
+                    run_id VARCHAR,
+                    ensemble_id VARCHAR,
+                    alpha_id VARCHAR,
+                    return_signal DOUBLE,
+                    capacity_signal DOUBLE,
+                    liquidity_signal DOUBLE,
+                    crowding_penalty DOUBLE,
+                    impact_penalty DOUBLE,
+                    live_evidence_score DOUBLE,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS alpha_weight_signals (
+                    run_id VARCHAR,
+                    ensemble_id VARCHAR,
+                    alpha_id VARCHAR,
+                    signal_name VARCHAR,
+                    signal_value DOUBLE,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS alpha_dynamic_weights (
+                    run_id VARCHAR,
+                    ensemble_id VARCHAR,
+                    alpha_id VARCHAR,
+                    current_weight DOUBLE,
+                    target_weight DOUBLE,
+                    smoothed_weight DOUBLE,
+                    final_weight DOUBLE,
+                    weight_delta DOUBLE,
+                    weight_change_reason VARCHAR,
+                    constraint_action VARCHAR,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS alpha_weight_constraints (
+                    run_id VARCHAR,
+                    ensemble_id VARCHAR,
+                    alpha_id VARCHAR,
+                    max_weight DOUBLE,
+                    max_delta DOUBLE,
+                    lower_bound DOUBLE,
+                    upper_bound DOUBLE,
+                    constraint_action VARCHAR,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS alpha_weight_proposals (
+                    run_id VARCHAR,
+                    ensemble_id VARCHAR,
+                    proposal_status VARCHAR,
+                    max_abs_weight_change DOUBLE,
+                    constraint_event_count INTEGER,
+                    mpi_intent VARCHAR,
+                    lcc_review_reason VARCHAR,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS alpha_retirement_runs (
+                    run_id VARCHAR,
+                    started_at TIMESTAMP,
+                    completed_at TIMESTAMP,
+                    alpha_count INTEGER,
+                    event_count INTEGER,
+                    retirement_count INTEGER,
+                    status VARCHAR,
+                    notes VARCHAR
+                );
+                CREATE TABLE IF NOT EXISTS alpha_live_health (
+                    run_id VARCHAR,
+                    ensemble_id VARCHAR,
+                    alpha_id VARCHAR,
+                    health_score DOUBLE,
+                    deactivation_pressure DOUBLE,
+                    live_evidence_score DOUBLE,
+                    crowding_penalty DOUBLE,
+                    impact_penalty DOUBLE,
+                    weight_delta DOUBLE,
+                    health_state VARCHAR,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS alpha_kill_switch_events (
+                    run_id VARCHAR,
+                    ensemble_id VARCHAR,
+                    alpha_id VARCHAR,
+                    event_type VARCHAR,
+                    severity VARCHAR,
+                    event_reason VARCHAR,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS alpha_retirement_decisions (
+                    run_id VARCHAR,
+                    ensemble_id VARCHAR,
+                    alpha_id VARCHAR,
+                    decision VARCHAR,
+                    kill_switch_action VARCHAR,
+                    decision_reason VARCHAR,
+                    lifecycle_state VARCHAR,
+                    mpi_notification VARCHAR,
+                    lcc_notification VARCHAR,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS alpha_lifecycle_updates (
+                    run_id VARCHAR,
+                    alpha_id VARCHAR,
+                    previous_state VARCHAR,
+                    next_state VARCHAR,
+                    aae_update_payload VARCHAR,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS alpha_kill_switch_overrides (
+                    override_id VARCHAR,
+                    alpha_id VARCHAR,
+                    override_action VARCHAR,
+                    override_reason VARCHAR,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS alpha_feedback_runs (
+                    run_id VARCHAR,
+                    started_at TIMESTAMP,
+                    completed_at TIMESTAMP,
+                    alpha_count INTEGER,
+                    family_count INTEGER,
+                    recommendation_count INTEGER,
+                    status VARCHAR,
+                    notes VARCHAR
+                );
+                CREATE TABLE IF NOT EXISTS alpha_realized_outcomes (
+                    run_id VARCHAR,
+                    ensemble_id VARCHAR,
+                    alpha_id VARCHAR,
+                    family_id VARCHAR,
+                    outcome_class VARCHAR,
+                    realized_score DOUBLE,
+                    learning_signal VARCHAR,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS alpha_structural_motifs (
+                    run_id VARCHAR,
+                    family_id VARCHAR,
+                    motif VARCHAR,
+                    survival_score DOUBLE,
+                    motif_recommendation VARCHAR,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS alpha_metric_predictiveness (
+                    run_id VARCHAR,
+                    metric_name VARCHAR,
+                    predictiveness_score DOUBLE,
+                    calibration_action VARCHAR,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS alpha_generation_priors (
+                    run_id VARCHAR,
+                    family_id VARCHAR,
+                    motif VARCHAR,
+                    prior_delta DOUBLE,
+                    prior_action VARCHAR,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS alpha_family_performance (
+                    run_id VARCHAR,
+                    family_id VARCHAR,
+                    alpha_count INTEGER,
+                    average_realized_score DOUBLE,
+                    degraded_count INTEGER,
+                    family_recommendation VARCHAR,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS alpha_policy_recommendations (
+                    run_id VARCHAR,
+                    policy_area VARCHAR,
+                    recommendation VARCHAR,
+                    rationale VARCHAR,
+                    requires_operator_approval BOOLEAN,
+                    application_status VARCHAR,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS alpha_policy_applications (
+                    application_id VARCHAR,
+                    recommendation_id VARCHAR,
+                    approval VARCHAR,
+                    application_status VARCHAR,
+                    created_at TIMESTAMP
+                );
                 CREATE TABLE IF NOT EXISTS live_orders (
                     live_order_id VARCHAR,
                     created_at TIMESTAMP,

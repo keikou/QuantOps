@@ -27,7 +27,7 @@ The repo currently stands in this state:
 - latest local `HEAD` is `36d335c`
 - latest pushed commit is `36d335c`
 - branch working tree now includes `AAE-01` through `AAE-05` and `ASD-01`
-- canonical current-state docs are now aligned to `AES-04 active`
+- canonical current-state docs are now aligned to `AES-08 active`
 - `AAE-01` now exposes `GET /system/alpha-discovery-candidates/latest`
 - `AAE-01` now exposes `GET /system/alpha-validation-results/latest`
 - `AAE-01` now exposes `GET /system/alpha-admission-decision/latest`
@@ -110,6 +110,36 @@ The repo currently stands in this state:
 - `AES-04` now defines `GET /system/alpha-factor-concentration/latest`
 - `AES-04` now defines `GET /system/alpha-economic-meaning/latest`
 - `AES-04` now defines `GET /system/alpha-factor-attribution/ensemble/{ensemble_id}`
+- `AES-05` now exposes `POST /system/alpha-capacity/run`
+- `AES-05` now exposes `GET /system/alpha-capacity/latest`
+- `AES-05` now exposes `GET /system/alpha-capacity/candidate/{alpha_id}`
+- `AES-05` now exposes `GET /system/alpha-crowding/latest`
+- `AES-05` now exposes `GET /system/alpha-impact/latest`
+- `AES-05` now exposes `GET /system/alpha-capacity/ensemble/{ensemble_id}`
+- `AES-06` now exposes `POST /system/alpha-dynamic-weights/run`
+- `AES-06` now exposes `GET /system/alpha-dynamic-weights/latest`
+- `AES-06` now exposes `GET /system/alpha-dynamic-weights/ensemble/{ensemble_id}`
+- `AES-06` now exposes `GET /system/alpha-weight-adjustments/latest`
+- `AES-06` now exposes `GET /system/alpha-weight-drift/latest`
+- `AES-06` now exposes `GET /system/alpha-weight-constraints/latest`
+- `AES-06` now exposes `GET /system/alpha-weight-proposals/latest`
+- `AES-07` now exposes `POST /system/alpha-kill-switch/run`
+- `AES-07` now exposes `GET /system/alpha-kill-switch/latest`
+- `AES-07` now exposes `GET /system/alpha-kill-switch/alpha/{alpha_id}`
+- `AES-07` now exposes `GET /system/alpha-retirement/latest`
+- `AES-07` now exposes `GET /system/alpha-retirement/alpha/{alpha_id}`
+- `AES-07` now exposes `GET /system/alpha-deactivation-decisions/latest`
+- `AES-07` now exposes `GET /system/alpha-kill-switch-events/latest`
+- `AES-07` now exposes `POST /system/alpha-kill-switch/override`
+- `AES-08` now exposes `POST /system/alpha-feedback-loop/run`
+- `AES-08` now exposes `GET /system/alpha-feedback-loop/latest`
+- `AES-08` now exposes `GET /system/alpha-learning-signals/latest`
+- `AES-08` now exposes `GET /system/alpha-generation-priors/latest`
+- `AES-08` now exposes `GET /system/alpha-family-performance/latest`
+- `AES-08` now exposes `GET /system/alpha-policy-recommendations/latest`
+- `AES-08` now exposes `GET /system/alpha-feedback-loop/alpha/{alpha_id}`
+- `AES-08` now exposes `GET /system/alpha-feedback-loop/family/{family_id}`
+- `AES-08` now exposes `POST /system/alpha-policy-recommendations/apply`
 
 ## Current Reports To Trust First
 
@@ -203,6 +233,10 @@ The current reporting state now says:
 - alpha economic risk is now planned as an explicit system surface
 - alpha factor concentration is now planned as an explicit system surface
 - alpha economic meaning is now planned as an explicit system surface
+- alpha capacity is now explicit
+- alpha crowding risk is now explicit
+- alpha market impact is now explicit
+- ensemble capacity is now explicit
 
 ## Current Decision Summary
 
@@ -211,22 +245,22 @@ Architect re-alignment now supports:
 - completed hardening slice
 - completed first checkpoints through `SERI-05`
 - no replay of `DRI`, `LCC`, `MPI`, or `SERI` unless a real regression appears
-- current work has shifted into `AES-04`
+- current work has shifted into `AES-08`
 
 ## Default Next Candidate
 
-- `Alpha Evaluation / Selection Intelligence Packet 04`
+- `Alpha Evaluation / Selection Intelligence Packet 08`
 
-## Current AES-04 Docs-Ready State
+## Current AES-08 Docs-Ready State
 
-- `AES-04` task spec exists
+- `AES-08` task spec exists
 - packet plan doc exists
 - `AES` interface contract doc exists
 - `lane_surface_inventory.md` and `api_endpoints.md` include the `AES` family
 - `10_agent` still exposes the docs-first operating loop for implementation startup
 
-## Current AES-04 Runtime State
+## Current AES-08 Runtime State
 
 - packet plan doc exists
 - verifier exists
-- factor attribution latest, factor exposure, residual alpha, economic risk, factor concentration, and economic meaning surfaces are defined for implementation
+- alpha feedback loop, learning signal, prior, family performance, and policy recommendation surfaces are implemented

@@ -143,6 +143,36 @@ This file is the short routing index for the current operator-visible API endpoi
 - `GET /system/alpha-factor-concentration/latest`
 - `GET /system/alpha-economic-meaning/latest`
 - `GET /system/alpha-factor-attribution/ensemble/{ensemble_id}`
+- `POST /system/alpha-capacity/run`
+- `GET /system/alpha-capacity/latest`
+- `GET /system/alpha-capacity/candidate/{alpha_id}`
+- `GET /system/alpha-crowding/latest`
+- `GET /system/alpha-impact/latest`
+- `GET /system/alpha-capacity/ensemble/{ensemble_id}`
+- `POST /system/alpha-dynamic-weights/run`
+- `GET /system/alpha-dynamic-weights/latest`
+- `GET /system/alpha-dynamic-weights/ensemble/{ensemble_id}`
+- `GET /system/alpha-weight-adjustments/latest`
+- `GET /system/alpha-weight-drift/latest`
+- `GET /system/alpha-weight-constraints/latest`
+- `GET /system/alpha-weight-proposals/latest`
+- `POST /system/alpha-kill-switch/run`
+- `GET /system/alpha-kill-switch/latest`
+- `GET /system/alpha-kill-switch/alpha/{alpha_id}`
+- `GET /system/alpha-retirement/latest`
+- `GET /system/alpha-retirement/alpha/{alpha_id}`
+- `GET /system/alpha-deactivation-decisions/latest`
+- `GET /system/alpha-kill-switch-events/latest`
+- `POST /system/alpha-kill-switch/override`
+- `POST /system/alpha-feedback-loop/run`
+- `GET /system/alpha-feedback-loop/latest`
+- `GET /system/alpha-learning-signals/latest`
+- `GET /system/alpha-generation-priors/latest`
+- `GET /system/alpha-family-performance/latest`
+- `GET /system/alpha-policy-recommendations/latest`
+- `GET /system/alpha-feedback-loop/alpha/{alpha_id}`
+- `GET /system/alpha-feedback-loop/family/{family_id}`
+- `POST /system/alpha-policy-recommendations/apply`
 
 ## Read Next
 

@@ -2,7 +2,7 @@
 
 Date: `2026-04-25`
 Repo: `QuantOps_github`
-Status: `aes03_extended_contracts`
+Status: `aes08_extended_contracts`
 
 ## Canonical AES Surfaces
 
@@ -70,3 +70,53 @@ The next `AES` family extends from ensemble construction into economic meaning a
 7. `GET /system/alpha-factor-concentration/latest`
 8. `GET /system/alpha-economic-meaning/latest`
 9. `GET /system/alpha-factor-attribution/ensemble/{ensemble_id}`
+
+## AES-05 Extension
+
+The next `AES` family extends from attribution into capacity and crowding risk control:
+
+1. `POST /system/alpha-capacity/run`
+2. `GET /system/alpha-capacity/latest`
+3. `GET /system/alpha-capacity/candidate/{alpha_id}`
+4. `GET /system/alpha-crowding/latest`
+5. `GET /system/alpha-impact/latest`
+6. `GET /system/alpha-capacity/ensemble/{ensemble_id}`
+
+## AES-06 Extension
+
+The next `AES` family extends from capacity control into dynamic alpha weighting:
+
+1. `POST /system/alpha-dynamic-weights/run`
+2. `GET /system/alpha-dynamic-weights/latest`
+3. `GET /system/alpha-dynamic-weights/ensemble/{ensemble_id}`
+4. `GET /system/alpha-weight-adjustments/latest`
+5. `GET /system/alpha-weight-drift/latest`
+6. `GET /system/alpha-weight-constraints/latest`
+7. `GET /system/alpha-weight-proposals/latest`
+
+## AES-07 Extension
+
+The next `AES` family extends from dynamic weighting into alpha kill switch and retirement control:
+
+1. `POST /system/alpha-kill-switch/run`
+2. `GET /system/alpha-kill-switch/latest`
+3. `GET /system/alpha-kill-switch/alpha/{alpha_id}`
+4. `GET /system/alpha-retirement/latest`
+5. `GET /system/alpha-retirement/alpha/{alpha_id}`
+6. `GET /system/alpha-deactivation-decisions/latest`
+7. `GET /system/alpha-kill-switch-events/latest`
+8. `POST /system/alpha-kill-switch/override`
+
+## AES-08 Extension
+
+The next `AES` family extends from retirement control into closed-loop alpha learning:
+
+1. `POST /system/alpha-feedback-loop/run`
+2. `GET /system/alpha-feedback-loop/latest`
+3. `GET /system/alpha-learning-signals/latest`
+4. `GET /system/alpha-generation-priors/latest`
+5. `GET /system/alpha-family-performance/latest`
+6. `GET /system/alpha-policy-recommendations/latest`
+7. `GET /system/alpha-feedback-loop/alpha/{alpha_id}`
+8. `GET /system/alpha-feedback-loop/family/{family_id}`
+9. `POST /system/alpha-policy-recommendations/apply`

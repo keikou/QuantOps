@@ -2,6 +2,10 @@ from __future__ import annotations
 
 from fastapi import APIRouter
 from ai_hedge_bot.alpha_attribution.attribution_service import AlphaAttributionService
+from ai_hedge_bot.alpha_capacity.capacity_service import AlphaCapacityService
+from ai_hedge_bot.alpha_feedback.feedback_service import AlphaFeedbackService
+from ai_hedge_bot.alpha_retirement.retirement_service import AlphaRetirementService
+from ai_hedge_bot.alpha_weighting.weighting_service import AlphaWeightingService
 from ai_hedge_bot.alpha_ensemble.ensemble_service import AlphaEnsembleService
 from ai_hedge_bot.alpha_evaluation.evaluation_service import AlphaEvaluationService
 from ai_hedge_bot.alpha_validation.validation_service import AlphaValidationService
@@ -56,6 +60,10 @@ _alpha_evaluation = AlphaEvaluationService()
 _alpha_validation = AlphaValidationService()
 _alpha_ensemble = AlphaEnsembleService()
 _alpha_attribution = AlphaAttributionService()
+_alpha_capacity = AlphaCapacityService()
+_alpha_weighting = AlphaWeightingService()
+_alpha_retirement = AlphaRetirementService()
+_alpha_feedback = AlphaFeedbackService()
 
 
 def _payload() -> dict:
@@ -674,3 +682,153 @@ def system_alpha_economic_meaning_latest(limit: int = 20) -> dict:
 @router.get('/system/alpha-factor-attribution/ensemble/{ensemble_id}')
 def system_alpha_factor_attribution_ensemble(ensemble_id: str) -> dict:
     return _alpha_attribution.alpha_factor_attribution_ensemble(ensemble_id)
+
+
+@router.post('/system/alpha-capacity/run')
+def system_alpha_capacity_run(limit: int = 20) -> dict:
+    return _alpha_capacity.run(limit=limit)
+
+
+@router.get('/system/alpha-capacity/latest')
+def system_alpha_capacity_latest(limit: int = 20) -> dict:
+    return _alpha_capacity.latest(limit=limit)
+
+
+@router.get('/system/alpha-capacity/candidate/{alpha_id}')
+def system_alpha_capacity_candidate(alpha_id: str) -> dict:
+    return _alpha_capacity.alpha_capacity_candidate(alpha_id)
+
+
+@router.get('/system/alpha-crowding/latest')
+def system_alpha_crowding_latest(limit: int = 20) -> dict:
+    return _alpha_capacity.alpha_crowding_latest(limit=limit)
+
+
+@router.get('/system/alpha-impact/latest')
+def system_alpha_impact_latest(limit: int = 20) -> dict:
+    return _alpha_capacity.alpha_impact_latest(limit=limit)
+
+
+@router.get('/system/alpha-capacity/ensemble/{ensemble_id}')
+def system_alpha_capacity_ensemble(ensemble_id: str) -> dict:
+    return _alpha_capacity.alpha_capacity_ensemble(ensemble_id)
+
+
+@router.post('/system/alpha-dynamic-weights/run')
+def system_alpha_dynamic_weights_run(limit: int = 20) -> dict:
+    return _alpha_weighting.run(limit=limit)
+
+
+@router.get('/system/alpha-dynamic-weights/latest')
+def system_alpha_dynamic_weights_latest(limit: int = 20) -> dict:
+    return _alpha_weighting.latest(limit=limit)
+
+
+@router.get('/system/alpha-dynamic-weights/ensemble/{ensemble_id}')
+def system_alpha_dynamic_weights_ensemble(ensemble_id: str) -> dict:
+    return _alpha_weighting.alpha_dynamic_weights_ensemble(ensemble_id)
+
+
+@router.get('/system/alpha-weight-adjustments/latest')
+def system_alpha_weight_adjustments_latest(limit: int = 20) -> dict:
+    return _alpha_weighting.alpha_weight_adjustments_latest(limit=limit)
+
+
+@router.get('/system/alpha-weight-drift/latest')
+def system_alpha_weight_drift_latest(limit: int = 20) -> dict:
+    return _alpha_weighting.alpha_weight_drift_latest(limit=limit)
+
+
+@router.get('/system/alpha-weight-constraints/latest')
+def system_alpha_weight_constraints_latest(limit: int = 20) -> dict:
+    return _alpha_weighting.alpha_weight_constraints_latest(limit=limit)
+
+
+@router.get('/system/alpha-weight-proposals/latest')
+def system_alpha_weight_proposals_latest(limit: int = 20) -> dict:
+    return _alpha_weighting.alpha_weight_proposals_latest(limit=limit)
+
+
+@router.post('/system/alpha-kill-switch/run')
+def system_alpha_kill_switch_run(limit: int = 20) -> dict:
+    return _alpha_retirement.run(limit=limit)
+
+
+@router.get('/system/alpha-kill-switch/latest')
+def system_alpha_kill_switch_latest(limit: int = 20) -> dict:
+    return _alpha_retirement.latest(limit=limit)
+
+
+@router.get('/system/alpha-kill-switch/alpha/{alpha_id}')
+def system_alpha_kill_switch_alpha(alpha_id: str) -> dict:
+    return _alpha_retirement.alpha_kill_switch_alpha(alpha_id)
+
+
+@router.get('/system/alpha-retirement/latest')
+def system_alpha_retirement_latest(limit: int = 20) -> dict:
+    return _alpha_retirement.alpha_retirement_latest(limit=limit)
+
+
+@router.get('/system/alpha-retirement/alpha/{alpha_id}')
+def system_alpha_retirement_alpha(alpha_id: str) -> dict:
+    return _alpha_retirement.alpha_retirement_alpha(alpha_id)
+
+
+@router.get('/system/alpha-deactivation-decisions/latest')
+def system_alpha_deactivation_decisions_latest(limit: int = 20) -> dict:
+    return _alpha_retirement.alpha_deactivation_decisions_latest(limit=limit)
+
+
+@router.get('/system/alpha-kill-switch-events/latest')
+def system_alpha_kill_switch_events_latest(limit: int = 20) -> dict:
+    return _alpha_retirement.alpha_kill_switch_events_latest(limit=limit)
+
+
+@router.post('/system/alpha-kill-switch/override')
+def system_alpha_kill_switch_override(alpha_id: str = "manual.override", action: str = "continue", reason: str = "operator_override") -> dict:
+    return _alpha_retirement.override(alpha_id=alpha_id, action=action, reason=reason)
+
+
+@router.post('/system/alpha-feedback-loop/run')
+def system_alpha_feedback_loop_run(limit: int = 20) -> dict:
+    return _alpha_feedback.run(limit=limit)
+
+
+@router.get('/system/alpha-feedback-loop/latest')
+def system_alpha_feedback_loop_latest(limit: int = 20) -> dict:
+    return _alpha_feedback.latest(limit=limit)
+
+
+@router.get('/system/alpha-learning-signals/latest')
+def system_alpha_learning_signals_latest(limit: int = 20) -> dict:
+    return _alpha_feedback.alpha_learning_signals_latest(limit=limit)
+
+
+@router.get('/system/alpha-generation-priors/latest')
+def system_alpha_generation_priors_latest(limit: int = 20) -> dict:
+    return _alpha_feedback.alpha_generation_priors_latest(limit=limit)
+
+
+@router.get('/system/alpha-family-performance/latest')
+def system_alpha_family_performance_latest(limit: int = 20) -> dict:
+    return _alpha_feedback.alpha_family_performance_latest(limit=limit)
+
+
+@router.get('/system/alpha-policy-recommendations/latest')
+def system_alpha_policy_recommendations_latest(limit: int = 20) -> dict:
+    return _alpha_feedback.alpha_policy_recommendations_latest(limit=limit)
+
+
+@router.get('/system/alpha-feedback-loop/alpha/{alpha_id}')
+def system_alpha_feedback_loop_alpha(alpha_id: str) -> dict:
+    return _alpha_feedback.alpha_feedback_loop_alpha(alpha_id)
+
+
+@router.get('/system/alpha-feedback-loop/family/{family_id}')
+def system_alpha_feedback_loop_family(family_id: str) -> dict:
+    return _alpha_feedback.alpha_feedback_loop_family(family_id)
+
+
+@router.post('/system/alpha-policy-recommendations/apply')
+def system_alpha_policy_recommendations_apply(recommendation_id: str = "latest", approval: str = "operator_approved") -> dict:
+    return _alpha_feedback.apply_policy_recommendations(recommendation_id=recommendation_id, approval=approval)

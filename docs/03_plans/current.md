@@ -3,7 +3,7 @@
 Date: `2026-04-24`
 Repo: `QuantOps_github`
 Branch: `codex/post-phase7-hardening`
-Status: `aes04_active_boundary`
+Status: `aes08_active_boundary`
 
 ## Current Planning Decision
 
@@ -28,7 +28,7 @@ Architect-selected answer:
 - `Autonomous Alpha Expansion / Strategy Generation Intelligence v1` is checkpoint-complete through `AAE-05`
 - `Alpha Synthesis / Structural Discovery Intelligence v1` is checkpoint-complete through `ASD-05`
 - next top-level lane is `Alpha Evaluation / Selection Intelligence`
-- current packet boundary is `AES-04: Economic Meaning / Factor Attribution`
+- current packet boundary is `AES-08: Self-Improving Alpha Loop`
 
 ## Why This Is The Current Plan
 
@@ -75,27 +75,27 @@ The following planning sequence is now historical and completed:
 
 ## Current Plan Outputs
 
-Current `AES-04` outputs now planned:
+Current `AES-08` outputs now planned:
 
-- `../Alpha_evaluation_selection_intelligence_packet04_plan.md`
-- `../../test_bundle/scripts/verify_alpha_evaluation_selection_intelligence_packet04.py`
-- `POST /system/alpha-factor-attribution/run`
-- `GET /system/alpha-factor-attribution/latest`
-- `GET /system/alpha-factor-attribution/candidate/{alpha_id}`
-- `GET /system/alpha-factor-exposure/latest`
-- `GET /system/alpha-residual-alpha/latest`
-- `GET /system/alpha-economic-risk/latest`
-- `GET /system/alpha-factor-concentration/latest`
-- `GET /system/alpha-economic-meaning/latest`
-- `GET /system/alpha-factor-attribution/ensemble/{ensemble_id}`
+- `../Alpha_evaluation_selection_intelligence_packet08_plan.md`
+- `../../test_bundle/scripts/verify_alpha_evaluation_selection_intelligence_packet08.py`
+- `POST /system/alpha-feedback-loop/run`
+- `GET /system/alpha-feedback-loop/latest`
+- `GET /system/alpha-learning-signals/latest`
+- `GET /system/alpha-generation-priors/latest`
+- `GET /system/alpha-family-performance/latest`
+- `GET /system/alpha-policy-recommendations/latest`
+- `GET /system/alpha-feedback-loop/alpha/{alpha_id}`
+- `GET /system/alpha-feedback-loop/family/{family_id}`
+- `POST /system/alpha-policy-recommendations/apply`
 
 ## Current Docs-Ready State
 
-The docs route for `AES-04` is now prepared for implementation startup.
+The docs route for `AES-08` is now prepared for implementation startup.
 
 Current docs-ready assets:
 
-- `../04_tasks/aes04_economic_meaning_factor_attribution_2026-04-25.md`
+- `../04_tasks/aes05_capacity_crowding_risk_2026-04-25.md`
 - `../AES-01_GitHub_Issues.md`
 - `../AES_Threshold_Tuning_Strategy.md`
 - `../AES-02_Walk_Forward_Validation_Design.md`
