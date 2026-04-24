@@ -66,6 +66,16 @@ This file is the compact routing matrix for the current `system` contract surfac
 | `GET /system/regime-transition-detection/latest` | transition detection | family transition view |
 | `GET /system/strategy-survival-analysis/latest` | survival analysis | family survival posture |
 
+## Autonomous Alpha Expansion / Strategy Generation Surfaces
+
+| Endpoint | Contract role | Primary output |
+| --- | --- | --- |
+| `GET /system/alpha-discovery-candidates/latest` | alpha discovery | candidate expansion queue |
+| `GET /system/alpha-validation-results/latest` | alpha validation | validation truth bundle |
+| `GET /system/alpha-admission-decision/latest` | alpha admission | deterministic inventory admission |
+| `GET /system/alpha-lifecycle-state/latest` | alpha lifecycle | lifecycle stage view |
+| `GET /system/alpha-inventory-health/latest` | inventory health | replacement health posture |
+
 ## Rule
 
 When a new `system` endpoint is added, update this matrix if the endpoint is operator-visible or part of the lane checkpoint contract surface.

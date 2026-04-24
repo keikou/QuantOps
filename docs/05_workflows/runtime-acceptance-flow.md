@@ -21,16 +21,16 @@ Use this workflow when a task touches runtime truth, execution evidence, accepta
 
 ## Current Example
 
-For the current next lane, `Strategy Evolution / Regime Adaptation Intelligence` should likely begin with one narrow regime-state check such as:
+For the current next lane, `Autonomous Alpha Expansion / Strategy Generation Intelligence` should likely begin with one narrow alpha-expansion check such as:
 
-- regime degradation consistency
-- strategy compatibility drift
-- gating trigger visibility
-- transition detection continuity
+- discovery candidate freshness
+- validation pass visibility
+- admission decision determinism
+- inventory replacement pressure
 
 Current docs-ready packet:
 
-- `SERI-01`
+- `AAE-01`
 
 ## Non-Goal
 

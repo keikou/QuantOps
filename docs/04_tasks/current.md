@@ -1,10 +1,10 @@
 # Current Tasks
 
-Date: `2026-04-05`
+Date: `2026-04-24`
 Repo: `QuantOps_github`
 Branch: `codex/post-phase7-hardening`
-Track: `strategy_evolution_regime_adaptation_intelligence`
-Status: `checkpoint_review_pending`
+Track: `autonomous_alpha_expansion_strategy_generation_intelligence`
+Status: `aae01_active`
 
 ## Purpose
 
@@ -30,13 +30,13 @@ That means:
 
 Current top task:
 
-- establish `Strategy Evolution / Regime Adaptation Intelligence` from the completed `MPI v1` checkpoint
-- implement `SERI-01: Regime Detection & Strategy Gating Engine`
+- establish `Autonomous Alpha Expansion / Strategy Generation Intelligence`
+- implement `AAE-01: Alpha Discovery & Validation Loop`
 
 Current architect-selected candidate:
 
-- `Strategy Evolution / Regime Adaptation Intelligence`
-- current implementation boundary = `SERI-01`
+- `Autonomous Alpha Expansion / Strategy Generation Intelligence`
+- current implementation boundary = `AAE-01`
 - current dependency 1 = `Research / Promotion Intelligence v1 checkpoint through RPI-06`
 - current dependency 2 = `Alpha / Strategy Selection Intelligence v1 checkpoint through ASI-05`
 - current dependency 3 = `Portfolio Intelligence v1 checkpoint through PI-05`
@@ -47,43 +47,36 @@ Current architect-selected candidate:
 - current dependency 8 = `Deployment / Rollout Intelligence v1 checkpoint through DRI-05`
 - current dependency 9 = `Live Capital Control / Adaptive Runtime Allocation v1 checkpoint through LCC-05`
 - current dependency 10 = `Meta Portfolio Intelligence / Cross-Strategy Capital Allocation v1 checkpoint through MPI-05`
+- current dependency 11 = `Strategy Evolution / Regime Adaptation Intelligence v1 checkpoint through SERI-05`
 
 ## Why This Is The Active Task
 
-Architect now treats `Meta Portfolio Intelligence / Cross-Strategy Capital Allocation v1` as completed enough to start regime-adaptation control.
+Architect now treats `Strategy Evolution / Regime Adaptation Intelligence v1` as checkpoint-complete.
 
 The next question is:
 
-- "how should current regime state become explicit at the system surface?"
-- "how should strategy gating react when degradation is regime-consistent?"
-- "what is the first deterministic survival boundary for live strategies?"
+- "how should newly discovered alpha candidates become explicit at the system surface?"
+- "how should validation pass or fail become explicit under the current regime?"
+- "how should dead alpha be replaced before the inventory becomes fragile?"
 
-This is still the next lane beyond the completed hardening/resume slice, but it is no longer the older `Execution Reality` default.
+This is the next lane beyond the completed hardening/resume slice, but it is no longer the older `Execution Reality` default.
 
 ## Next Candidate Options
 
-1. `Strategy Evolution / Regime Adaptation Intelligence`
+1. `Autonomous Alpha Expansion / Strategy Generation Intelligence`
    - selected by architect as the next top-level lane
-2. `Deployment / Rollout Intelligence`
+2. `Strategy Evolution / Regime Adaptation Intelligence`
    - now treated as checkpoint-complete input, not the active lane
-3. `Policy Optimization / Meta-Control Learning`
+3. `Deployment / Rollout Intelligence`
    - now treated as checkpoint-complete input, not the active lane
-4. `Meta Portfolio Intelligence / Cross-Strategy Capital Allocation`
+4. `Live Capital Control / Adaptive Runtime Allocation`
    - now treated as checkpoint-complete input, not the active lane
-5. `System-Level Learning / Feedback Integration`
+5. `Meta Portfolio Intelligence / Cross-Strategy Capital Allocation`
    - now treated as checkpoint-complete input, not the active lane
-6. `Research / Promotion Intelligence`
-   - now treated as completed enough for first checkpoint and handoff
-7. `Alpha / Strategy Selection Intelligence`
-   - now treated as completed enough for first checkpoint and handoff
-8. `Portfolio Intelligence`
-   - now treated as completed enough for first checkpoint and handoff
-9. `Governance -> Runtime Control`
-   - now treated as completed enough for first checkpoint and handoff
 
 ## Current Recommendation
 
-Use `SERI v1 checkpoint review` as the current active task.
+Use `AAE-01` as the current active task.
 
 ## Explicit Non-Tasks
 
@@ -100,19 +93,16 @@ These are not current tasks:
 - deepening `Research / Promotion Intelligence`
 - reopening `SLLFI` as the active packet lane
 - reopening `Policy Optimization` as the active packet lane
-- continuing `Live Capital Control` packet expansion as the active lane
-- continuing `Meta Portfolio Intelligence` packet expansion as the active lane
+- continuing `DRI`, `LCC`, `MPI`, or `SERI` packet expansion as the active lane
 
 ## Inputs To Read Before Acting
 
 1. `../00_index/README.md`
-2. `../Cross_thread_resume_handover_2026-04-02.md`
-3. `../PO_checkpoint_resume_memo_2026-04-04.md`
-4. `../Policy_optimization_meta_control_learning_architect_status_update_2026-04-03.md`
-5. `../Auto_resume_handover_2026-04-02.md`
-6. `../Deployment_rollout_intelligence_checkpoint_v1.md`
-7. `../Live_capital_control_adaptive_runtime_allocation_checkpoint_v1.md`
-8. `../Meta_portfolio_intelligence_cross_strategy_capital_allocation_checkpoint_v1.md`
+2. `../Cross_thread_resume_handover_2026-04-24.md`
+3. `../Auto_resume_handover_2026-04-24.md`
+4. `../Strategy_evolution_regime_adaptation_intelligence_checkpoint_v1.md`
+5. `../Autonomous_alpha_expansion_strategy_generation_intelligence_packet01_plan.md`
+6. `../07_interfaces/aae_autonomous_alpha_expansion_contracts.md`
 
 ## Expected Output Of The Next Task
 
@@ -120,74 +110,20 @@ The current lane follow-up should produce:
 
 - one packet plan doc
 - one verifier script
-- one regime-state surface
+- discovery, validation, admission, lifecycle, and inventory-health surfaces
 
-Current `SERI-01` outputs now available:
+Current `AAE-01` outputs now available:
 
-- `docs/Strategy_evolution_regime_adaptation_intelligence_packet01_plan.md`
-- `test_bundle/scripts/verify_strategy_evolution_regime_adaptation_intelligence_packet01.py`
-- `GET /system/regime-state/latest`
-
-Current `SERI-02` outputs now available:
-
-- `docs/Strategy_evolution_regime_adaptation_intelligence_packet02_strategy_regime_compatibility_plan.md`
-- `test_bundle/scripts/verify_strategy_evolution_regime_adaptation_intelligence_packet02_strategy_regime_compatibility.py`
-- `GET /system/strategy-regime-compatibility/latest`
-
-Current `SERI-03` outputs now available:
-
-- `docs/Strategy_evolution_regime_adaptation_intelligence_packet03_strategy_gating_decision_plan.md`
-- `test_bundle/scripts/verify_strategy_evolution_regime_adaptation_intelligence_packet03_strategy_gating_decision.py`
-- `GET /system/strategy-gating-decision/latest`
-
-Current `SERI-04` outputs now available:
-
-- `docs/Strategy_evolution_regime_adaptation_intelligence_packet04_regime_transition_detection_plan.md`
-- `test_bundle/scripts/verify_strategy_evolution_regime_adaptation_intelligence_packet04_regime_transition_detection.py`
-- `GET /system/regime-transition-detection/latest`
-
-Current `SERI-05` outputs now available:
-
-- `docs/Strategy_evolution_regime_adaptation_intelligence_packet05_strategy_survival_analysis_plan.md`
-- `test_bundle/scripts/verify_strategy_evolution_regime_adaptation_intelligence_packet05_strategy_survival_analysis.py`
-- `GET /system/strategy-survival-analysis/latest`
-
-Current prerequisite lane output:
-
-- `docs/Policy_optimization_meta_control_learning_packet01_plan.md`
-- `test_bundle/scripts/verify_policy_optimization_meta_control_learning_packet01.py`
-- `docs/Policy_optimization_meta_control_learning_packet02_tuning_recommendations_plan.md`
-- `test_bundle/scripts/verify_policy_optimization_meta_control_learning_packet02_tuning_recommendations.py`
-- `docs/Policy_optimization_meta_control_learning_packet03_persisted_meta_policy_state_plan.md`
-- `test_bundle/scripts/verify_policy_optimization_meta_control_learning_packet03_persisted_meta_policy_state.py`
-- `docs/Policy_optimization_meta_control_learning_packet04_applied_tuning_consumption_plan.md`
-- `test_bundle/scripts/verify_policy_optimization_meta_control_learning_packet04_applied_tuning_consumption.py`
-- `docs/Policy_optimization_meta_control_learning_packet05_outcome_effectiveness_plan.md`
-- `test_bundle/scripts/verify_policy_optimization_meta_control_learning_packet05_outcome_effectiveness.py`
-- `docs/Deployment_rollout_intelligence_packet01_plan.md`
-- `test_bundle/scripts/verify_deployment_rollout_intelligence_packet01.py`
-- `docs/Deployment_rollout_intelligence_packet02_candidate_docket_plan.md`
-- `test_bundle/scripts/verify_deployment_rollout_intelligence_packet02_candidate_docket.py`
-- `docs/Deployment_rollout_intelligence_packet03_persisted_rollout_state_plan.md`
-- `test_bundle/scripts/verify_deployment_rollout_intelligence_packet03_persisted_rollout_state.py`
-- `docs/Deployment_rollout_intelligence_packet04_applied_rollout_consumption_plan.md`
-- `test_bundle/scripts/verify_deployment_rollout_intelligence_packet04_applied_rollout_consumption.py`
-- `docs/Deployment_rollout_intelligence_packet05_rollout_outcome_effectiveness_plan.md`
-- `test_bundle/scripts/verify_deployment_rollout_intelligence_packet05_rollout_outcome_effectiveness.py`
-- `docs/Deployment_rollout_intelligence_checkpoint_v1.md`
-- `docs/Live_capital_control_adaptive_runtime_allocation_packet01_plan.md`
-- `test_bundle/scripts/verify_live_capital_control_adaptive_runtime_allocation_packet01.py`
-- `docs/Live_capital_control_adaptive_runtime_allocation_packet02_adjustment_decision_plan.md`
-- `test_bundle/scripts/verify_live_capital_control_adaptive_runtime_allocation_packet02_adjustment_decision.py`
-- `docs/Live_capital_control_adaptive_runtime_allocation_packet03_control_state_plan.md`
-- `test_bundle/scripts/verify_live_capital_control_adaptive_runtime_allocation_packet03_control_state.py`
-- `docs/Live_capital_control_adaptive_runtime_allocation_packet04_control_consumption_plan.md`
-- `test_bundle/scripts/verify_live_capital_control_adaptive_runtime_allocation_packet04_control_consumption.py`
-- `docs/Live_capital_control_adaptive_runtime_allocation_packet05_control_effectiveness_plan.md`
-- `test_bundle/scripts/verify_live_capital_control_adaptive_runtime_allocation_packet05_control_effectiveness.py`
+- `docs/Autonomous_alpha_expansion_strategy_generation_intelligence_packet01_plan.md`
+- `test_bundle/scripts/verify_autonomous_alpha_expansion_strategy_generation_intelligence_packet01.py`
+- `GET /system/alpha-discovery-candidates/latest`
+- `GET /system/alpha-validation-results/latest`
+- `GET /system/alpha-admission-decision/latest`
+- `GET /system/alpha-lifecycle-state/latest`
+- `GET /system/alpha-inventory-health/latest`
 
 ## Single-Block Resume Note
 
 ```text
-Current task is not another hardening packet, not another Execution Reality packet, not another Governance -> Runtime Control packet, not another Portfolio Intelligence packet, not another Alpha / Strategy Selection Intelligence packet, not another Research / Promotion Intelligence packet, not another active SLLFI packet, not another active Policy Optimization packet, not another active DRI packet, not another active LCC packet, and not another active MPI packet. Current task is `SERI-01` after `MPI-05` made cross-strategy capital efficiency explicit.
+Current task is not another hardening packet, not another Execution Reality packet, not another Governance -> Runtime Control packet, not another Portfolio Intelligence packet, not another Alpha / Strategy Selection Intelligence packet, not another Research / Promotion Intelligence packet, and not another active DRI, LCC, MPI, or SERI packet. Current task is `AAE-01` so the system can discover, validate, admit, and refresh alpha inventory after SERI-05 checkpoint completion.
 ```

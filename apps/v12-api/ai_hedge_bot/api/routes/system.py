@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 from fastapi import APIRouter
+from ai_hedge_bot.services.autonomous_alpha_expansion_strategy_generation_intelligence_service import (
+    AutonomousAlphaExpansionStrategyGenerationIntelligenceService,
+)
 from ai_hedge_bot.app.container import CONTAINER
 from ai_hedge_bot.services.deployment_rollout_intelligence_service import (
     DeploymentRolloutIntelligenceService,
@@ -42,6 +45,7 @@ _recovery_replay_bundle = RecoveryReplayDiagnosticBundleService()
 _resume_operator_packet = ResumeOperatorPacketService()
 _strategy_evolution = StrategyEvolutionRegimeAdaptationIntelligenceService()
 _system_learning_feedback = SystemLevelLearningFeedbackIntegrationService()
+_autonomous_alpha_expansion = AutonomousAlphaExpansionStrategyGenerationIntelligenceService()
 
 
 def _payload() -> dict:
@@ -260,3 +264,28 @@ def system_regime_transition_detection_latest(limit: int = 20) -> dict:
 @router.get('/system/strategy-survival-analysis/latest')
 def system_strategy_survival_analysis_latest(limit: int = 20) -> dict:
     return _strategy_evolution.strategy_survival_analysis_latest(limit=limit)
+
+
+@router.get('/system/alpha-discovery-candidates/latest')
+def system_alpha_discovery_candidates_latest(limit: int = 20) -> dict:
+    return _autonomous_alpha_expansion.alpha_discovery_candidates_latest(limit=limit)
+
+
+@router.get('/system/alpha-validation-results/latest')
+def system_alpha_validation_results_latest(limit: int = 20) -> dict:
+    return _autonomous_alpha_expansion.alpha_validation_results_latest(limit=limit)
+
+
+@router.get('/system/alpha-admission-decision/latest')
+def system_alpha_admission_decision_latest(limit: int = 20) -> dict:
+    return _autonomous_alpha_expansion.alpha_admission_decision_latest(limit=limit)
+
+
+@router.get('/system/alpha-lifecycle-state/latest')
+def system_alpha_lifecycle_state_latest(limit: int = 20) -> dict:
+    return _autonomous_alpha_expansion.alpha_lifecycle_state_latest(limit=limit)
+
+
+@router.get('/system/alpha-inventory-health/latest')
+def system_alpha_inventory_health_latest(limit: int = 20) -> dict:
+    return _autonomous_alpha_expansion.alpha_inventory_health_latest(limit=limit)

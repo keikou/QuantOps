@@ -24,4 +24,4 @@ This folder describes repeatable flows that both humans and AI agents can follow
 ## Current Operating Mode
 
 - start from the docs-first operating loop before deep code inspection
-- treat `SERI-01` as the current docs-ready packet boundary
+- treat `AAE-01` as the current docs-ready packet boundary

@@ -63,6 +63,14 @@ This file is the short routing index for the current operator-visible API endpoi
 - `GET /system/regime-transition-detection/latest`
 - `GET /system/strategy-survival-analysis/latest`
 
+### Autonomous Alpha Expansion / Strategy Generation
+
+- `GET /system/alpha-discovery-candidates/latest`
+- `GET /system/alpha-validation-results/latest`
+- `GET /system/alpha-admission-decision/latest`
+- `GET /system/alpha-lifecycle-state/latest`
+- `GET /system/alpha-inventory-health/latest`
+
 ## Read Next
 
 1. `./endpoint_contract_matrix.md`

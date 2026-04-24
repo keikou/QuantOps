@@ -85,6 +85,22 @@ Contract progression:
 - `GET /system/regime-transition-detection/latest`
 - `GET /system/strategy-survival-analysis/latest`
 
+## Autonomous Alpha Expansion / Strategy Generation Intelligence
+
+- `GET /system/alpha-discovery-candidates/latest`
+- `GET /system/alpha-validation-results/latest`
+- `GET /system/alpha-admission-decision/latest`
+- `GET /system/alpha-lifecycle-state/latest`
+- `GET /system/alpha-inventory-health/latest`
+
+Contract progression:
+
+- discovery queue
+- validation truth
+- admission decision
+- lifecycle visibility
+- inventory replacement health
+
 ## Rule
 
 When a lane checkpoint becomes operationally visible through `/system/*`, add its family here as one grouped inventory rather than leaving the surface readable only from isolated endpoint rows.

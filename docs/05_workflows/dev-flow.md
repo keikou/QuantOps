@@ -29,4 +29,4 @@ Use this workflow when starting or continuing repo work.
 - do not treat old architect guidance as current if the repo state has moved on
 - prefer canonical entrypoint docs over scattered thread memory
 - route root-level workflow docs through `supporting_workflows.md` before moving them physically
-- if the current lane is `SERI`, start from the docs-ready task and contract docs before touching code
+- if the current lane is `AAE`, start from the docs-ready task and contract docs before touching code
