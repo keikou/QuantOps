@@ -24,10 +24,11 @@ The repo currently stands in this state:
 - `Live Capital Control / Adaptive Runtime Allocation v1` is checkpoint-complete through `LCC-05`
 - `Meta Portfolio Intelligence / Cross-Strategy Capital Allocation v1` is checkpoint-complete through `MPI-05`
 - `Strategy Evolution / Regime Adaptation Intelligence v1` is checkpoint-complete through `SERI-05`
-- latest local `HEAD` is `632857c`
-- latest pushed commit is `632857c`
+- `Operational Risk & Control Intelligence v1` is checkpoint-complete through `ORC-05`
+- latest local `HEAD` is `d4417ff`
+- latest pushed commit is `d4417ff`
 - branch working tree now includes `AAE-01` through `AAE-05` and `ASD-01`
-- canonical current-state docs are now aligned to `ORC-05 active`
+- canonical current-state docs are now aligned to `AFG-01 active`
 - `AAE-01` now exposes `GET /system/alpha-discovery-candidates/latest`
 - `AAE-01` now exposes `GET /system/alpha-validation-results/latest`
 - `AAE-01` now exposes `GET /system/alpha-admission-decision/latest`
@@ -184,6 +185,21 @@ The repo currently stands in this state:
 - `ORC-05` now exposes `GET /system/orc-governance/audit/latest`
 - `ORC-05` now exposes `POST /system/orc-governance/recovery/request`
 - `ORC-05` now exposes `GET /system/orc-governance/recovery/latest`
+- `Operational Risk & Control Intelligence v1` is checkpoint-complete through `ORC-05`
+- `AFG-01` now exposes `POST /system/operator-action/submit`
+- `AFG-01` now exposes `GET /system/operator-actions/latest`
+- `AFG-01` now exposes `GET /system/pending-approvals/latest`
+- `AFG-01` now exposes `GET /system/pending-approvals/{approval_id}`
+- `AFG-01` now exposes `POST /system/pending-approvals/{approval_id}/approve`
+- `AFG-01` now exposes `POST /system/pending-approvals/{approval_id}/reject`
+- `AFG-01` now exposes `POST /system/operator-override`
+- `AFG-01` now exposes `GET /system/operator-overrides/latest`
+- `AFG-01` now exposes `POST /system/operator-overrides/{override_id}/expire`
+- `AFG-01` now exposes `GET /system/audit-log/latest`
+- `AFG-01` now exposes `GET /system/governance-state/latest`
+- `AFG-01` now exposes `POST /system/governance/sync`
+- `AFG-01` now exposes `POST /system/governance/dispatch`
+- `AFG-01` now exposes `GET /system/governance/dispatch/latest`
 
 ## Current Reports To Trust First
 
@@ -289,22 +305,22 @@ Architect re-alignment now supports:
 - completed hardening slice
 - completed first checkpoints through `SERI-05`
 - no replay of `DRI`, `LCC`, `MPI`, or `SERI` unless a real regression appears
-- current work has shifted into `ORC-05`
+- current work has shifted into `AFG-01`
 
 ## Default Next Candidate
 
-- `Operational Risk & Control Intelligence Packet 05`
+- `Alpha Factory Governance / Operator Control Packet 01`
 
-## Current ORC-05 Docs-Ready State
+## Current AFG-01 Docs-Ready State
 
-- `ORC-05` task spec exists
+- `AFG-01` task spec exists
 - packet plan doc exists
-- `ORC` interface contract doc exists
-- `lane_surface_inventory.md` and `api_endpoints.md` include the `ORC` family
+- `AFG` interface contract doc exists
+- `lane_surface_inventory.md` and `api_endpoints.md` include the `AFG` family
 - `10_agent` still exposes the docs-first operating loop for implementation startup
 
-## Current ORC-05 Runtime State
+## Current AFG-01 Runtime State
 
 - packet plan doc exists
 - verifier exists
-- incident governance, pending approval, audit, dispatch, override-sync, and recovery governance surfaces are implemented
+- operator action, pending approval, override, audit, governance state, sync, and dispatch surfaces are implemented

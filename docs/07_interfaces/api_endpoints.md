@@ -220,6 +220,23 @@ This file is the short routing index for the current operator-visible API endpoi
 - `POST /system/orc-governance/recovery/request`
 - `GET /system/orc-governance/recovery/latest`
 
+### Alpha Factory Governance / Operator Control
+
+- `POST /system/operator-action/submit`
+- `GET /system/operator-actions/latest`
+- `GET /system/pending-approvals/latest`
+- `GET /system/pending-approvals/{approval_id}`
+- `POST /system/pending-approvals/{approval_id}/approve`
+- `POST /system/pending-approvals/{approval_id}/reject`
+- `POST /system/operator-override`
+- `GET /system/operator-overrides/latest`
+- `POST /system/operator-overrides/{override_id}/expire`
+- `GET /system/audit-log/latest`
+- `GET /system/governance-state/latest`
+- `POST /system/governance/sync`
+- `POST /system/governance/dispatch`
+- `GET /system/governance/dispatch/latest`
+
 ## Read Next
 
 1. `./endpoint_contract_matrix.md`

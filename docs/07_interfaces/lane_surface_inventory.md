@@ -398,6 +398,35 @@ Contract progression:
 - recovery governance request
 - recovery governance state
 
+## Alpha Factory Governance / Operator Control
+
+- `POST /system/operator-action/submit`
+- `GET /system/operator-actions/latest`
+- `GET /system/pending-approvals/latest`
+- `GET /system/pending-approvals/{approval_id}`
+- `POST /system/pending-approvals/{approval_id}/approve`
+- `POST /system/pending-approvals/{approval_id}/reject`
+- `POST /system/operator-override`
+- `GET /system/operator-overrides/latest`
+- `POST /system/operator-overrides/{override_id}/expire`
+- `GET /system/audit-log/latest`
+- `GET /system/governance-state/latest`
+- `POST /system/governance/sync`
+- `POST /system/governance/dispatch`
+- `GET /system/governance/dispatch/latest`
+
+Contract progression:
+
+- operator action submission
+- policy-gated action decision
+- pending approval queue
+- approval / rejection decision
+- time-limited operator override
+- governance audit log
+- governance mode and queue counters
+- ORC-to-AFG sync
+- dispatch staging and dry-run
+
 ## Rule
 
 When a lane checkpoint becomes operationally visible through `/system/*`, add its family here as one grouped inventory rather than leaving the surface readable only from isolated endpoint rows.

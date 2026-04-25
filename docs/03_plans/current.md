@@ -3,7 +3,7 @@
 Date: `2026-04-24`
 Repo: `QuantOps_github`
 Branch: `codex/post-phase7-hardening`
-Status: `orc05_active_boundary`
+Status: `afg01_active_boundary`
 
 ## Current Planning Decision
 
@@ -11,9 +11,9 @@ The current hardening/resume slice is treated as sufficiently complete.
 
 So the active planning question is now:
 
-- how should system-level risk be detected before capital damage?
-- how should data, execution, portfolio, alpha-system, and infra anomalies become explicit?
-- how should reduce, freeze, halt, and override recommendations become operator-visible?
+- how should production-impacting alpha factory actions be approved?
+- how should operator override, audit, and dispatch staging become explicit?
+- how should ORC/AES/AAE recommendations enter one governance control plane?
 
 Historical note:
 
@@ -28,8 +28,9 @@ Architect-selected answer:
 - `Autonomous Alpha Expansion / Strategy Generation Intelligence v1` is checkpoint-complete through `AAE-05`
 - `Alpha Synthesis / Structural Discovery Intelligence v1` is checkpoint-complete through `ASD-05`
 - `Alpha Evaluation / Selection Intelligence v1` is checkpoint-complete through `AES-08`
-- next top-level lane is `Operational Risk & Control Intelligence`
-- current packet boundary is `ORC-05: Incident Audit / Operator Governance Bridge`
+- `Operational Risk & Control Intelligence v1` is checkpoint-complete through `ORC-05`
+- next top-level lane is `Alpha Factory Governance / Operator Control`
+- current packet boundary is `AFG-01: Alpha Factory Operator Control Plane`
 
 ## Why This Is The Current Plan
 
@@ -53,7 +54,7 @@ Architect re-alignment now treats the following as sufficiently closed for the c
 - `Meta Portfolio Intelligence / Cross-Strategy Capital Allocation v1`
 - `Strategy Evolution / Regime Adaptation Intelligence v1`
 
-That means planning should not continue replaying `SERI`, `AAE`, `ASD`, or `AES` checkpoint work and should now close the ORC governance/audit bridge.
+That means planning should not continue replaying `SERI`, `AAE`, `ASD`, `AES`, or `ORC` checkpoint work and should now establish the alpha factory operator control plane.
 
 ## Explicitly Completed Planning Slice
 
@@ -76,22 +77,28 @@ The following planning sequence is now historical and completed:
 
 ## Current Plan Outputs
 
-Current `ORC-05` outputs now planned:
+Current `AFG-01` outputs now planned:
 
-- `../Operational_risk_control_intelligence_packet05_plan.md`
-- `../../test_bundle/scripts/verify_operational_risk_control_intelligence_packet05.py`
-- `POST /system/orc-governance/sync`
-- `GET /system/orc-governance/latest`
-- `GET /system/orc-governance/incidents/latest`
-- `GET /system/orc-governance/incident/{incident_id}`
-- `GET /system/orc-governance/pending-approvals/latest`
-- `GET /system/orc-governance/audit/latest`
-- `POST /system/orc-governance/recovery/request`
-- `GET /system/orc-governance/recovery/latest`
+- `../Alpha_factory_governance_operator_control_packet01_plan.md`
+- `../../test_bundle/scripts/verify_alpha_factory_governance_packet01.py`
+- `POST /system/operator-action/submit`
+- `GET /system/operator-actions/latest`
+- `GET /system/pending-approvals/latest`
+- `GET /system/pending-approvals/{approval_id}`
+- `POST /system/pending-approvals/{approval_id}/approve`
+- `POST /system/pending-approvals/{approval_id}/reject`
+- `POST /system/operator-override`
+- `GET /system/operator-overrides/latest`
+- `POST /system/operator-overrides/{override_id}/expire`
+- `GET /system/audit-log/latest`
+- `GET /system/governance-state/latest`
+- `POST /system/governance/sync`
+- `POST /system/governance/dispatch`
+- `GET /system/governance/dispatch/latest`
 
 ## Current Docs-Ready State
 
-The docs route for `ORC-05` is now prepared for implementation startup.
+The docs route for `AFG-01` is now prepared for implementation startup.
 
 Current docs-ready assets:
 
@@ -113,7 +120,9 @@ Current docs-ready assets:
 - `../Operational_risk_control_intelligence_packet03_plan.md`
 - `../Operational_risk_control_intelligence_packet04_plan.md`
 - `../Operational_risk_control_intelligence_packet05_plan.md`
+- `../Alpha_factory_governance_operator_control_packet01_plan.md`
 - `../07_interfaces/orc_operational_risk_contracts.md`
+- `../07_interfaces/afg_operator_control_contracts.md`
 - `../07_interfaces/aes_alpha_evaluation_contracts.md`
 - `../07_interfaces/lane_surface_inventory.md`
 - `../10_agent/ai_docs_operating_loop.md`

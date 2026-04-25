@@ -231,6 +231,25 @@ This file is the compact routing matrix for the current `system` contract surfac
 | `POST /system/orc-governance/recovery/request` | governance recovery request | operator recovery governance request |
 | `GET /system/orc-governance/recovery/latest` | governance recovery latest | latest recovery governance decisions |
 
+## Alpha Factory Governance / Operator Control Surfaces
+
+| Endpoint | Contract role | Primary output |
+| --- | --- | --- |
+| `POST /system/operator-action/submit` | operator action submission | policy-gated operator action record |
+| `GET /system/operator-actions/latest` | operator action latest | latest operator and system actions |
+| `GET /system/pending-approvals/latest` | pending approval queue | current approval queue |
+| `GET /system/pending-approvals/{approval_id}` | pending approval lookup | approval detail |
+| `POST /system/pending-approvals/{approval_id}/approve` | approval decision | approved operator decision |
+| `POST /system/pending-approvals/{approval_id}/reject` | rejection decision | rejected operator decision |
+| `POST /system/operator-override` | operator override create | time-limited override record |
+| `GET /system/operator-overrides/latest` | operator override latest | current override log |
+| `POST /system/operator-overrides/{override_id}/expire` | operator override expire | override expiration record |
+| `GET /system/audit-log/latest` | governance audit log | audit events for governance mutations |
+| `GET /system/governance-state/latest` | governance state latest | global mode and queue counters |
+| `POST /system/governance/sync` | governance sync | ORC-to-AFG pending approval import |
+| `POST /system/governance/dispatch` | governance dispatch | dispatch or staging record |
+| `GET /system/governance/dispatch/latest` | governance dispatch latest | dispatch audit log |
+
 ## Rule
 
 When a new `system` endpoint is added, update this matrix if the endpoint is operator-visible or part of the lane checkpoint contract surface.

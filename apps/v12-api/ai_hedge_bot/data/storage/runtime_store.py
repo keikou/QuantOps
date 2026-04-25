@@ -1609,6 +1609,93 @@ class RuntimeStore:
                     created_at TIMESTAMP,
                     decided_at TIMESTAMP
                 );
+                CREATE TABLE IF NOT EXISTS operator_actions (
+                    action_id VARCHAR,
+                    action_type VARCHAR,
+                    target_type VARCHAR,
+                    target_id VARCHAR,
+                    decision VARCHAR,
+                    reason VARCHAR,
+                    operator_id VARCHAR,
+                    source_system VARCHAR,
+                    risk_level VARCHAR,
+                    status VARCHAR,
+                    payload_json VARCHAR,
+                    created_at TIMESTAMP,
+                    applied_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS pending_approvals (
+                    approval_id VARCHAR,
+                    source_system VARCHAR,
+                    source_event_id VARCHAR,
+                    target_type VARCHAR,
+                    target_id VARCHAR,
+                    proposed_action VARCHAR,
+                    risk_level VARCHAR,
+                    requires_approval BOOLEAN,
+                    status VARCHAR,
+                    reason VARCHAR,
+                    payload_json VARCHAR,
+                    idempotency_key VARCHAR,
+                    created_at TIMESTAMP,
+                    decided_at TIMESTAMP,
+                    decided_by VARCHAR
+                );
+                CREATE TABLE IF NOT EXISTS governance_audit_log (
+                    log_id VARCHAR,
+                    event_type VARCHAR,
+                    source_system VARCHAR,
+                    source_event_id VARCHAR,
+                    target_type VARCHAR,
+                    target_id VARCHAR,
+                    action VARCHAR,
+                    operator_id VARCHAR,
+                    decision VARCHAR,
+                    risk_level VARCHAR,
+                    metadata_json VARCHAR,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS operator_overrides (
+                    override_id VARCHAR,
+                    target_type VARCHAR,
+                    target_id VARCHAR,
+                    override_action VARCHAR,
+                    reason VARCHAR,
+                    operator_id VARCHAR,
+                    risk_level VARCHAR,
+                    expires_at TIMESTAMP,
+                    active BOOLEAN,
+                    blocked_by_policy BOOLEAN,
+                    created_at TIMESTAMP,
+                    expired_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS governance_state (
+                    state_id VARCHAR,
+                    global_mode VARCHAR,
+                    approval_required_level VARCHAR,
+                    active_override_count INTEGER,
+                    pending_approval_count INTEGER,
+                    blocked_action_count INTEGER,
+                    last_operator_action_id VARCHAR,
+                    last_orc_risk_level VARCHAR,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS governance_dispatch_log (
+                    dispatch_id VARCHAR,
+                    approval_id VARCHAR,
+                    source_system VARCHAR,
+                    target_system VARCHAR,
+                    action VARCHAR,
+                    target_type VARCHAR,
+                    target_id VARCHAR,
+                    payload_json VARCHAR,
+                    idempotency_key VARCHAR,
+                    dry_run BOOLEAN,
+                    dispatch_status VARCHAR,
+                    error_message VARCHAR,
+                    created_at TIMESTAMP,
+                    dispatched_at TIMESTAMP
+                );
                 CREATE TABLE IF NOT EXISTS live_orders (
                     live_order_id VARCHAR,
                     created_at TIMESTAMP,

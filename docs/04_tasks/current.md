@@ -3,8 +3,8 @@
 Date: `2026-04-24`
 Repo: `QuantOps_github`
 Branch: `codex/post-phase7-hardening`
-Track: `operational_risk_control_intelligence`
-Status: `orc05_active`
+Track: `alpha_factory_governance_operator_control`
+Status: `afg01_active`
 
 ## Purpose
 
@@ -30,13 +30,13 @@ That means:
 
 Current top task:
 
-- establish `Operational Risk & Control Intelligence`
-- implement `ORC-05: Incident Audit / Operator Governance Bridge`
+- establish `Alpha Factory Governance / Operator Control`
+- implement `AFG-01: Alpha Factory Operator Control Plane`
 
 Current architect-selected candidate:
 
-- `Operational Risk & Control Intelligence`
-- current implementation boundary = `ORC-05`
+- `Alpha Factory Governance / Operator Control`
+- current implementation boundary = `AFG-01`
 - current dependency 1 = `Research / Promotion Intelligence v1 checkpoint through RPI-06`
 - current dependency 2 = `Alpha / Strategy Selection Intelligence v1 checkpoint through ASI-05`
 - current dependency 3 = `Portfolio Intelligence v1 checkpoint through PI-05`
@@ -55,9 +55,9 @@ Architect now treats `Strategy Evolution / Regime Adaptation Intelligence v1` as
 
 The next question is:
 
-- "can operational incidents be governance-visible?"
-- "can high-risk responses create approval-ready payloads?"
-- "can audit, dispatch, override, and recovery governance be staged before AFG exists?"
+- "can production-impacting actions be policy-gated?"
+- "can approval, override, audit, and dispatch staging become explicit?"
+- "can ORC staging enter an operator-controlled AFG queue?"
 
 This is the next lane beyond the completed hardening/resume slice, but it is no longer the older `Execution Reality` default.
 
@@ -78,7 +78,7 @@ This is the next lane beyond the completed hardening/resume slice, but it is no 
 
 ## Current Recommendation
 
-Use `ORC-05` as the current active task.
+Use `AFG-01` as the current active task.
 
 ## Explicit Non-Tasks
 
@@ -129,23 +129,29 @@ The current lane follow-up should produce:
 
 - one packet plan doc
 - one verifier script
-- governance incident, pending approval, audit, dispatch, override-sync, and recovery governance surfaces
+- operator action, pending approval, override, audit, governance state, sync, and dispatch surfaces
 
-Current `ORC-05` outputs now planned:
+Current `AFG-01` outputs now planned:
 
-- `docs/Operational_risk_control_intelligence_packet05_plan.md`
-- `test_bundle/scripts/verify_operational_risk_control_intelligence_packet05.py`
-- `POST /system/orc-governance/sync`
-- `GET /system/orc-governance/latest`
-- `GET /system/orc-governance/incidents/latest`
-- `GET /system/orc-governance/incident/{incident_id}`
-- `GET /system/orc-governance/pending-approvals/latest`
-- `GET /system/orc-governance/audit/latest`
-- `POST /system/orc-governance/recovery/request`
-- `GET /system/orc-governance/recovery/latest`
+- `docs/Alpha_factory_governance_operator_control_packet01_plan.md`
+- `test_bundle/scripts/verify_alpha_factory_governance_packet01.py`
+- `POST /system/operator-action/submit`
+- `GET /system/operator-actions/latest`
+- `GET /system/pending-approvals/latest`
+- `GET /system/pending-approvals/{approval_id}`
+- `POST /system/pending-approvals/{approval_id}/approve`
+- `POST /system/pending-approvals/{approval_id}/reject`
+- `POST /system/operator-override`
+- `GET /system/operator-overrides/latest`
+- `POST /system/operator-overrides/{override_id}/expire`
+- `GET /system/audit-log/latest`
+- `GET /system/governance-state/latest`
+- `POST /system/governance/sync`
+- `POST /system/governance/dispatch`
+- `GET /system/governance/dispatch/latest`
 
 ## Single-Block Resume Note
 
 ```text
-Current task is not another hardening packet, not another Execution Reality packet, not another Governance -> Runtime Control packet, not another Portfolio Intelligence packet, not another Alpha / Strategy Selection Intelligence packet, not another Research / Promotion Intelligence packet, and not another active DRI, LCC, MPI, SERI, AAE, ASD, or AES packet. Current task is `ORC-05`, so completed `AES-01` through `AES-08` and `ORC-01` through `ORC-04` work should be treated as input lanes and not replayed unless a real regression is found.
+Current task is not another hardening packet, not another Execution Reality packet, not another Governance -> Runtime Control packet, not another Portfolio Intelligence packet, not another Alpha / Strategy Selection Intelligence packet, not another Research / Promotion Intelligence packet, and not another active DRI, LCC, MPI, SERI, AAE, ASD, AES, or ORC packet. Current task is `AFG-01`, so completed `AES-01` through `AES-08` and `ORC-01` through `ORC-05` work should be treated as input lanes and not replayed unless a real regression is found.
 ```

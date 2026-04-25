@@ -11,6 +11,7 @@ from ai_hedge_bot.alpha_evaluation.evaluation_service import AlphaEvaluationServ
 from ai_hedge_bot.alpha_validation.validation_service import AlphaValidationService
 from ai_hedge_bot.data_integrity.data_integrity_service import DataIntegrityService
 from ai_hedge_bot.execution_health.execution_health_service import ExecutionHealthService
+from ai_hedge_bot.governance.governance_service import GovernanceService
 from ai_hedge_bot.operational_governance.operational_governance_service import OperationalGovernanceService
 from ai_hedge_bot.operational_risk.operational_risk_service import OperationalRiskService
 from ai_hedge_bot.alpha_synthesis.alpha_synthesis_service import AlphaSynthesisService
@@ -72,6 +73,7 @@ _operational_risk = OperationalRiskService()
 _execution_health = ExecutionHealthService()
 _data_integrity = DataIntegrityService()
 _operational_governance = OperationalGovernanceService()
+_governance = GovernanceService()
 
 
 def _payload() -> dict:
@@ -1081,3 +1083,107 @@ def system_orc_governance_recovery_request(
 @router.get('/system/orc-governance/recovery/latest')
 def system_orc_governance_recovery_latest(limit: int = 20) -> dict:
     return _operational_governance.recovery_latest(limit=limit)
+
+
+@router.post('/system/operator-action/submit')
+def system_operator_action_submit(
+    action_type: str = "review",
+    target_type: str = "system",
+    target_id: str = "",
+    source_system: str = "Operator",
+    risk_level: str = "L1_WATCH",
+    reason: str = "operator_action",
+    operator_id: str = "operator",
+    payload_json: str = "{}",
+) -> dict:
+    return _governance.submit_action(
+        action_type=action_type,
+        target_type=target_type,
+        target_id=target_id,
+        source_system=source_system,
+        risk_level=risk_level,
+        reason=reason,
+        operator_id=operator_id,
+        payload_json=payload_json,
+    )
+
+
+@router.get('/system/operator-actions/latest')
+def system_operator_actions_latest(limit: int = 20) -> dict:
+    return _governance.operator_actions_latest(limit=limit)
+
+
+@router.get('/system/pending-approvals/latest')
+def system_pending_approvals_latest(limit: int = 20) -> dict:
+    return _governance.pending_approvals_latest(limit=limit)
+
+
+@router.get('/system/pending-approvals/{approval_id}')
+def system_pending_approval(approval_id: str) -> dict:
+    return _governance.pending_approval(approval_id=approval_id)
+
+
+@router.post('/system/pending-approvals/{approval_id}/approve')
+def system_pending_approval_approve(approval_id: str, operator_id: str = "operator", reason: str = "approved") -> dict:
+    return _governance.approve(approval_id=approval_id, operator_id=operator_id, reason=reason)
+
+
+@router.post('/system/pending-approvals/{approval_id}/reject')
+def system_pending_approval_reject(approval_id: str, operator_id: str = "operator", reason: str = "rejected") -> dict:
+    return _governance.reject(approval_id=approval_id, operator_id=operator_id, reason=reason)
+
+
+@router.post('/system/operator-override')
+def system_operator_override(
+    target_type: str = "system",
+    target_id: str = "global",
+    override_action: str = "allow_reduce_only",
+    reason: str = "operator_override",
+    operator_id: str = "operator",
+    risk_level: str = "L1_WATCH",
+    ttl_hours: int = 4,
+) -> dict:
+    return _governance.create_override(
+        target_type=target_type,
+        target_id=target_id,
+        override_action=override_action,
+        reason=reason,
+        operator_id=operator_id,
+        risk_level=risk_level,
+        ttl_hours=ttl_hours,
+    )
+
+
+@router.get('/system/operator-overrides/latest')
+def system_operator_overrides_latest(limit: int = 20) -> dict:
+    return _governance.operator_overrides_latest(limit=limit)
+
+
+@router.post('/system/operator-overrides/{override_id}/expire')
+def system_operator_override_expire(override_id: str, operator_id: str = "operator") -> dict:
+    return _governance.expire_override(override_id=override_id, operator_id=operator_id)
+
+
+@router.get('/system/audit-log/latest')
+def system_audit_log_latest(limit: int = 20) -> dict:
+    return _governance.audit_log_latest(limit=limit)
+
+
+@router.get('/system/governance-state/latest')
+def system_governance_state_latest() -> dict:
+    return _governance.governance_state_latest()
+
+
+@router.post('/system/governance/sync')
+def system_governance_sync(limit: int = 50) -> dict:
+    return _governance.sync(limit=limit)
+
+
+@router.post('/system/governance/dispatch')
+def system_governance_dispatch(approval_id: str = "latest", target_system: str = "local_staging", dry_run: bool = True) -> dict:
+    return _governance.dispatch(approval_id=approval_id, target_system=target_system, dry_run=dry_run)
+
+
+@router.get('/system/governance/dispatch/latest')
+def system_governance_dispatch_latest(limit: int = 20) -> dict:
+    return _governance.dispatch_latest(limit=limit)
