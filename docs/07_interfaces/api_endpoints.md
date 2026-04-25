@@ -236,6 +236,25 @@ This file is the short routing index for the current operator-visible API endpoi
 - `POST /system/governance/sync`
 - `POST /system/governance/dispatch`
 - `GET /system/governance/dispatch/latest`
+- `POST /system/policy-enforcement/check`
+- `POST /system/policy-enforcement/pre-dispatch`
+- `POST /system/policy-enforcement/pre-allocation`
+- `POST /system/policy-enforcement/pre-execution`
+- `POST /system/policy-enforcement/pre-lifecycle`
+- `POST /system/policy-enforcement/pre-policy-apply`
+- `GET /system/policy-enforcement/latest`
+- `GET /system/policy-enforcement/violations/latest`
+- `GET /system/policy-enforcement/constraints/latest`
+- `GET /system/policy-enforcement/state/latest`
+- `POST /system/authorization/check`
+- `GET /system/authorization/latest`
+- `GET /system/authorization/denials/latest`
+- `GET /system/roles/latest`
+- `GET /system/permissions/latest`
+- `POST /system/roles/assign`
+- `POST /system/roles/revoke`
+- `GET /system/actor-permissions/{actor_id}`
+- `GET /system/authorization/audit/latest`
 
 ## Read Next
 

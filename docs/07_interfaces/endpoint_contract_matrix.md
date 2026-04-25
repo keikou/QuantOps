@@ -249,6 +249,25 @@ This file is the compact routing matrix for the current `system` contract surfac
 | `POST /system/governance/sync` | governance sync | ORC-to-AFG pending approval import |
 | `POST /system/governance/dispatch` | governance dispatch | dispatch or staging record |
 | `GET /system/governance/dispatch/latest` | governance dispatch latest | dispatch audit log |
+| `POST /system/policy-enforcement/check` | enforcement check | generic runtime enforcement decision |
+| `POST /system/policy-enforcement/pre-dispatch` | pre-dispatch enforcement | dispatch approval and safety gate |
+| `POST /system/policy-enforcement/pre-allocation` | pre-allocation enforcement | allocation increase and constraint gate |
+| `POST /system/policy-enforcement/pre-execution` | pre-execution enforcement | order mode and safe-mode gate |
+| `POST /system/policy-enforcement/pre-lifecycle` | pre-lifecycle enforcement | alpha lifecycle mutation gate |
+| `POST /system/policy-enforcement/pre-policy-apply` | pre-policy-apply enforcement | policy change enforcement gate |
+| `GET /system/policy-enforcement/latest` | enforcement latest | latest enforcement checks |
+| `GET /system/policy-enforcement/violations/latest` | enforcement violations | latest enforcement violations |
+| `GET /system/policy-enforcement/constraints/latest` | enforcement constraints | active runtime constraints emitted by checks |
+| `GET /system/policy-enforcement/state/latest` | enforcement consistency state | latest cross-system consistency state |
+| `POST /system/authorization/check` | authorization check | actor/action/scope/risk authorization decision |
+| `GET /system/authorization/latest` | authorization latest | latest authorization decisions |
+| `GET /system/authorization/denials/latest` | authorization denials | latest denied authorization decisions |
+| `GET /system/roles/latest` | role registry | active role definitions |
+| `GET /system/permissions/latest` | permission registry | active permission definitions |
+| `POST /system/roles/assign` | role assignment | actor-role assignment record |
+| `POST /system/roles/revoke` | role revoke | actor-role revocation record |
+| `GET /system/actor-permissions/{actor_id}` | actor permissions | expanded actor roles and permissions |
+| `GET /system/authorization/audit/latest` | authorization audit | authorization and role mutation audit log |
 
 ## Rule
 

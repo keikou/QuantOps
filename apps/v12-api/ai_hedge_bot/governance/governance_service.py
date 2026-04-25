@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 
 from ai_hedge_bot.app.container import CONTAINER
+from ai_hedge_bot.authorization.authorization_service import AuthorizationService
 from ai_hedge_bot.core.clock import utc_now_iso
 from ai_hedge_bot.core.ids import new_run_id
 from ai_hedge_bot.governance.action_dispatcher import ActionDispatcher
@@ -22,6 +23,7 @@ class GovernanceService:
         self.overrides = OperatorOverrideManager(self.store)
         self.dispatcher = ActionDispatcher(self.store)
         self.state = GovernanceStateEngine(self.store)
+        self.authorization = AuthorizationService()
 
     def submit_action(
         self,
@@ -85,12 +87,36 @@ class GovernanceService:
         return {"status": "ok" if row else "not_found", "approval_id": approval_id, "pending_approval": row}
 
     def approve(self, approval_id: str, operator_id: str = "operator", reason: str = "approved") -> dict:
+        current = self.approvals.get(approval_id)
+        authorization = self.authorization.check(
+            actor_id=operator_id,
+            action=self._approval_action(str(current.get("risk_level") or "LOW")),
+            target_type=str(current.get("target_type") or "system"),
+            target_id=str(current.get("target_id") or ""),
+            scope=str(current.get("target_type") or "global"),
+            risk_level=str(current.get("risk_level") or "LOW"),
+            source_system=str(current.get("source_system") or "AFG"),
+        )
+        if authorization.get("authorization", {}).get("decision") != "AUTHORIZED":
+            return {"status": "authorization_denied", "authorization": authorization.get("authorization"), "approval": current}
         row = self.approvals.decide(approval_id, "approved", operator_id)
         self.audit.log("operator_approved", row.get("source_system", "AFG"), row.get("source_event_id", approval_id), row.get("target_type", ""), row.get("target_id", ""), row.get("proposed_action", ""), operator_id, "approved", row.get("risk_level", ""), json.dumps({"reason": reason}))
         self.state.compute()
         return {"status": "ok" if row else "not_found", "approval": row}
 
     def reject(self, approval_id: str, operator_id: str = "operator", reason: str = "rejected") -> dict:
+        current = self.approvals.get(approval_id)
+        authorization = self.authorization.check(
+            actor_id=operator_id,
+            action="approval.reject",
+            target_type=str(current.get("target_type") or "system"),
+            target_id=str(current.get("target_id") or ""),
+            scope=str(current.get("target_type") or "global"),
+            risk_level=str(current.get("risk_level") or "LOW"),
+            source_system=str(current.get("source_system") or "AFG"),
+        )
+        if authorization.get("authorization", {}).get("decision") != "AUTHORIZED":
+            return {"status": "authorization_denied", "authorization": authorization.get("authorization"), "approval": current}
         row = self.approvals.decide(approval_id, "rejected", operator_id)
         self.audit.log("operator_rejected", row.get("source_system", "AFG"), row.get("source_event_id", approval_id), row.get("target_type", ""), row.get("target_id", ""), row.get("proposed_action", ""), operator_id, "rejected", row.get("risk_level", ""), json.dumps({"reason": reason}))
         self.state.compute()
@@ -106,6 +132,17 @@ class GovernanceService:
         risk_level: str = "L1_WATCH",
         ttl_hours: int = 4,
     ) -> dict:
+        authorization = self.authorization.check(
+            actor_id=operator_id,
+            action=self._override_action(risk_level),
+            target_type=target_type,
+            target_id=target_id,
+            scope=target_type,
+            risk_level=risk_level,
+            source_system="Operator",
+        )
+        if authorization.get("authorization", {}).get("decision") != "AUTHORIZED":
+            return {"status": "authorization_denied", "authorization": authorization.get("authorization"), "operator_override": {}}
         row = self.overrides.create(target_type, target_id, override_action, reason, operator_id, risk_level, ttl_hours)
         self.audit.log("operator_override_created", "Operator", row["override_id"], target_type, target_id, override_action, operator_id, "blocked" if row["blocked_by_policy"] else "active", risk_level, json.dumps(row, default=str))
         self.state.compute()
@@ -116,6 +153,9 @@ class GovernanceService:
         return {"status": "ok", "items": rows, "operator_override_summary": {"override_count": len(rows)}}
 
     def expire_override(self, override_id: str, operator_id: str = "operator") -> dict:
+        authorization = self.authorization.check(actor_id=operator_id, action="override.expire", target_type="operator_override", target_id=override_id, scope="global", risk_level="LOW", source_system="Operator")
+        if authorization.get("authorization", {}).get("decision") != "AUTHORIZED":
+            return {"status": "authorization_denied", "authorization": authorization.get("authorization"), "operator_override": {}}
         row = self.overrides.expire(override_id)
         self.audit.log("operator_override_expired", "Operator", override_id, row.get("target_type", ""), row.get("target_id", ""), row.get("override_action", ""), operator_id, "expired", row.get("risk_level", ""), json.dumps(row, default=str))
         self.state.compute()
@@ -170,6 +210,9 @@ class GovernanceService:
         approval = self._latest_approval() if approval_id == "latest" else self.approvals.get(approval_id)
         if not approval:
             return {"status": "not_found", "approval_id": approval_id, "dispatch": {}}
+        authorization = self.authorization.check(actor_id="system", actor_type="service", action="dispatch.execute", target_type=str(approval.get("target_type") or "system"), target_id=str(approval.get("target_id") or ""), scope=str(approval.get("target_type") or "global"), risk_level=str(approval.get("risk_level") or "LOW"), source_system="AFG")
+        if authorization.get("authorization", {}).get("decision") != "AUTHORIZED":
+            return {"status": "authorization_denied", "authorization": authorization.get("authorization"), "dispatch": {}}
         row = self.dispatcher.dispatch(approval, target_system=target_system, dry_run=dry_run)
         self.audit.log("dispatch_attempted", "AFG", approval.get("approval_id", ""), approval.get("target_type", ""), approval.get("target_id", ""), approval.get("proposed_action", ""), "system", row["dispatch_status"], approval.get("risk_level", ""), json.dumps(row, default=str))
         self.state.compute()
@@ -189,3 +232,19 @@ class GovernanceService:
             "REQUIRE_APPROVAL": "approval_pending",
             "BLOCK": "blocked",
         }.get(decision, "recorded")
+
+    def _approval_action(self, risk_level: str) -> str:
+        if risk_level in {"L5_GLOBAL_HALT", "CRITICAL"}:
+            return "approval.approve.critical"
+        if risk_level in {"L3_FREEZE", "L4_PARTIAL_HALT", "HIGH"}:
+            return "approval.approve.high"
+        if risk_level in {"L2_REDUCE", "MEDIUM"}:
+            return "approval.approve.medium"
+        return "approval.approve.low"
+
+    def _override_action(self, risk_level: str) -> str:
+        if risk_level in {"L5_GLOBAL_HALT", "CRITICAL"}:
+            return "override.create.critical"
+        if risk_level in {"L3_FREEZE", "L4_PARTIAL_HALT", "HIGH"}:
+            return "override.create.high"
+        return "override.create.low"

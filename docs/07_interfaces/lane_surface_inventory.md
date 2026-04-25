@@ -426,6 +426,50 @@ Contract progression:
 - governance mode and queue counters
 - ORC-to-AFG sync
 - dispatch staging and dry-run
+- generic runtime enforcement check
+- pre-dispatch enforcement
+- pre-allocation enforcement
+- pre-execution enforcement
+- pre-lifecycle enforcement
+- pre-policy-apply enforcement
+- enforcement check log
+- enforcement violation log
+- runtime constraint log
+- enforcement consistency state
+- authorization check
+- authorization decision log
+- authorization denial log
+- role registry
+- permission registry
+- actor-role assignment
+- actor-role revoke
+- actor permission expansion
+- authorization audit log
+
+AFG-02 additions:
+
+- `POST /system/policy-enforcement/check`
+- `POST /system/policy-enforcement/pre-dispatch`
+- `POST /system/policy-enforcement/pre-allocation`
+- `POST /system/policy-enforcement/pre-execution`
+- `POST /system/policy-enforcement/pre-lifecycle`
+- `POST /system/policy-enforcement/pre-policy-apply`
+- `GET /system/policy-enforcement/latest`
+- `GET /system/policy-enforcement/violations/latest`
+- `GET /system/policy-enforcement/constraints/latest`
+- `GET /system/policy-enforcement/state/latest`
+
+AFG-03 additions:
+
+- `POST /system/authorization/check`
+- `GET /system/authorization/latest`
+- `GET /system/authorization/denials/latest`
+- `GET /system/roles/latest`
+- `GET /system/permissions/latest`
+- `POST /system/roles/assign`
+- `POST /system/roles/revoke`
+- `GET /system/actor-permissions/{actor_id}`
+- `GET /system/authorization/audit/latest`
 
 ## Rule
 

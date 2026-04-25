@@ -1696,6 +1696,115 @@ class RuntimeStore:
                     created_at TIMESTAMP,
                     dispatched_at TIMESTAMP
                 );
+                CREATE TABLE IF NOT EXISTS policy_enforcement_checks (
+                    check_id VARCHAR,
+                    source_system VARCHAR,
+                    action_type VARCHAR,
+                    target_type VARCHAR,
+                    target_id VARCHAR,
+                    enforcement_boundary VARCHAR,
+                    decision VARCHAR,
+                    reason VARCHAR,
+                    constraints_json VARCHAR,
+                    context_json VARCHAR,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS policy_enforcement_violations (
+                    violation_id VARCHAR,
+                    check_id VARCHAR,
+                    violation_type VARCHAR,
+                    severity VARCHAR,
+                    source_system VARCHAR,
+                    action_type VARCHAR,
+                    target_type VARCHAR,
+                    target_id VARCHAR,
+                    reason VARCHAR,
+                    evidence_json VARCHAR,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS runtime_enforcement_constraints (
+                    constraint_id VARCHAR,
+                    scope VARCHAR,
+                    target_id VARCHAR,
+                    constraint_type VARCHAR,
+                    constraint_value VARCHAR,
+                    source_system VARCHAR,
+                    active BOOLEAN,
+                    reason VARCHAR,
+                    created_at TIMESTAMP,
+                    expires_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS enforcement_consistency_state (
+                    state_id VARCHAR,
+                    orc_risk_level VARCHAR,
+                    afg_governance_mode VARCHAR,
+                    lcc_state VARCHAR,
+                    execution_mode VARCHAR,
+                    consistent BOOLEAN,
+                    inconsistency_reason VARCHAR,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS authorization_actors (
+                    actor_id VARCHAR,
+                    actor_type VARCHAR,
+                    display_name VARCHAR,
+                    active BOOLEAN,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS authorization_roles (
+                    role_id VARCHAR,
+                    role_name VARCHAR,
+                    description VARCHAR,
+                    max_risk_level VARCHAR,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS authorization_permissions (
+                    permission_id VARCHAR,
+                    permission_name VARCHAR,
+                    action VARCHAR,
+                    target_type VARCHAR,
+                    scope VARCHAR,
+                    max_risk_level VARCHAR,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS authorization_role_permissions (
+                    role_id VARCHAR,
+                    permission_id VARCHAR,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS authorization_actor_roles (
+                    actor_id VARCHAR,
+                    role_id VARCHAR,
+                    scope VARCHAR,
+                    target_id VARCHAR,
+                    active BOOLEAN,
+                    created_at TIMESTAMP,
+                    expires_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS authorization_decisions (
+                    decision_id VARCHAR,
+                    actor_id VARCHAR,
+                    action VARCHAR,
+                    target_type VARCHAR,
+                    target_id VARCHAR,
+                    risk_level VARCHAR,
+                    decision VARCHAR,
+                    reason VARCHAR,
+                    matched_roles VARCHAR,
+                    matched_permissions VARCHAR,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS authorization_audit_log (
+                    audit_id VARCHAR,
+                    actor_id VARCHAR,
+                    event_type VARCHAR,
+                    action VARCHAR,
+                    target_type VARCHAR,
+                    target_id VARCHAR,
+                    decision VARCHAR,
+                    metadata_json VARCHAR,
+                    created_at TIMESTAMP
+                );
                 CREATE TABLE IF NOT EXISTS live_orders (
                     live_order_id VARCHAR,
                     created_at TIMESTAMP,

@@ -3,7 +3,7 @@
 Date: `2026-04-24`
 Repo: `QuantOps_github`
 Branch: `codex/post-phase7-hardening`
-Status: `afg01_active_boundary`
+Status: `afg03_active_boundary`
 
 ## Current Planning Decision
 
@@ -11,9 +11,9 @@ The current hardening/resume slice is treated as sufficiently complete.
 
 So the active planning question is now:
 
-- how should production-impacting alpha factory actions be approved?
-- how should operator override, audit, and dispatch staging become explicit?
-- how should ORC/AES/AAE recommendations enter one governance control plane?
+- who is authorized to perform governance actions?
+- how should action, scope, and risk-level permission boundaries be fixed?
+- how should AFG-01 mutations and AFG-02 enforcement be protected by authorization?
 
 Historical note:
 
@@ -30,7 +30,7 @@ Architect-selected answer:
 - `Alpha Evaluation / Selection Intelligence v1` is checkpoint-complete through `AES-08`
 - `Operational Risk & Control Intelligence v1` is checkpoint-complete through `ORC-05`
 - next top-level lane is `Alpha Factory Governance / Operator Control`
-- current packet boundary is `AFG-01: Alpha Factory Operator Control Plane`
+- current packet boundary is `AFG-03: RBAC / Permission Model`
 
 ## Why This Is The Current Plan
 
@@ -54,7 +54,7 @@ Architect re-alignment now treats the following as sufficiently closed for the c
 - `Meta Portfolio Intelligence / Cross-Strategy Capital Allocation v1`
 - `Strategy Evolution / Regime Adaptation Intelligence v1`
 
-That means planning should not continue replaying `SERI`, `AAE`, `ASD`, `AES`, or `ORC` checkpoint work and should now establish the alpha factory operator control plane.
+That means planning should not continue replaying `SERI`, `AAE`, `ASD`, `AES`, `ORC`, `AFG-01`, or `AFG-02` checkpoint work and should now establish operator authorization.
 
 ## Explicitly Completed Planning Slice
 
@@ -77,28 +77,23 @@ The following planning sequence is now historical and completed:
 
 ## Current Plan Outputs
 
-Current `AFG-01` outputs now planned:
+Current `AFG-03` outputs now planned:
 
-- `../Alpha_factory_governance_operator_control_packet01_plan.md`
-- `../../test_bundle/scripts/verify_alpha_factory_governance_packet01.py`
-- `POST /system/operator-action/submit`
-- `GET /system/operator-actions/latest`
-- `GET /system/pending-approvals/latest`
-- `GET /system/pending-approvals/{approval_id}`
-- `POST /system/pending-approvals/{approval_id}/approve`
-- `POST /system/pending-approvals/{approval_id}/reject`
-- `POST /system/operator-override`
-- `GET /system/operator-overrides/latest`
-- `POST /system/operator-overrides/{override_id}/expire`
-- `GET /system/audit-log/latest`
-- `GET /system/governance-state/latest`
-- `POST /system/governance/sync`
-- `POST /system/governance/dispatch`
-- `GET /system/governance/dispatch/latest`
+- `../Alpha_factory_governance_operator_control_packet03_plan.md`
+- `../../test_bundle/scripts/verify_alpha_factory_governance_packet03.py`
+- `POST /system/authorization/check`
+- `GET /system/authorization/latest`
+- `GET /system/authorization/denials/latest`
+- `GET /system/roles/latest`
+- `GET /system/permissions/latest`
+- `POST /system/roles/assign`
+- `POST /system/roles/revoke`
+- `GET /system/actor-permissions/{actor_id}`
+- `GET /system/authorization/audit/latest`
 
 ## Current Docs-Ready State
 
-The docs route for `AFG-01` is now prepared for implementation startup.
+The docs route for `AFG-03` is now prepared for implementation startup.
 
 Current docs-ready assets:
 
@@ -121,6 +116,8 @@ Current docs-ready assets:
 - `../Operational_risk_control_intelligence_packet04_plan.md`
 - `../Operational_risk_control_intelligence_packet05_plan.md`
 - `../Alpha_factory_governance_operator_control_packet01_plan.md`
+- `../Alpha_factory_governance_operator_control_packet02_plan.md`
+- `../Alpha_factory_governance_operator_control_packet03_plan.md`
 - `../07_interfaces/orc_operational_risk_contracts.md`
 - `../07_interfaces/afg_operator_control_contracts.md`
 - `../07_interfaces/aes_alpha_evaluation_contracts.md`

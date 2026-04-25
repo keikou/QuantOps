@@ -25,10 +25,12 @@ The repo currently stands in this state:
 - `Meta Portfolio Intelligence / Cross-Strategy Capital Allocation v1` is checkpoint-complete through `MPI-05`
 - `Strategy Evolution / Regime Adaptation Intelligence v1` is checkpoint-complete through `SERI-05`
 - `Operational Risk & Control Intelligence v1` is checkpoint-complete through `ORC-05`
-- latest local `HEAD` is `d4417ff`
-- latest pushed commit is `d4417ff`
+- `AFG-01` is checkpoint-complete as the alpha factory operator control plane
+- `AFG-02` is checkpoint-complete as the runtime policy enforcement engine
+- latest local `HEAD` is `1945700`
+- latest pushed commit is `1945700`
 - branch working tree now includes `AAE-01` through `AAE-05` and `ASD-01`
-- canonical current-state docs are now aligned to `AFG-01 active`
+- canonical current-state docs are now aligned to `AFG-03 active`
 - `AAE-01` now exposes `GET /system/alpha-discovery-candidates/latest`
 - `AAE-01` now exposes `GET /system/alpha-validation-results/latest`
 - `AAE-01` now exposes `GET /system/alpha-admission-decision/latest`
@@ -200,6 +202,25 @@ The repo currently stands in this state:
 - `AFG-01` now exposes `POST /system/governance/sync`
 - `AFG-01` now exposes `POST /system/governance/dispatch`
 - `AFG-01` now exposes `GET /system/governance/dispatch/latest`
+- `AFG-02` now exposes `POST /system/policy-enforcement/check`
+- `AFG-02` now exposes `POST /system/policy-enforcement/pre-dispatch`
+- `AFG-02` now exposes `POST /system/policy-enforcement/pre-allocation`
+- `AFG-02` now exposes `POST /system/policy-enforcement/pre-execution`
+- `AFG-02` now exposes `POST /system/policy-enforcement/pre-lifecycle`
+- `AFG-02` now exposes `POST /system/policy-enforcement/pre-policy-apply`
+- `AFG-02` now exposes `GET /system/policy-enforcement/latest`
+- `AFG-02` now exposes `GET /system/policy-enforcement/violations/latest`
+- `AFG-02` now exposes `GET /system/policy-enforcement/constraints/latest`
+- `AFG-02` now exposes `GET /system/policy-enforcement/state/latest`
+- `AFG-03` now exposes `POST /system/authorization/check`
+- `AFG-03` now exposes `GET /system/authorization/latest`
+- `AFG-03` now exposes `GET /system/authorization/denials/latest`
+- `AFG-03` now exposes `GET /system/roles/latest`
+- `AFG-03` now exposes `GET /system/permissions/latest`
+- `AFG-03` now exposes `POST /system/roles/assign`
+- `AFG-03` now exposes `POST /system/roles/revoke`
+- `AFG-03` now exposes `GET /system/actor-permissions/{actor_id}`
+- `AFG-03` now exposes `GET /system/authorization/audit/latest`
 
 ## Current Reports To Trust First
 
@@ -305,22 +326,22 @@ Architect re-alignment now supports:
 - completed hardening slice
 - completed first checkpoints through `SERI-05`
 - no replay of `DRI`, `LCC`, `MPI`, or `SERI` unless a real regression appears
-- current work has shifted into `AFG-01`
+- current work has shifted into `AFG-03`
 
 ## Default Next Candidate
 
-- `Alpha Factory Governance / Operator Control Packet 01`
+- `Alpha Factory Governance / Operator Control Packet 03`
 
-## Current AFG-01 Docs-Ready State
+## Current AFG-03 Docs-Ready State
 
-- `AFG-01` task spec exists
+- `AFG-03` task spec exists
 - packet plan doc exists
 - `AFG` interface contract doc exists
 - `lane_surface_inventory.md` and `api_endpoints.md` include the `AFG` family
 - `10_agent` still exposes the docs-first operating loop for implementation startup
 
-## Current AFG-01 Runtime State
+## Current AFG-03 Runtime State
 
 - packet plan doc exists
 - verifier exists
-- operator action, pending approval, override, audit, governance state, sync, and dispatch surfaces are implemented
+- actor, role, permission, actor-role assignment, authorization decision, denial, and audit surfaces are implemented

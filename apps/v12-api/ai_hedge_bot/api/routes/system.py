@@ -3,6 +3,7 @@ from __future__ import annotations
 from fastapi import APIRouter
 from ai_hedge_bot.alpha_attribution.attribution_service import AlphaAttributionService
 from ai_hedge_bot.alpha_capacity.capacity_service import AlphaCapacityService
+from ai_hedge_bot.authorization.authorization_service import AuthorizationService
 from ai_hedge_bot.alpha_feedback.feedback_service import AlphaFeedbackService
 from ai_hedge_bot.alpha_retirement.retirement_service import AlphaRetirementService
 from ai_hedge_bot.alpha_weighting.weighting_service import AlphaWeightingService
@@ -10,6 +11,7 @@ from ai_hedge_bot.alpha_ensemble.ensemble_service import AlphaEnsembleService
 from ai_hedge_bot.alpha_evaluation.evaluation_service import AlphaEvaluationService
 from ai_hedge_bot.alpha_validation.validation_service import AlphaValidationService
 from ai_hedge_bot.data_integrity.data_integrity_service import DataIntegrityService
+from ai_hedge_bot.enforcement.enforcement_service import EnforcementService
 from ai_hedge_bot.execution_health.execution_health_service import ExecutionHealthService
 from ai_hedge_bot.governance.governance_service import GovernanceService
 from ai_hedge_bot.operational_governance.operational_governance_service import OperationalGovernanceService
@@ -74,6 +76,8 @@ _execution_health = ExecutionHealthService()
 _data_integrity = DataIntegrityService()
 _operational_governance = OperationalGovernanceService()
 _governance = GovernanceService()
+_enforcement = EnforcementService()
+_authorization = AuthorizationService()
 
 
 def _payload() -> dict:
@@ -1187,3 +1191,174 @@ def system_governance_dispatch(approval_id: str = "latest", target_system: str =
 @router.get('/system/governance/dispatch/latest')
 def system_governance_dispatch_latest(limit: int = 20) -> dict:
     return _governance.dispatch_latest(limit=limit)
+
+
+@router.post('/system/policy-enforcement/check')
+def system_policy_enforcement_check(
+    boundary: str = "pre_dispatch",
+    source_system: str = "AFG",
+    action_type: str = "review",
+    target_type: str = "system",
+    target_id: str = "",
+    approval_id: str = "",
+    order_mode: str = "",
+    exposure_delta: float = 0.0,
+    dry_run: bool = False,
+    idempotency_key: str = "",
+    payload_json: str = "{}",
+) -> dict:
+    return _enforcement.check(
+        boundary=boundary,
+        source_system=source_system,
+        action_type=action_type,
+        target_type=target_type,
+        target_id=target_id,
+        approval_id=approval_id,
+        order_mode=order_mode,
+        exposure_delta=exposure_delta,
+        dry_run=dry_run,
+        idempotency_key=idempotency_key,
+        payload_json=payload_json,
+    )
+
+
+@router.post('/system/policy-enforcement/pre-dispatch')
+def system_policy_enforcement_pre_dispatch(
+    source_system: str = "AFG",
+    action_type: str = "dispatch",
+    target_type: str = "system",
+    target_id: str = "",
+    approval_id: str = "",
+    dry_run: bool = False,
+) -> dict:
+    return _enforcement.pre_dispatch(source_system=source_system, action_type=action_type, target_type=target_type, target_id=target_id, approval_id=approval_id, dry_run=dry_run)
+
+
+@router.post('/system/policy-enforcement/pre-allocation')
+def system_policy_enforcement_pre_allocation(
+    source_system: str = "MPI",
+    action_type: str = "increase_allocation",
+    target_type: str = "alpha",
+    target_id: str = "",
+    exposure_delta: float = 0.0,
+) -> dict:
+    return _enforcement.pre_allocation(source_system=source_system, action_type=action_type, target_type=target_type, target_id=target_id, exposure_delta=exposure_delta)
+
+
+@router.post('/system/policy-enforcement/pre-execution')
+def system_policy_enforcement_pre_execution(
+    source_system: str = "Execution",
+    action_type: str = "open_new",
+    target_type: str = "venue",
+    target_id: str = "",
+    order_mode: str = "open_new",
+    exposure_delta: float = 0.0,
+) -> dict:
+    return _enforcement.pre_execution(source_system=source_system, action_type=action_type, target_type=target_type, target_id=target_id, order_mode=order_mode, exposure_delta=exposure_delta)
+
+
+@router.post('/system/policy-enforcement/pre-lifecycle')
+def system_policy_enforcement_pre_lifecycle(
+    source_system: str = "AAE",
+    action_type: str = "promote_alpha",
+    target_type: str = "alpha",
+    target_id: str = "",
+    approval_id: str = "",
+) -> dict:
+    return _enforcement.pre_lifecycle(source_system=source_system, action_type=action_type, target_type=target_type, target_id=target_id, approval_id=approval_id)
+
+
+@router.post('/system/policy-enforcement/pre-policy-apply')
+def system_policy_enforcement_pre_policy_apply(
+    source_system: str = "AES-08",
+    action_type: str = "policy_relaxation",
+    target_type: str = "policy",
+    target_id: str = "",
+    approval_id: str = "",
+) -> dict:
+    return _enforcement.pre_policy_apply(source_system=source_system, action_type=action_type, target_type=target_type, target_id=target_id, approval_id=approval_id)
+
+
+@router.get('/system/policy-enforcement/latest')
+def system_policy_enforcement_latest(limit: int = 20) -> dict:
+    return _enforcement.latest(limit=limit)
+
+
+@router.get('/system/policy-enforcement/violations/latest')
+def system_policy_enforcement_violations_latest(limit: int = 20) -> dict:
+    return _enforcement.violations_latest(limit=limit)
+
+
+@router.get('/system/policy-enforcement/constraints/latest')
+def system_policy_enforcement_constraints_latest(limit: int = 20) -> dict:
+    return _enforcement.constraints_latest(limit=limit)
+
+
+@router.get('/system/policy-enforcement/state/latest')
+def system_policy_enforcement_state_latest(limit: int = 20) -> dict:
+    return _enforcement.state_latest(limit=limit)
+
+
+@router.post('/system/authorization/check')
+def system_authorization_check(
+    actor_id: str = "operator",
+    actor_type: str = "human",
+    action: str = "approval.read",
+    target_type: str = "system",
+    target_id: str = "",
+    scope: str = "global",
+    risk_level: str = "LOW",
+    source_system: str = "AFG",
+    hard_safety_flag: bool = False,
+) -> dict:
+    return _authorization.check(
+        actor_id=actor_id,
+        actor_type=actor_type,
+        action=action,
+        target_type=target_type,
+        target_id=target_id,
+        scope=scope,
+        risk_level=risk_level,
+        source_system=source_system,
+        hard_safety_flag=hard_safety_flag,
+    )
+
+
+@router.get('/system/authorization/latest')
+def system_authorization_latest(limit: int = 20) -> dict:
+    return _authorization.latest(limit=limit)
+
+
+@router.get('/system/authorization/denials/latest')
+def system_authorization_denials_latest(limit: int = 20) -> dict:
+    return _authorization.denials_latest(limit=limit)
+
+
+@router.get('/system/roles/latest')
+def system_roles_latest(limit: int = 100) -> dict:
+    return _authorization.roles_latest(limit=limit)
+
+
+@router.get('/system/permissions/latest')
+def system_permissions_latest(limit: int = 200) -> dict:
+    return _authorization.permissions_latest(limit=limit)
+
+
+@router.post('/system/roles/assign')
+def system_roles_assign(actor_id: str, role_id: str, scope: str = "global", target_id: str = "", actor_type: str = "human", operator_id: str = "codex") -> dict:
+    return _authorization.assign_role(actor_id=actor_id, role_id=role_id, scope=scope, target_id=target_id, actor_type=actor_type, operator_id=operator_id)
+
+
+@router.post('/system/roles/revoke')
+def system_roles_revoke(actor_id: str, role_id: str, scope: str = "global", target_id: str = "", operator_id: str = "codex") -> dict:
+    return _authorization.revoke_role(actor_id=actor_id, role_id=role_id, scope=scope, target_id=target_id, operator_id=operator_id)
+
+
+@router.get('/system/actor-permissions/{actor_id}')
+def system_actor_permissions(actor_id: str) -> dict:
+    return _authorization.actor_permissions(actor_id=actor_id)
+
+
+@router.get('/system/authorization/audit/latest')
+def system_authorization_audit_latest(limit: int = 20) -> dict:
+    return _authorization.audit_latest(limit=limit)

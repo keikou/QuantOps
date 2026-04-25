@@ -2,7 +2,7 @@
 
 Date: `2026-04-25`
 Repo: `QuantOps_github`
-Status: `afg01_contracts`
+Status: `afg03_contracts`
 
 ## Contract Intent
 
@@ -39,3 +39,55 @@ No production-impacting decision should be applied without explicit policy, audi
 - ORC staging sync
 - dispatch staging and dry-run
 
+## AFG-02 Surfaces
+
+1. `POST /system/policy-enforcement/check`
+2. `POST /system/policy-enforcement/pre-dispatch`
+3. `POST /system/policy-enforcement/pre-allocation`
+4. `POST /system/policy-enforcement/pre-execution`
+5. `POST /system/policy-enforcement/pre-lifecycle`
+6. `POST /system/policy-enforcement/pre-policy-apply`
+7. `GET /system/policy-enforcement/latest`
+8. `GET /system/policy-enforcement/violations/latest`
+9. `GET /system/policy-enforcement/constraints/latest`
+10. `GET /system/policy-enforcement/state/latest`
+
+## AFG-02 Contract Progression
+
+- generic enforcement check
+- pre-dispatch guard
+- pre-allocation guard
+- pre-execution guard
+- lifecycle mutation guard
+- policy apply guard
+- hard safety lock
+- cross-system consistency state
+- enforcement violation audit
+- runtime enforcement constraints
+
+## AFG-03 Surfaces
+
+1. `POST /system/authorization/check`
+2. `GET /system/authorization/latest`
+3. `GET /system/authorization/denials/latest`
+4. `GET /system/roles/latest`
+5. `GET /system/permissions/latest`
+6. `POST /system/roles/assign`
+7. `POST /system/roles/revoke`
+8. `GET /system/actor-permissions/{actor_id}`
+9. `GET /system/authorization/audit/latest`
+
+## AFG-03 Contract Progression
+
+- actor registry
+- role registry
+- permission registry
+- role-permission mapping
+- actor-role assignment
+- action authorization
+- target-scope authorization
+- risk-level cap authorization
+- service actor restrictions
+- hard safety authorization
+- authorization decision audit
+- AFG-01 mutation authorization hook
