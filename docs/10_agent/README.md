@@ -44,3 +44,6 @@ For current action, always align with:
 Historical note:
 
 - `Execution Reality` was the earlier post-hardening default next candidate before the repo advanced through later lane checkpoints
+
+## Execution Model
+- ai_execution_loop.md ← AIはこのループに従って動作する

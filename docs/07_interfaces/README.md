@@ -82,3 +82,7 @@ The current gaps are:
 ## Rule
 
 When a response or UI field is ambiguous, prefer adding an interface contract doc instead of letting the meaning live only in code or thread memory.
+
+## Templates
+
+- interface_template.md ← 新規インターフェース定義時は必ず使用

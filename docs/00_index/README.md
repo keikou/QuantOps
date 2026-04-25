@@ -123,3 +123,13 @@ The working map for current files to target folders is:
 ```text
 Use docs/00_index/README.md as the shared human/AI entrypoint, keep the current flat docs set readable through a migration map, and migrate gradually toward context / architecture / plans / tasks / workflows / interfaces / runtime_ops / reports.
 ```
+
+## 🤖 AI Execution
+
+AI operates using:
+
+1. Context → ../01_context/
+2. Plans → ../03_plans/
+3. Tasks → ../04_tasks/
+4. Loop → ../10_agent/ai_execution_loop.md
+5. State → ../11_reports/
