@@ -1,0 +1,5 @@
+from __future__ import annotations
+
+APPROVAL_REQUIRED_LEVELS = {"L4_PARTIAL_HALT", "L5_GLOBAL_HALT"}
+AUTO_APPLY_LEVELS = {"L1_WATCH", "L2_REDUCE", "L3_FREEZE"}
+

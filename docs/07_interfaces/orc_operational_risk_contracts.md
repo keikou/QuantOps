@@ -2,7 +2,7 @@
 
 Date: `2026-04-25`
 Repo: `QuantOps_github`
-Status: `orc04_contracts`
+Status: `orc05_contracts`
 
 ## Contract Intent
 
@@ -97,3 +97,24 @@ the system must detect and respond to system-level risk before capital is irreve
 - mark reliability
 - data incident classification
 - ORC-compatible data safe-mode recommendation
+
+## ORC-05 Surfaces
+
+1. `POST /system/orc-governance/sync`
+2. `GET /system/orc-governance/latest`
+3. `GET /system/orc-governance/incidents/latest`
+4. `GET /system/orc-governance/incident/{incident_id}`
+5. `GET /system/orc-governance/pending-approvals/latest`
+6. `GET /system/orc-governance/audit/latest`
+7. `POST /system/orc-governance/recovery/request`
+8. `GET /system/orc-governance/recovery/latest`
+
+## ORC-05 Contract Progression
+
+- incident governance record
+- AFG-compatible pending approval link
+- audit event log
+- dispatch audit record
+- operator override sync path
+- recovery governance request
+- local staging fallback for future AFG integration

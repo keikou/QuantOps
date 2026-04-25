@@ -3,7 +3,7 @@
 Date: `2026-04-24`
 Repo: `QuantOps_github`
 Branch: `codex/post-phase7-hardening`
-Status: `orc04_active_boundary`
+Status: `orc05_active_boundary`
 
 ## Current Planning Decision
 
@@ -29,7 +29,7 @@ Architect-selected answer:
 - `Alpha Synthesis / Structural Discovery Intelligence v1` is checkpoint-complete through `ASD-05`
 - `Alpha Evaluation / Selection Intelligence v1` is checkpoint-complete through `AES-08`
 - next top-level lane is `Operational Risk & Control Intelligence`
-- current packet boundary is `ORC-04: Data Integrity & Market Feed Reliability Engine`
+- current packet boundary is `ORC-05: Incident Audit / Operator Governance Bridge`
 
 ## Why This Is The Current Plan
 
@@ -53,7 +53,7 @@ Architect re-alignment now treats the following as sufficiently closed for the c
 - `Meta Portfolio Intelligence / Cross-Strategy Capital Allocation v1`
 - `Strategy Evolution / Regime Adaptation Intelligence v1`
 
-That means planning should not continue replaying `SERI`, `AAE`, or `ASD` checkpoint work and should now establish the first robust alpha evaluation gate.
+That means planning should not continue replaying `SERI`, `AAE`, `ASD`, or `AES` checkpoint work and should now close the ORC governance/audit bridge.
 
 ## Explicitly Completed Planning Slice
 
@@ -76,24 +76,22 @@ The following planning sequence is now historical and completed:
 
 ## Current Plan Outputs
 
-Current `ORC-04` outputs now planned:
+Current `ORC-05` outputs now planned:
 
-- `../Operational_risk_control_intelligence_packet04_plan.md`
-- `../../test_bundle/scripts/verify_operational_risk_control_intelligence_packet04.py`
-- `POST /system/data-integrity/run`
-- `GET /system/data-integrity/latest`
-- `GET /system/market-feed-health/latest`
-- `GET /system/market-feed-health/{feed_id}`
-- `GET /system/symbol-data-health/latest`
-- `GET /system/symbol-data-health/{symbol}`
-- `GET /system/data-anomalies/latest`
-- `GET /system/data-incidents/latest`
-- `GET /system/mark-reliability/latest`
-- `GET /system/data-safe-mode-recommendation/latest`
+- `../Operational_risk_control_intelligence_packet05_plan.md`
+- `../../test_bundle/scripts/verify_operational_risk_control_intelligence_packet05.py`
+- `POST /system/orc-governance/sync`
+- `GET /system/orc-governance/latest`
+- `GET /system/orc-governance/incidents/latest`
+- `GET /system/orc-governance/incident/{incident_id}`
+- `GET /system/orc-governance/pending-approvals/latest`
+- `GET /system/orc-governance/audit/latest`
+- `POST /system/orc-governance/recovery/request`
+- `GET /system/orc-governance/recovery/latest`
 
 ## Current Docs-Ready State
 
-The docs route for `ORC-04` is now prepared for implementation startup.
+The docs route for `ORC-05` is now prepared for implementation startup.
 
 Current docs-ready assets:
 
@@ -114,6 +112,7 @@ Current docs-ready assets:
 - `../Operational_risk_control_intelligence_packet02_plan.md`
 - `../Operational_risk_control_intelligence_packet03_plan.md`
 - `../Operational_risk_control_intelligence_packet04_plan.md`
+- `../Operational_risk_control_intelligence_packet05_plan.md`
 - `../07_interfaces/orc_operational_risk_contracts.md`
 - `../07_interfaces/aes_alpha_evaluation_contracts.md`
 - `../07_interfaces/lane_surface_inventory.md`

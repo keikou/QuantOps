@@ -222,6 +222,14 @@ This file is the compact routing matrix for the current `system` contract surfac
 | `GET /system/data-incidents/latest` | data incidents | grouped data incidents and recommended actions |
 | `GET /system/mark-reliability/latest` | mark reliability | mark price reliability state |
 | `GET /system/data-safe-mode-recommendation/latest` | data safe-mode recommendation | ORC-compatible data safe-mode recommendation |
+| `POST /system/orc-governance/sync` | ORC governance sync trigger | explicit incident audit and governance staging request |
+| `GET /system/orc-governance/latest` | ORC governance latest | latest governance incident and approval summary |
+| `GET /system/orc-governance/incidents/latest` | governance incidents | ORC incidents converted into governance-visible records |
+| `GET /system/orc-governance/incident/{incident_id}` | governance incident lookup | per-incident governance state and approval link |
+| `GET /system/orc-governance/pending-approvals/latest` | pending approvals | AFG-compatible approval staging links |
+| `GET /system/orc-governance/audit/latest` | governance audit | ORC governance audit event log |
+| `POST /system/orc-governance/recovery/request` | governance recovery request | operator recovery governance request |
+| `GET /system/orc-governance/recovery/latest` | governance recovery latest | latest recovery governance decisions |
 
 ## Rule
 

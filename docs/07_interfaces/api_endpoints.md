@@ -211,6 +211,14 @@ This file is the short routing index for the current operator-visible API endpoi
 - `GET /system/data-incidents/latest`
 - `GET /system/mark-reliability/latest`
 - `GET /system/data-safe-mode-recommendation/latest`
+- `POST /system/orc-governance/sync`
+- `GET /system/orc-governance/latest`
+- `GET /system/orc-governance/incidents/latest`
+- `GET /system/orc-governance/incident/{incident_id}`
+- `GET /system/orc-governance/pending-approvals/latest`
+- `GET /system/orc-governance/audit/latest`
+- `POST /system/orc-governance/recovery/request`
+- `GET /system/orc-governance/recovery/latest`
 
 ## Read Next
 

@@ -11,6 +11,7 @@ from ai_hedge_bot.alpha_evaluation.evaluation_service import AlphaEvaluationServ
 from ai_hedge_bot.alpha_validation.validation_service import AlphaValidationService
 from ai_hedge_bot.data_integrity.data_integrity_service import DataIntegrityService
 from ai_hedge_bot.execution_health.execution_health_service import ExecutionHealthService
+from ai_hedge_bot.operational_governance.operational_governance_service import OperationalGovernanceService
 from ai_hedge_bot.operational_risk.operational_risk_service import OperationalRiskService
 from ai_hedge_bot.alpha_synthesis.alpha_synthesis_service import AlphaSynthesisService
 from ai_hedge_bot.services.autonomous_alpha_expansion_strategy_generation_intelligence_service import (
@@ -70,6 +71,7 @@ _alpha_feedback = AlphaFeedbackService()
 _operational_risk = OperationalRiskService()
 _execution_health = ExecutionHealthService()
 _data_integrity = DataIntegrityService()
+_operational_governance = OperationalGovernanceService()
 
 
 def _payload() -> dict:
@@ -1031,3 +1033,51 @@ def system_mark_reliability_latest(limit: int = 20) -> dict:
 @router.get('/system/data-safe-mode-recommendation/latest')
 def system_data_safe_mode_recommendation_latest(limit: int = 20) -> dict:
     return _data_integrity.data_safe_mode_recommendation_latest(limit=limit)
+
+
+@router.post('/system/orc-governance/sync')
+def system_orc_governance_sync(limit: int = 20) -> dict:
+    return _operational_governance.sync(limit=limit)
+
+
+@router.get('/system/orc-governance/latest')
+def system_orc_governance_latest(limit: int = 20) -> dict:
+    return _operational_governance.latest(limit=limit)
+
+
+@router.get('/system/orc-governance/incidents/latest')
+def system_orc_governance_incidents_latest(limit: int = 20) -> dict:
+    return _operational_governance.incidents_latest(limit=limit)
+
+
+@router.get('/system/orc-governance/incident/{incident_id}')
+def system_orc_governance_incident(incident_id: str) -> dict:
+    return _operational_governance.incident(incident_id=incident_id)
+
+
+@router.get('/system/orc-governance/pending-approvals/latest')
+def system_orc_governance_pending_approvals_latest(limit: int = 20) -> dict:
+    return _operational_governance.pending_approvals_latest(limit=limit)
+
+
+@router.get('/system/orc-governance/audit/latest')
+def system_orc_governance_audit_latest(limit: int = 20) -> dict:
+    return _operational_governance.audit_latest(limit=limit)
+
+
+@router.post('/system/orc-governance/recovery/request')
+def system_orc_governance_recovery_request(
+    source_incident_id: str = "latest",
+    requested_target_level: str = "L1_WATCH",
+    operator_id: str = "operator",
+) -> dict:
+    return _operational_governance.request_recovery(
+        source_incident_id=source_incident_id,
+        requested_target_level=requested_target_level,
+        operator_id=operator_id,
+    )
+
+
+@router.get('/system/orc-governance/recovery/latest')
+def system_orc_governance_recovery_latest(limit: int = 20) -> dict:
+    return _operational_governance.recovery_latest(limit=limit)

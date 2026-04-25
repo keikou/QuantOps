@@ -24,10 +24,10 @@ The repo currently stands in this state:
 - `Live Capital Control / Adaptive Runtime Allocation v1` is checkpoint-complete through `LCC-05`
 - `Meta Portfolio Intelligence / Cross-Strategy Capital Allocation v1` is checkpoint-complete through `MPI-05`
 - `Strategy Evolution / Regime Adaptation Intelligence v1` is checkpoint-complete through `SERI-05`
-- latest local `HEAD` is `d89892c`
-- latest pushed commit is `d89892c`
+- latest local `HEAD` is `632857c`
+- latest pushed commit is `632857c`
 - branch working tree now includes `AAE-01` through `AAE-05` and `ASD-01`
-- canonical current-state docs are now aligned to `ORC-04 active`
+- canonical current-state docs are now aligned to `ORC-05 active`
 - `AAE-01` now exposes `GET /system/alpha-discovery-candidates/latest`
 - `AAE-01` now exposes `GET /system/alpha-validation-results/latest`
 - `AAE-01` now exposes `GET /system/alpha-admission-decision/latest`
@@ -176,6 +176,14 @@ The repo currently stands in this state:
 - `ORC-04` now exposes `GET /system/data-incidents/latest`
 - `ORC-04` now exposes `GET /system/mark-reliability/latest`
 - `ORC-04` now exposes `GET /system/data-safe-mode-recommendation/latest`
+- `ORC-05` now exposes `POST /system/orc-governance/sync`
+- `ORC-05` now exposes `GET /system/orc-governance/latest`
+- `ORC-05` now exposes `GET /system/orc-governance/incidents/latest`
+- `ORC-05` now exposes `GET /system/orc-governance/incident/{incident_id}`
+- `ORC-05` now exposes `GET /system/orc-governance/pending-approvals/latest`
+- `ORC-05` now exposes `GET /system/orc-governance/audit/latest`
+- `ORC-05` now exposes `POST /system/orc-governance/recovery/request`
+- `ORC-05` now exposes `GET /system/orc-governance/recovery/latest`
 
 ## Current Reports To Trust First
 
@@ -281,22 +289,22 @@ Architect re-alignment now supports:
 - completed hardening slice
 - completed first checkpoints through `SERI-05`
 - no replay of `DRI`, `LCC`, `MPI`, or `SERI` unless a real regression appears
-- current work has shifted into `ORC-04`
+- current work has shifted into `ORC-05`
 
 ## Default Next Candidate
 
-- `Operational Risk & Control Intelligence Packet 04`
+- `Operational Risk & Control Intelligence Packet 05`
 
-## Current ORC-04 Docs-Ready State
+## Current ORC-05 Docs-Ready State
 
-- `ORC-04` task spec exists
+- `ORC-05` task spec exists
 - packet plan doc exists
 - `ORC` interface contract doc exists
 - `lane_surface_inventory.md` and `api_endpoints.md` include the `ORC` family
 - `10_agent` still exposes the docs-first operating loop for implementation startup
 
-## Current ORC-04 Runtime State
+## Current ORC-05 Runtime State
 
 - packet plan doc exists
 - verifier exists
-- data integrity, market feed health, symbol data health, data anomaly, data incident, mark reliability, and data safe-mode recommendation surfaces are implemented
+- incident governance, pending approval, audit, dispatch, override-sync, and recovery governance surfaces are implemented

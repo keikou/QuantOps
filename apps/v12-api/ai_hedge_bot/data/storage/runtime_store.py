@@ -1535,6 +1535,80 @@ class RuntimeStore:
                     requires_orc_escalation BOOLEAN,
                     created_at TIMESTAMP
                 );
+                CREATE TABLE IF NOT EXISTS orc_governance_sync_runs (
+                    run_id VARCHAR,
+                    started_at TIMESTAMP,
+                    completed_at TIMESTAMP,
+                    incident_count INTEGER,
+                    approval_created_count INTEGER,
+                    audit_event_count INTEGER,
+                    override_count INTEGER,
+                    status VARCHAR,
+                    notes VARCHAR
+                );
+                CREATE TABLE IF NOT EXISTS orc_governance_incidents (
+                    governance_incident_id VARCHAR,
+                    source_incident_id VARCHAR,
+                    source_system VARCHAR,
+                    incident_type VARCHAR,
+                    risk_level VARCHAR,
+                    affected_scope VARCHAR,
+                    target_id VARCHAR,
+                    governance_status VARCHAR,
+                    approval_id VARCHAR,
+                    operator_id VARCHAR,
+                    reason VARCHAR,
+                    created_at TIMESTAMP,
+                    updated_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS orc_governance_audit_events (
+                    audit_id VARCHAR,
+                    source_system VARCHAR,
+                    source_event_id VARCHAR,
+                    event_type VARCHAR,
+                    risk_level VARCHAR,
+                    action VARCHAR,
+                    target_scope VARCHAR,
+                    target_id VARCHAR,
+                    operator_id VARCHAR,
+                    metadata_json VARCHAR,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS orc_afg_approval_links (
+                    link_id VARCHAR,
+                    orc_incident_id VARCHAR,
+                    approval_id VARCHAR,
+                    proposed_action VARCHAR,
+                    approval_status VARCHAR,
+                    created_at TIMESTAMP,
+                    decided_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS orc_response_dispatch_audit (
+                    dispatch_id VARCHAR,
+                    source_incident_id VARCHAR,
+                    approval_id VARCHAR,
+                    dispatch_target VARCHAR,
+                    action VARCHAR,
+                    dispatch_status VARCHAR,
+                    idempotency_key VARCHAR,
+                    error_message VARCHAR,
+                    created_at TIMESTAMP,
+                    dispatched_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS orc_recovery_governance (
+                    recovery_id VARCHAR,
+                    source_incident_id VARCHAR,
+                    current_risk_level VARCHAR,
+                    requested_target_level VARCHAR,
+                    readiness_passed BOOLEAN,
+                    approval_required BOOLEAN,
+                    approval_id VARCHAR,
+                    status VARCHAR,
+                    reason VARCHAR,
+                    operator_id VARCHAR,
+                    created_at TIMESTAMP,
+                    decided_at TIMESTAMP
+                );
                 CREATE TABLE IF NOT EXISTS live_orders (
                     live_order_id VARCHAR,
                     created_at TIMESTAMP,

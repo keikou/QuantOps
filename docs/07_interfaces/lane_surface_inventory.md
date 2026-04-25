@@ -344,6 +344,14 @@ Contract progression:
 - `GET /system/data-incidents/latest`
 - `GET /system/mark-reliability/latest`
 - `GET /system/data-safe-mode-recommendation/latest`
+- `POST /system/orc-governance/sync`
+- `GET /system/orc-governance/latest`
+- `GET /system/orc-governance/incidents/latest`
+- `GET /system/orc-governance/incident/{incident_id}`
+- `GET /system/orc-governance/pending-approvals/latest`
+- `GET /system/orc-governance/audit/latest`
+- `POST /system/orc-governance/recovery/request`
+- `GET /system/orc-governance/recovery/latest`
 
 Contract progression:
 
@@ -382,6 +390,13 @@ Contract progression:
 - data incident view
 - mark reliability view
 - data safe-mode recommendation
+- explicit ORC governance sync trigger
+- incident governance record view
+- per-incident governance lookup
+- AFG-compatible pending approval staging
+- governance audit event log
+- recovery governance request
+- recovery governance state
 
 ## Rule
 
