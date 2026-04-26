@@ -3,7 +3,7 @@
 Date: `2026-04-26`
 Repo: `QuantOps_github`
 Branch: `codex/post-phase7-hardening`
-Status: `afg05_active_boundary`
+Status: `srh01_active_boundary`
 
 ## Current Planning Decision
 
@@ -11,9 +11,9 @@ The current hardening/resume slice is treated as sufficiently complete.
 
 So the active planning question is now:
 
-- how should governance evidence be fixed as immutable audit bundles?
-- how should incident / RCA / approval / feedback / dispatch decisions be replayed?
-- how should AFG freeze readiness be proven before moving to SRH?
+- how should runtime health be observed?
+- how should degradation be detected and classified?
+- how should safe mode and recovery protocol be connected?
 
 Historical note:
 
@@ -31,8 +31,10 @@ Architect-selected answer:
 - `Operational Risk & Control Intelligence v1` is checkpoint-complete through `ORC-05`
 - `AFG v1 core` is checkpoint-complete through `AFG-03`
 - `AFG-04` is checkpoint-complete as incident review and postmortem learning
-- next top-level lane is `Alpha Factory Governance / Operator Control`
-- current packet boundary is `AFG-05: Governance Replay & Audit Evidence System`
+- `AFG-05` is checkpoint-complete as governance replay and audit evidence
+- `AFG lane` is frozen after AFG-05
+- next top-level lane is `System Reliability / Runtime Hardening`
+- current packet boundary is `SRH-01: Runtime Health & Degradation Control`
 
 ## Why This Is The Current Plan
 
@@ -56,7 +58,7 @@ Architect re-alignment now treats the following as sufficiently closed for the c
 - `Meta Portfolio Intelligence / Cross-Strategy Capital Allocation v1`
 - `Strategy Evolution / Regime Adaptation Intelligence v1`
 
-That means planning should not continue replaying `SERI`, `AAE`, `ASD`, `AES`, `ORC`, `AFG-01`, `AFG-02`, `AFG-03`, or `AFG-04` checkpoint work and should now establish governance replay and audit evidence.
+That means planning should not continue replaying `SERI`, `AAE`, `ASD`, `AES`, `ORC`, or `AFG-01` through `AFG-05` checkpoint work and should now establish runtime health and degradation control.
 
 ## Explicitly Completed Planning Slice
 
@@ -79,21 +81,22 @@ The following planning sequence is now historical and completed:
 
 ## Current Plan Outputs
 
-Current `AFG-05` outputs now planned:
+Current `SRH-01` outputs now planned:
 
-- `../Alpha_factory_governance_operator_control_packet05_plan.md`
-- `../../test_bundle/scripts/verify_alpha_factory_governance_packet05.py`
-- `GET /system/audit/bundle/{incident_id}`
-- `POST /system/audit/replay/{incident_id}`
-- `GET /system/audit/replay/{replay_id}`
-- `GET /system/audit/export/{incident_id}`
-- `GET /system/audit/bundles/latest`
-- `GET /system/audit/replays/latest`
-- `GET /system/audit/exports/latest`
+- `../System_reliability_runtime_hardening_packet01_plan.md`
+- `../../test_bundle/scripts/verify_runtime_health_packet01.py`
+- `POST /system/runtime-health/ingest`
+- `GET /system/runtime-health/latest`
+- `GET /system/runtime-health/components`
+- `GET /system/runtime-health/signals/latest`
+- `GET /system/degradation/latest`
+- `GET /system/runtime-control/actions/latest`
+- `POST /system/control/safe-mode`
+- `GET /system/runtime-recovery/latest`
 
 ## Current Docs-Ready State
 
-The docs route for `AFG-05` is now prepared for implementation startup.
+The docs route for `SRH-01` is now prepared for implementation startup.
 
 Current docs-ready assets:
 
@@ -120,6 +123,7 @@ Current docs-ready assets:
 - `../Alpha_factory_governance_operator_control_packet03_plan.md`
 - `../Alpha_factory_governance_operator_control_packet04_plan.md`
 - `../Alpha_factory_governance_operator_control_packet05_plan.md`
+- `../System_reliability_runtime_hardening_packet01_plan.md`
 - `../07_interfaces/orc_operational_risk_contracts.md`
 - `../07_interfaces/afg_operator_control_contracts.md`
 - `../07_interfaces/aes_alpha_evaluation_contracts.md`
@@ -139,7 +143,7 @@ This is not the current plan:
 - replaying completed `AAE-01` through `AAE-05`
 - replaying completed `ASD-01` through `ASD-05`
 - inventing `ASD-06` without a new architect boundary
-- replaying completed `AAE`, `ASD`, `AES`, `ORC`, or `AFG-01` through `AFG-04` work instead of building AFG-05
+- replaying completed `AAE`, `ASD`, `AES`, `ORC`, or frozen `AFG-01` through `AFG-05` work instead of building SRH-01
 
 ## Read Before Editing
 

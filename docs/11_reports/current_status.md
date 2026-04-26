@@ -30,8 +30,10 @@ The repo currently stands in this state:
 - `AFG-03` is checkpoint-complete as the RBAC / permission model
 - `AFG v1 core` is checkpoint-complete through operator control, runtime enforcement, and authorization
 - `AFG-04` is checkpoint-complete as incident review and postmortem learning
-- latest pushed commit before AFG-05 work is `717c89b`
-- canonical current-state docs are now aligned to `AFG-05 active`
+- `AFG-05` is checkpoint-complete as governance replay and audit evidence
+- `AFG lane` is frozen after AFG-05
+- latest pushed commit before SRH-01 work is `75a9b44`
+- canonical current-state docs are now aligned to `SRH-01 active`
 - `AAE-01` now exposes `GET /system/alpha-discovery-candidates/latest`
 - `AAE-01` now exposes `GET /system/alpha-validation-results/latest`
 - `AAE-01` now exposes `GET /system/alpha-admission-decision/latest`
@@ -241,6 +243,14 @@ The repo currently stands in this state:
 - `AFG-05` now exposes `GET /system/audit/bundles/latest`
 - `AFG-05` now exposes `GET /system/audit/replays/latest`
 - `AFG-05` now exposes `GET /system/audit/exports/latest`
+- `SRH-01` now exposes `POST /system/runtime-health/ingest`
+- `SRH-01` now exposes `GET /system/runtime-health/latest`
+- `SRH-01` now exposes `GET /system/runtime-health/components`
+- `SRH-01` now exposes `GET /system/runtime-health/signals/latest`
+- `SRH-01` now exposes `GET /system/degradation/latest`
+- `SRH-01` now exposes `GET /system/runtime-control/actions/latest`
+- `SRH-01` now exposes `POST /system/control/safe-mode`
+- `SRH-01` now exposes `GET /system/runtime-recovery/latest`
 
 ## Current Reports To Trust First
 
@@ -346,23 +356,22 @@ Architect re-alignment now supports:
 - completed hardening slice
 - completed first checkpoints through `SERI-05`
 - no replay of `DRI`, `LCC`, `MPI`, or `SERI` unless a real regression appears
-- no replay of `AFG-01`, `AFG-02`, `AFG-03`, or `AFG-04` unless a real regression appears
-- current work has shifted into `AFG-05`
+- AFG lane is frozen; no new AFG packets unless a real regression appears
+- current work has shifted into `SRH-01`
 
 ## Default Next Candidate
 
-- `Alpha Factory Governance / Operator Control Packet 05`
+- `System Reliability / Runtime Hardening Packet 01`
 
-## Current AFG-05 Docs-Ready State
+## Current SRH-01 Docs-Ready State
 
-- `AFG-05` task spec exists
+- `SRH-01` task spec exists
 - packet plan doc exists
-- `AFG` interface contract doc exists
-- `lane_surface_inventory.md` and `api_endpoints.md` include the `AFG` family
+- `lane_surface_inventory.md` and `api_endpoints.md` include the `SRH` family
 - `10_agent` still exposes the docs-first operating loop for implementation startup
 
-## Current AFG-05 Runtime State
+## Current SRH-01 Runtime State
 
 - packet plan doc exists
 - verifier exists
-- audit bundle, replay log, decision trace, and immutable export surfaces are implemented
+- runtime health, degradation, control, and recovery surfaces are implemented

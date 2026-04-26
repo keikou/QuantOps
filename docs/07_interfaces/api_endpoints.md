@@ -275,6 +275,17 @@ This file is the short routing index for the current operator-visible API endpoi
 - `GET /system/audit/replays/latest`
 - `GET /system/audit/exports/latest`
 
+### System Reliability / Runtime Hardening
+
+- `POST /system/runtime-health/ingest`
+- `GET /system/runtime-health/latest`
+- `GET /system/runtime-health/components`
+- `GET /system/runtime-health/signals/latest`
+- `GET /system/degradation/latest`
+- `GET /system/runtime-control/actions/latest`
+- `POST /system/control/safe-mode`
+- `GET /system/runtime-recovery/latest`
+
 ## Read Next
 
 1. `./endpoint_contract_matrix.md`

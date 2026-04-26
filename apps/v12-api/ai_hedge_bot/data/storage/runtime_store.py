@@ -1915,6 +1915,59 @@ class RuntimeStore:
                     export_path VARCHAR,
                     export_hash VARCHAR
                 );
+                CREATE TABLE IF NOT EXISTS runtime_health_signals (
+                    signal_id VARCHAR,
+                    component VARCHAR,
+                    signal_type VARCHAR,
+                    value DOUBLE,
+                    source VARCHAR,
+                    observed_at TIMESTAMP,
+                    metadata_json VARCHAR
+                );
+                CREATE TABLE IF NOT EXISTS runtime_health_snapshots (
+                    snapshot_id VARCHAR,
+                    system_score DOUBLE,
+                    severity VARCHAR,
+                    created_at TIMESTAMP,
+                    components_json VARCHAR
+                );
+                CREATE TABLE IF NOT EXISTS runtime_health_scores (
+                    score_id VARCHAR,
+                    snapshot_id VARCHAR,
+                    component VARCHAR,
+                    score DOUBLE,
+                    severity VARCHAR,
+                    reason VARCHAR,
+                    evaluated_at TIMESTAMP,
+                    signal_ids_json VARCHAR
+                );
+                CREATE TABLE IF NOT EXISTS runtime_degradation_events (
+                    event_id VARCHAR,
+                    snapshot_id VARCHAR,
+                    component VARCHAR,
+                    severity VARCHAR,
+                    reason VARCHAR,
+                    detected_at TIMESTAMP,
+                    is_active BOOLEAN
+                );
+                CREATE TABLE IF NOT EXISTS runtime_control_actions (
+                    action_id VARCHAR,
+                    degradation_event_id VARCHAR,
+                    action_type VARCHAR,
+                    severity VARCHAR,
+                    target_component VARCHAR,
+                    payload_json VARCHAR,
+                    requires_governance_audit BOOLEAN,
+                    executed_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS runtime_recovery_attempts (
+                    recovery_id VARCHAR,
+                    degradation_event_id VARCHAR,
+                    strategy VARCHAR,
+                    status VARCHAR,
+                    detail VARCHAR,
+                    created_at TIMESTAMP
+                );
                 CREATE TABLE IF NOT EXISTS live_orders (
                     live_order_id VARCHAR,
                     created_at TIMESTAMP,

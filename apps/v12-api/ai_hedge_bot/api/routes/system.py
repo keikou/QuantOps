@@ -18,6 +18,7 @@ from ai_hedge_bot.governance_audit.audit_service import GovernanceAuditService
 from ai_hedge_bot.operational_governance.operational_governance_service import OperationalGovernanceService
 from ai_hedge_bot.operational_risk.operational_risk_service import OperationalRiskService
 from ai_hedge_bot.postmortem_feedback.postmortem_service import PostmortemService
+from ai_hedge_bot.runtime_health.service import RuntimeHealthService
 from ai_hedge_bot.alpha_synthesis.alpha_synthesis_service import AlphaSynthesisService
 from ai_hedge_bot.services.autonomous_alpha_expansion_strategy_generation_intelligence_service import (
     AutonomousAlphaExpansionStrategyGenerationIntelligenceService,
@@ -82,6 +83,7 @@ _enforcement = EnforcementService()
 _authorization = AuthorizationService()
 _postmortem = PostmortemService()
 _governance_audit = GovernanceAuditService()
+_runtime_health = RuntimeHealthService()
 
 
 def _payload() -> dict:
@@ -1507,3 +1509,43 @@ def system_audit_replays_latest(limit: int = 20) -> dict:
 @router.get('/system/audit/exports/latest')
 def system_audit_exports_latest(limit: int = 20) -> dict:
     return _governance_audit.latest_exports(limit=limit)
+
+
+@router.post('/system/runtime-health/ingest')
+def system_runtime_health_ingest(signals_json: str = "[]") -> dict:
+    return _runtime_health.ingest_json(signals_json=signals_json)
+
+
+@router.get('/system/runtime-health/latest')
+def system_runtime_health_latest() -> dict:
+    return _runtime_health.latest()
+
+
+@router.get('/system/runtime-health/components')
+def system_runtime_health_components(limit: int = 20) -> dict:
+    return _runtime_health.components_latest(limit=limit)
+
+
+@router.get('/system/runtime-health/signals/latest')
+def system_runtime_health_signals_latest(limit: int = 50) -> dict:
+    return _runtime_health.signals_latest(limit=limit)
+
+
+@router.get('/system/degradation/latest')
+def system_degradation_latest(limit: int = 20) -> dict:
+    return _runtime_health.degradation_latest(limit=limit)
+
+
+@router.get('/system/runtime-control/actions/latest')
+def system_runtime_control_actions_latest(limit: int = 20) -> dict:
+    return _runtime_health.control_actions_latest(limit=limit)
+
+
+@router.post('/system/control/safe-mode')
+def system_control_safe_mode(reason: str = "manual_safe_mode_request") -> dict:
+    return _runtime_health.trigger_safe_mode(reason=reason)
+
+
+@router.get('/system/runtime-recovery/latest')
+def system_runtime_recovery_latest(limit: int = 20) -> dict:
+    return _runtime_health.recovery_latest(limit=limit)

@@ -522,3 +522,26 @@ AFG-05 progression:
 ## Rule
 
 When a lane checkpoint becomes operationally visible through `/system/*`, add its family here as one grouped inventory rather than leaving the surface readable only from isolated endpoint rows.
+
+## System Reliability / Runtime Hardening
+
+SRH-01 additions:
+
+- `POST /system/runtime-health/ingest`
+- `GET /system/runtime-health/latest`
+- `GET /system/runtime-health/components`
+- `GET /system/runtime-health/signals/latest`
+- `GET /system/degradation/latest`
+- `GET /system/runtime-control/actions/latest`
+- `POST /system/control/safe-mode`
+- `GET /system/runtime-recovery/latest`
+
+SRH-01 progression:
+
+- health signal ingestion
+- component health score
+- composite system health score
+- degradation detection
+- throttle / safe mode / halt control action
+- recovery attempt
+- AFG freeze boundary preservation

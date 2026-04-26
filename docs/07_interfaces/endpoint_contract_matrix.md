@@ -288,6 +288,19 @@ This file is the compact routing matrix for the current `system` contract surfac
 | `GET /system/audit/replays/latest` | replays latest | latest governance replay logs |
 | `GET /system/audit/exports/latest` | audit exports latest | latest audit export index |
 
+## System Reliability / Runtime Hardening Surfaces
+
+| Endpoint | Contract role | Primary output |
+| --- | --- | --- |
+| `POST /system/runtime-health/ingest` | runtime health ingest | health snapshot, degradation events, control actions, and recovery attempts |
+| `GET /system/runtime-health/latest` | runtime health latest | latest system health snapshot |
+| `GET /system/runtime-health/components` | component health latest | latest component health scores |
+| `GET /system/runtime-health/signals/latest` | health signals latest | latest raw runtime health signals |
+| `GET /system/degradation/latest` | degradation latest | latest degradation events |
+| `GET /system/runtime-control/actions/latest` | runtime control latest | latest throttle, safe mode, or halt actions |
+| `POST /system/control/safe-mode` | safe mode trigger | explicit safe mode control and recovery record |
+| `GET /system/runtime-recovery/latest` | runtime recovery latest | latest recovery attempts |
+
 ## Rule
 
 When a new `system` endpoint is added, update this matrix if the endpoint is operator-visible or part of the lane checkpoint contract surface.
