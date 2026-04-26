@@ -3,7 +3,7 @@
 Date: `2026-04-26`
 Repo: `QuantOps_github`
 Branch: `codex/post-phase7-hardening`
-Status: `srh01_active_boundary`
+Status: `srh02_active_boundary`
 
 ## Current Planning Decision
 
@@ -11,9 +11,9 @@ The current hardening/resume slice is treated as sufficiently complete.
 
 So the active planning question is now:
 
-- how should runtime health be observed?
-- how should degradation be detected and classified?
-- how should safe mode and recovery protocol be connected?
+- how should dependency failure be detected?
+- how should blast radius be isolated?
+- how should circuit breakers, fallback routes, and recovery probes be connected?
 
 Historical note:
 
@@ -34,7 +34,8 @@ Architect-selected answer:
 - `AFG-05` is checkpoint-complete as governance replay and audit evidence
 - `AFG lane` is frozen after AFG-05
 - next top-level lane is `System Reliability / Runtime Hardening`
-- current packet boundary is `SRH-01: Runtime Health & Degradation Control`
+- `SRH-01` is checkpoint-complete as runtime health and degradation control
+- current packet boundary is `SRH-02: Dependency Failure Isolation & Circuit Breaker System`
 
 ## Why This Is The Current Plan
 
@@ -58,7 +59,7 @@ Architect re-alignment now treats the following as sufficiently closed for the c
 - `Meta Portfolio Intelligence / Cross-Strategy Capital Allocation v1`
 - `Strategy Evolution / Regime Adaptation Intelligence v1`
 
-That means planning should not continue replaying `SERI`, `AAE`, `ASD`, `AES`, `ORC`, or `AFG-01` through `AFG-05` checkpoint work and should now establish runtime health and degradation control.
+That means planning should not continue replaying `SERI`, `AAE`, `ASD`, `AES`, `ORC`, `AFG-01` through `AFG-05`, or completed `SRH-01` checkpoint work and should now establish dependency failure isolation.
 
 ## Explicitly Completed Planning Slice
 
@@ -81,18 +82,18 @@ The following planning sequence is now historical and completed:
 
 ## Current Plan Outputs
 
-Current `SRH-01` outputs now planned:
+Current `SRH-02` outputs now planned:
 
-- `../System_reliability_runtime_hardening_packet01_plan.md`
-- `../../test_bundle/scripts/verify_runtime_health_packet01.py`
-- `POST /system/runtime-health/ingest`
-- `GET /system/runtime-health/latest`
-- `GET /system/runtime-health/components`
-- `GET /system/runtime-health/signals/latest`
-- `GET /system/degradation/latest`
-- `GET /system/runtime-control/actions/latest`
-- `POST /system/control/safe-mode`
-- `GET /system/runtime-recovery/latest`
+- `../System_reliability_runtime_hardening_packet02_plan.md`
+- `../../test_bundle/scripts/verify_runtime_dependency_packet02.py`
+- `GET /system/dependencies`
+- `POST /system/dependencies/register`
+- `POST /system/dependencies/{dependency_id}/record-failure`
+- `GET /system/circuit-breakers/latest`
+- `GET /system/dependency-isolation/latest`
+- `GET /system/fallback-routes/latest`
+- `POST /system/recovery-probes/{dependency_id}/schedule`
+- `POST /system/recovery-probes/{probe_id}/complete`
 
 ## Current Docs-Ready State
 
@@ -124,6 +125,7 @@ Current docs-ready assets:
 - `../Alpha_factory_governance_operator_control_packet04_plan.md`
 - `../Alpha_factory_governance_operator_control_packet05_plan.md`
 - `../System_reliability_runtime_hardening_packet01_plan.md`
+- `../System_reliability_runtime_hardening_packet02_plan.md`
 - `../07_interfaces/orc_operational_risk_contracts.md`
 - `../07_interfaces/afg_operator_control_contracts.md`
 - `../07_interfaces/aes_alpha_evaluation_contracts.md`
@@ -143,7 +145,7 @@ This is not the current plan:
 - replaying completed `AAE-01` through `AAE-05`
 - replaying completed `ASD-01` through `ASD-05`
 - inventing `ASD-06` without a new architect boundary
-- replaying completed `AAE`, `ASD`, `AES`, `ORC`, or frozen `AFG-01` through `AFG-05` work instead of building SRH-01
+- replaying completed `AAE`, `ASD`, `AES`, `ORC`, frozen `AFG-01` through `AFG-05`, or completed `SRH-01` work instead of building SRH-02
 
 ## Read Before Editing
 

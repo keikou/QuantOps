@@ -545,3 +545,32 @@ SRH-01 progression:
 - throttle / safe mode / halt control action
 - recovery attempt
 - AFG freeze boundary preservation
+
+SRH-02 additions:
+
+- `GET /system/dependencies`
+- `GET /system/dependencies/{dependency_id}`
+- `POST /system/dependencies/register`
+- `GET /system/dependencies/health/latest`
+- `POST /system/dependencies/{dependency_id}/record-success`
+- `POST /system/dependencies/{dependency_id}/record-failure`
+- `GET /system/circuit-breakers/latest`
+- `GET /system/circuit-breakers/{dependency_id}`
+- `POST /system/circuit-breakers/{dependency_id}/open`
+- `POST /system/circuit-breakers/{dependency_id}/half-open`
+- `POST /system/circuit-breakers/{dependency_id}/close`
+- `GET /system/dependency-isolation/latest`
+- `GET /system/fallback-routes/latest`
+- `POST /system/recovery-probes/{dependency_id}/schedule`
+- `POST /system/recovery-probes/{probe_id}/complete`
+- `GET /system/recovery-probes/latest`
+
+SRH-02 progression:
+
+- dependency registration
+- dependency success and failure observation
+- circuit breaker state transition
+- fallback route selection
+- dependency isolation event
+- recovery probe scheduling and completion
+- illegal transition blocking

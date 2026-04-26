@@ -285,6 +285,22 @@ This file is the short routing index for the current operator-visible API endpoi
 - `GET /system/runtime-control/actions/latest`
 - `POST /system/control/safe-mode`
 - `GET /system/runtime-recovery/latest`
+- `GET /system/dependencies`
+- `GET /system/dependencies/{dependency_id}`
+- `POST /system/dependencies/register`
+- `GET /system/dependencies/health/latest`
+- `POST /system/dependencies/{dependency_id}/record-success`
+- `POST /system/dependencies/{dependency_id}/record-failure`
+- `GET /system/circuit-breakers/latest`
+- `GET /system/circuit-breakers/{dependency_id}`
+- `POST /system/circuit-breakers/{dependency_id}/open`
+- `POST /system/circuit-breakers/{dependency_id}/half-open`
+- `POST /system/circuit-breakers/{dependency_id}/close`
+- `GET /system/dependency-isolation/latest`
+- `GET /system/fallback-routes/latest`
+- `POST /system/recovery-probes/{dependency_id}/schedule`
+- `POST /system/recovery-probes/{probe_id}/complete`
+- `GET /system/recovery-probes/latest`
 
 ## Read Next
 

@@ -18,6 +18,7 @@ from ai_hedge_bot.governance_audit.audit_service import GovernanceAuditService
 from ai_hedge_bot.operational_governance.operational_governance_service import OperationalGovernanceService
 from ai_hedge_bot.operational_risk.operational_risk_service import OperationalRiskService
 from ai_hedge_bot.postmortem_feedback.postmortem_service import PostmortemService
+from ai_hedge_bot.runtime_dependencies.service import RuntimeDependencyService
 from ai_hedge_bot.runtime_health.service import RuntimeHealthService
 from ai_hedge_bot.alpha_synthesis.alpha_synthesis_service import AlphaSynthesisService
 from ai_hedge_bot.services.autonomous_alpha_expansion_strategy_generation_intelligence_service import (
@@ -84,6 +85,7 @@ _authorization = AuthorizationService()
 _postmortem = PostmortemService()
 _governance_audit = GovernanceAuditService()
 _runtime_health = RuntimeHealthService()
+_runtime_dependencies = RuntimeDependencyService()
 
 
 def _payload() -> dict:
@@ -1549,3 +1551,111 @@ def system_control_safe_mode(reason: str = "manual_safe_mode_request") -> dict:
 @router.get('/system/runtime-recovery/latest')
 def system_runtime_recovery_latest(limit: int = 20) -> dict:
     return _runtime_health.recovery_latest(limit=limit)
+
+
+@router.get('/system/dependencies')
+def system_dependencies(limit: int = 100) -> dict:
+    return _runtime_dependencies.dependencies(limit=limit)
+
+
+@router.get('/system/dependencies/health/latest')
+def system_dependencies_health_latest(limit: int = 50) -> dict:
+    return _runtime_dependencies.latest_health(limit=limit)
+
+
+@router.post('/system/dependencies/register')
+def system_dependencies_register(
+    dependency_id: str,
+    dependency_type: str = "INTERNAL_API",
+    name: str = "",
+    owner: str = "runtime",
+    criticality: str = "standard",
+    fallback_dependency_id: str = "",
+    metadata_json: str = "{}",
+) -> dict:
+    return _runtime_dependencies.register_dependency(
+        dependency_id=dependency_id,
+        dependency_type=dependency_type,
+        name=name,
+        owner=owner,
+        criticality=criticality,
+        fallback_dependency_id=fallback_dependency_id,
+        metadata_json=metadata_json,
+    )
+
+
+@router.get('/system/dependencies/{dependency_id}')
+def system_dependency(dependency_id: str) -> dict:
+    return _runtime_dependencies.dependency(dependency_id=dependency_id)
+
+
+@router.post('/system/dependencies/{dependency_id}/record-success')
+def system_dependency_record_success(dependency_id: str, latency_ms: float = 0.0, detail: str = "dependency_success", metadata_json: str = "{}") -> dict:
+    return _runtime_dependencies.record_success(dependency_id=dependency_id, latency_ms=latency_ms, detail=detail, metadata_json=metadata_json)
+
+
+@router.post('/system/dependencies/{dependency_id}/record-failure')
+def system_dependency_record_failure(
+    dependency_id: str,
+    failure_type: str = "timeout",
+    latency_ms: float = 0.0,
+    detail: str = "dependency_failure",
+    metadata_json: str = "{}",
+) -> dict:
+    return _runtime_dependencies.record_failure(
+        dependency_id=dependency_id,
+        failure_type=failure_type,
+        latency_ms=latency_ms,
+        detail=detail,
+        metadata_json=metadata_json,
+    )
+
+
+@router.get('/system/circuit-breakers/latest')
+def system_circuit_breakers_latest(limit: int = 50) -> dict:
+    return _runtime_dependencies.latest_breakers(limit=limit)
+
+
+@router.get('/system/circuit-breakers/{dependency_id}')
+def system_circuit_breaker(dependency_id: str) -> dict:
+    return _runtime_dependencies.circuit_breaker(dependency_id=dependency_id)
+
+
+@router.post('/system/circuit-breakers/{dependency_id}/open')
+def system_circuit_breaker_open(dependency_id: str, reason: str = "manual_open") -> dict:
+    return _runtime_dependencies.open_circuit(dependency_id=dependency_id, reason=reason)
+
+
+@router.post('/system/circuit-breakers/{dependency_id}/half-open')
+def system_circuit_breaker_half_open(dependency_id: str, reason: str = "cooldown_elapsed") -> dict:
+    return _runtime_dependencies.half_open_circuit(dependency_id=dependency_id, reason=reason)
+
+
+@router.post('/system/circuit-breakers/{dependency_id}/close')
+def system_circuit_breaker_close(dependency_id: str, reason: str = "manual_close") -> dict:
+    return _runtime_dependencies.close_circuit(dependency_id=dependency_id, reason=reason)
+
+
+@router.get('/system/dependency-isolation/latest')
+def system_dependency_isolation_latest(limit: int = 50) -> dict:
+    return _runtime_dependencies.latest_isolation(limit=limit)
+
+
+@router.get('/system/fallback-routes/latest')
+def system_fallback_routes_latest(limit: int = 50) -> dict:
+    return _runtime_dependencies.latest_fallback_routes(limit=limit)
+
+
+@router.post('/system/recovery-probes/{dependency_id}/schedule')
+def system_recovery_probe_schedule(dependency_id: str, metadata_json: str = "{}") -> dict:
+    return _runtime_dependencies.schedule_probe(dependency_id=dependency_id, metadata_json=metadata_json)
+
+
+@router.post('/system/recovery-probes/{probe_id}/complete')
+def system_recovery_probe_complete(probe_id: str, success: bool = True, result_detail: str = "probe_completed", metadata_json: str = "{}") -> dict:
+    return _runtime_dependencies.complete_probe(probe_id=probe_id, success=success, result_detail=result_detail, metadata_json=metadata_json)
+
+
+@router.get('/system/recovery-probes/latest')
+def system_recovery_probes_latest(limit: int = 50) -> dict:
+    return _runtime_dependencies.latest_probes(limit=limit)

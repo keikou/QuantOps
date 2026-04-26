@@ -33,7 +33,7 @@ The repo currently stands in this state:
 - `AFG-05` is checkpoint-complete as governance replay and audit evidence
 - `AFG lane` is frozen after AFG-05
 - latest pushed commit before SRH-01 work is `75a9b44`
-- canonical current-state docs are now aligned to `SRH-01 active`
+- canonical current-state docs are now aligned to `SRH-02 active`
 - `AAE-01` now exposes `GET /system/alpha-discovery-candidates/latest`
 - `AAE-01` now exposes `GET /system/alpha-validation-results/latest`
 - `AAE-01` now exposes `GET /system/alpha-admission-decision/latest`
@@ -251,6 +251,23 @@ The repo currently stands in this state:
 - `SRH-01` now exposes `GET /system/runtime-control/actions/latest`
 - `SRH-01` now exposes `POST /system/control/safe-mode`
 - `SRH-01` now exposes `GET /system/runtime-recovery/latest`
+- `SRH-01` is checkpoint-complete as runtime health and degradation control
+- `SRH-02` now exposes `GET /system/dependencies`
+- `SRH-02` now exposes `GET /system/dependencies/{dependency_id}`
+- `SRH-02` now exposes `POST /system/dependencies/register`
+- `SRH-02` now exposes `GET /system/dependencies/health/latest`
+- `SRH-02` now exposes `POST /system/dependencies/{dependency_id}/record-success`
+- `SRH-02` now exposes `POST /system/dependencies/{dependency_id}/record-failure`
+- `SRH-02` now exposes `GET /system/circuit-breakers/latest`
+- `SRH-02` now exposes `GET /system/circuit-breakers/{dependency_id}`
+- `SRH-02` now exposes `POST /system/circuit-breakers/{dependency_id}/open`
+- `SRH-02` now exposes `POST /system/circuit-breakers/{dependency_id}/half-open`
+- `SRH-02` now exposes `POST /system/circuit-breakers/{dependency_id}/close`
+- `SRH-02` now exposes `GET /system/dependency-isolation/latest`
+- `SRH-02` now exposes `GET /system/fallback-routes/latest`
+- `SRH-02` now exposes `POST /system/recovery-probes/{dependency_id}/schedule`
+- `SRH-02` now exposes `POST /system/recovery-probes/{probe_id}/complete`
+- `SRH-02` now exposes `GET /system/recovery-probes/latest`
 
 ## Current Reports To Trust First
 
@@ -357,21 +374,21 @@ Architect re-alignment now supports:
 - completed first checkpoints through `SERI-05`
 - no replay of `DRI`, `LCC`, `MPI`, or `SERI` unless a real regression appears
 - AFG lane is frozen; no new AFG packets unless a real regression appears
-- current work has shifted into `SRH-01`
+- current work has shifted into `SRH-02`
 
 ## Default Next Candidate
 
-- `System Reliability / Runtime Hardening Packet 01`
+- `System Reliability / Runtime Hardening Packet 02`
 
-## Current SRH-01 Docs-Ready State
+## Current SRH-02 Docs-Ready State
 
-- `SRH-01` task spec exists
+- `SRH-02` task spec exists
 - packet plan doc exists
 - `lane_surface_inventory.md` and `api_endpoints.md` include the `SRH` family
 - `10_agent` still exposes the docs-first operating loop for implementation startup
 
-## Current SRH-01 Runtime State
+## Current SRH-02 Runtime State
 
 - packet plan doc exists
 - verifier exists
-- runtime health, degradation, control, and recovery surfaces are implemented
+- dependency registry, circuit breaker, fallback isolation, and recovery probe surfaces are implemented

@@ -300,6 +300,22 @@ This file is the compact routing matrix for the current `system` contract surfac
 | `GET /system/runtime-control/actions/latest` | runtime control latest | latest throttle, safe mode, or halt actions |
 | `POST /system/control/safe-mode` | safe mode trigger | explicit safe mode control and recovery record |
 | `GET /system/runtime-recovery/latest` | runtime recovery latest | latest recovery attempts |
+| `GET /system/dependencies` | dependency registry latest | registered runtime dependencies |
+| `GET /system/dependencies/{dependency_id}` | dependency lookup | dependency, latest health, circuit, and fallback state |
+| `POST /system/dependencies/register` | dependency registration | append-only dependency registry row and closed circuit |
+| `GET /system/dependencies/health/latest` | dependency health latest | latest dependency success/failure observations |
+| `POST /system/dependencies/{dependency_id}/record-success` | dependency success observation | health success and circuit state update |
+| `POST /system/dependencies/{dependency_id}/record-failure` | dependency failure observation | failure event, circuit transition, fallback or isolation |
+| `GET /system/circuit-breakers/latest` | circuit breaker latest | latest breaker snapshots |
+| `GET /system/circuit-breakers/{dependency_id}` | circuit breaker lookup | latest breaker state for a dependency |
+| `POST /system/circuit-breakers/{dependency_id}/open` | circuit open command | opened circuit and fallback or isolation result |
+| `POST /system/circuit-breakers/{dependency_id}/half-open` | circuit half-open command | half-open transition or blocked transition |
+| `POST /system/circuit-breakers/{dependency_id}/close` | circuit close command | closed breaker snapshot |
+| `GET /system/dependency-isolation/latest` | dependency isolation latest | latest dependency isolation events |
+| `GET /system/fallback-routes/latest` | fallback route latest | latest active fallback route decisions |
+| `POST /system/recovery-probes/{dependency_id}/schedule` | recovery probe schedule | scheduled probe row |
+| `POST /system/recovery-probes/{probe_id}/complete` | recovery probe completion | probe result and breaker transition |
+| `GET /system/recovery-probes/latest` | recovery probes latest | latest recovery probe rows |
 
 ## Rule
 

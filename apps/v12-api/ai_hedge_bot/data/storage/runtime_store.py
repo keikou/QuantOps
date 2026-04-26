@@ -1968,6 +1968,78 @@ class RuntimeStore:
                     detail VARCHAR,
                     created_at TIMESTAMP
                 );
+                CREATE TABLE IF NOT EXISTS runtime_dependency_registry (
+                    dependency_id VARCHAR,
+                    dependency_type VARCHAR,
+                    name VARCHAR,
+                    owner VARCHAR,
+                    criticality VARCHAR,
+                    fallback_dependency_id VARCHAR,
+                    metadata_json VARCHAR,
+                    registered_at TIMESTAMP,
+                    is_active BOOLEAN
+                );
+                CREATE TABLE IF NOT EXISTS runtime_dependency_health (
+                    health_id VARCHAR,
+                    dependency_id VARCHAR,
+                    status VARCHAR,
+                    failure_type VARCHAR,
+                    latency_ms DOUBLE,
+                    observed_at TIMESTAMP,
+                    detail VARCHAR,
+                    metadata_json VARCHAR
+                );
+                CREATE TABLE IF NOT EXISTS runtime_dependency_events (
+                    event_id VARCHAR,
+                    dependency_id VARCHAR,
+                    event_type VARCHAR,
+                    circuit_state VARCHAR,
+                    severity VARCHAR,
+                    reason VARCHAR,
+                    fallback_dependency_id VARCHAR,
+                    created_at TIMESTAMP,
+                    metadata_json VARCHAR
+                );
+                CREATE TABLE IF NOT EXISTS runtime_circuit_breakers (
+                    breaker_id VARCHAR,
+                    dependency_id VARCHAR,
+                    state VARCHAR,
+                    failure_count INTEGER,
+                    success_count INTEGER,
+                    threshold INTEGER,
+                    cooldown_sec INTEGER,
+                    reason VARCHAR,
+                    updated_at TIMESTAMP,
+                    metadata_json VARCHAR
+                );
+                CREATE TABLE IF NOT EXISTS runtime_circuit_transitions (
+                    transition_id VARCHAR,
+                    dependency_id VARCHAR,
+                    previous_state VARCHAR,
+                    next_state VARCHAR,
+                    allowed BOOLEAN,
+                    reason VARCHAR,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS runtime_fallback_routes (
+                    route_id VARCHAR,
+                    dependency_id VARCHAR,
+                    fallback_dependency_id VARCHAR,
+                    route_status VARCHAR,
+                    reason VARCHAR,
+                    created_at TIMESTAMP,
+                    metadata_json VARCHAR
+                );
+                CREATE TABLE IF NOT EXISTS runtime_recovery_probes (
+                    probe_id VARCHAR,
+                    dependency_id VARCHAR,
+                    circuit_state VARCHAR,
+                    probe_status VARCHAR,
+                    scheduled_at TIMESTAMP,
+                    completed_at TIMESTAMP,
+                    result_detail VARCHAR,
+                    metadata_json VARCHAR
+                );
                 CREATE TABLE IF NOT EXISTS live_orders (
                     live_order_id VARCHAR,
                     created_at TIMESTAMP,
