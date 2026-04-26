@@ -255,6 +255,18 @@ This file is the short routing index for the current operator-visible API endpoi
 - `POST /system/roles/revoke`
 - `GET /system/actor-permissions/{actor_id}`
 - `GET /system/authorization/audit/latest`
+- `POST /system/incidents/ingest`
+- `GET /system/incidents/latest`
+- `POST /system/incidents/{id}/review`
+- `POST /system/incidents/{id}/rca`
+- `POST /system/incidents/{id}/actions`
+- `POST /system/incidents/{id}/close`
+- `GET /system/postmortem/latest`
+- `POST /system/postmortem-feedback/build/{incident_id}`
+- `POST /system/postmortem-feedback/dispatch/{feedback_id}`
+- `GET /system/postmortem-feedback/latest`
+- `GET /system/postmortem-feedback/target/{target_system}`
+- `GET /system/postmortem-feedback/dispatch/latest`
 
 ## Read Next
 

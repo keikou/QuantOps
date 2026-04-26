@@ -16,6 +16,7 @@ from ai_hedge_bot.execution_health.execution_health_service import ExecutionHeal
 from ai_hedge_bot.governance.governance_service import GovernanceService
 from ai_hedge_bot.operational_governance.operational_governance_service import OperationalGovernanceService
 from ai_hedge_bot.operational_risk.operational_risk_service import OperationalRiskService
+from ai_hedge_bot.postmortem_feedback.postmortem_service import PostmortemService
 from ai_hedge_bot.alpha_synthesis.alpha_synthesis_service import AlphaSynthesisService
 from ai_hedge_bot.services.autonomous_alpha_expansion_strategy_generation_intelligence_service import (
     AutonomousAlphaExpansionStrategyGenerationIntelligenceService,
@@ -78,6 +79,7 @@ _operational_governance = OperationalGovernanceService()
 _governance = GovernanceService()
 _enforcement = EnforcementService()
 _authorization = AuthorizationService()
+_postmortem = PostmortemService()
 
 
 def _payload() -> dict:
@@ -1362,3 +1364,109 @@ def system_actor_permissions(actor_id: str) -> dict:
 @router.get('/system/authorization/audit/latest')
 def system_authorization_audit_latest(limit: int = 20) -> dict:
     return _authorization.audit_latest(limit=limit)
+
+
+@router.post('/system/incidents/ingest')
+def system_incidents_ingest(
+    source_system: str = "ORC",
+    source_event_id: str = "",
+    severity: str = "S3",
+    incident_type: str = "operational",
+    affected_scope: str = "system",
+    target_id: str = "",
+    summary: str = "incident_detected",
+    evidence_json: str = "{}",
+) -> dict:
+    return _postmortem.ingest(
+        source_system=source_system,
+        source_event_id=source_event_id,
+        severity=severity,
+        incident_type=incident_type,
+        affected_scope=affected_scope,
+        target_id=target_id,
+        summary=summary,
+        evidence_json=evidence_json,
+    )
+
+
+@router.get('/system/incidents/latest')
+def system_incidents_latest(limit: int = 20) -> dict:
+    return _postmortem.incidents_latest(limit=limit)
+
+
+@router.post('/system/incidents/{id}/review')
+def system_incident_review(id: str, reviewer_id: str = "operator", findings_json: str = "{}", decision: str = "reviewed") -> dict:
+    return _postmortem.review(incident_id=id, reviewer_id=reviewer_id, findings_json=findings_json, decision=decision)
+
+
+@router.post('/system/incidents/{id}/rca')
+def system_incident_rca(
+    id: str,
+    root_cause: str = "policy_gap",
+    confidence: float = 0.8,
+    approved: bool = True,
+    contributing_factors_json: str = "[]",
+    evidence_json: str = "{}",
+) -> dict:
+    return _postmortem.rca(
+        incident_id=id,
+        root_cause=root_cause,
+        confidence=confidence,
+        approved=approved,
+        contributing_factors_json=contributing_factors_json,
+        evidence_json=evidence_json,
+    )
+
+
+@router.post('/system/incidents/{id}/actions')
+def system_incident_actions(
+    id: str,
+    target_system: str = "AFG_POLICY",
+    action_type: str = "policy_rule_add",
+    owner: str = "operator",
+    payload_json: str = "{}",
+    due_at: str | None = None,
+) -> dict:
+    return _postmortem.actions(
+        incident_id=id,
+        target_system=target_system,
+        action_type=action_type,
+        owner=owner,
+        payload_json=payload_json,
+        due_at=due_at,
+    )
+
+
+@router.post('/system/incidents/{id}/close')
+def system_incident_close(id: str, operator_id: str = "operator", reason: str = "postmortem_closed", emit_feedback: bool = True) -> dict:
+    return _postmortem.close(incident_id=id, operator_id=operator_id, reason=reason, emit_feedback=emit_feedback)
+
+
+@router.get('/system/postmortem/latest')
+def system_postmortem_latest(limit: int = 20) -> dict:
+    return _postmortem.postmortem_latest(limit=limit)
+
+
+@router.post('/system/postmortem-feedback/build/{incident_id}')
+def system_postmortem_feedback_build(incident_id: str) -> dict:
+    return _postmortem.build_feedback(incident_id=incident_id)
+
+
+@router.post('/system/postmortem-feedback/dispatch/{feedback_id}')
+def system_postmortem_feedback_dispatch(feedback_id: str, approved: bool = False) -> dict:
+    return _postmortem.dispatch_feedback(feedback_id=feedback_id, approved=approved)
+
+
+@router.get('/system/postmortem-feedback/latest')
+def system_postmortem_feedback_latest(limit: int = 20) -> dict:
+    return _postmortem.feedback_latest(limit=limit)
+
+
+@router.get('/system/postmortem-feedback/target/{target_system}')
+def system_postmortem_feedback_target(target_system: str, limit: int = 20) -> dict:
+    return _postmortem.feedback_by_target(target_system=target_system, limit=limit)
+
+
+@router.get('/system/postmortem-feedback/dispatch/latest')
+def system_postmortem_feedback_dispatch_latest(limit: int = 20) -> dict:
+    return _postmortem.dispatch_latest(limit=limit)

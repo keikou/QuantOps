@@ -1805,6 +1805,81 @@ class RuntimeStore:
                     metadata_json VARCHAR,
                     created_at TIMESTAMP
                 );
+                CREATE TABLE IF NOT EXISTS postmortem_incidents (
+                    incident_id VARCHAR,
+                    source_system VARCHAR,
+                    source_event_id VARCHAR,
+                    severity VARCHAR,
+                    incident_type VARCHAR,
+                    affected_scope VARCHAR,
+                    target_id VARCHAR,
+                    lifecycle_status VARCHAR,
+                    summary VARCHAR,
+                    evidence_json VARCHAR,
+                    detected_at TIMESTAMP,
+                    created_at TIMESTAMP,
+                    updated_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS postmortem_reviews (
+                    review_id VARCHAR,
+                    incident_id VARCHAR,
+                    reviewer_id VARCHAR,
+                    lifecycle_status VARCHAR,
+                    findings_json VARCHAR,
+                    decision VARCHAR,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS postmortem_rca (
+                    rca_id VARCHAR,
+                    incident_id VARCHAR,
+                    root_cause VARCHAR,
+                    contributing_factors_json VARCHAR,
+                    evidence_json VARCHAR,
+                    confidence DOUBLE,
+                    approved BOOLEAN,
+                    created_at TIMESTAMP,
+                    approved_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS postmortem_action_items (
+                    action_item_id VARCHAR,
+                    incident_id VARCHAR,
+                    rca_id VARCHAR,
+                    target_system VARCHAR,
+                    action_type VARCHAR,
+                    owner VARCHAR,
+                    status VARCHAR,
+                    due_at TIMESTAMP,
+                    payload_json VARCHAR,
+                    created_at TIMESTAMP,
+                    updated_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS postmortem_feedback (
+                    feedback_id VARCHAR,
+                    incident_id VARCHAR,
+                    rca_id VARCHAR,
+                    target_system VARCHAR,
+                    feedback_type VARCHAR,
+                    severity VARCHAR,
+                    confidence DOUBLE,
+                    payload_json VARCHAR,
+                    requires_approval BOOLEAN,
+                    approved BOOLEAN,
+                    applied BOOLEAN,
+                    created_at TIMESTAMP,
+                    approved_at TIMESTAMP,
+                    applied_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS postmortem_feedback_dispatch (
+                    dispatch_id VARCHAR,
+                    feedback_id VARCHAR,
+                    target_system VARCHAR,
+                    dispatch_status VARCHAR,
+                    target_record_id VARCHAR,
+                    error_message VARCHAR,
+                    idempotency_key VARCHAR,
+                    created_at TIMESTAMP,
+                    dispatched_at TIMESTAMP
+                );
                 CREATE TABLE IF NOT EXISTS live_orders (
                     live_order_id VARCHAR,
                     created_at TIMESTAMP,

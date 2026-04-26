@@ -471,6 +471,32 @@ AFG-03 additions:
 - `GET /system/actor-permissions/{actor_id}`
 - `GET /system/authorization/audit/latest`
 
+AFG-04 additions:
+
+- `POST /system/incidents/ingest`
+- `GET /system/incidents/latest`
+- `POST /system/incidents/{id}/review`
+- `POST /system/incidents/{id}/rca`
+- `POST /system/incidents/{id}/actions`
+- `POST /system/incidents/{id}/close`
+- `GET /system/postmortem/latest`
+- `POST /system/postmortem-feedback/build/{incident_id}`
+- `POST /system/postmortem-feedback/dispatch/{feedback_id}`
+- `GET /system/postmortem-feedback/latest`
+- `GET /system/postmortem-feedback/target/{target_system}`
+- `GET /system/postmortem-feedback/dispatch/latest`
+
+AFG-04 progression:
+
+- incident ingestion
+- severity classification
+- review lifecycle
+- approved RCA
+- action item tracking
+- typed feedback generation
+- approval-gated feedback dispatch
+- dispatch audit and idempotency
+
 ## Rule
 
 When a lane checkpoint becomes operationally visible through `/system/*`, add its family here as one grouped inventory rather than leaving the surface readable only from isolated endpoint rows.

@@ -268,6 +268,18 @@ This file is the compact routing matrix for the current `system` contract surfac
 | `POST /system/roles/revoke` | role revoke | actor-role revocation record |
 | `GET /system/actor-permissions/{actor_id}` | actor permissions | expanded actor roles and permissions |
 | `GET /system/authorization/audit/latest` | authorization audit | authorization and role mutation audit log |
+| `POST /system/incidents/ingest` | incident ingestion | postmortem incident record |
+| `GET /system/incidents/latest` | incident latest | latest postmortem incidents |
+| `POST /system/incidents/{id}/review` | incident review | review lifecycle record |
+| `POST /system/incidents/{id}/rca` | RCA capture | approved or draft root-cause analysis |
+| `POST /system/incidents/{id}/actions` | action item tracking | postmortem action item |
+| `POST /system/incidents/{id}/close` | incident close | close decision and feedback emission |
+| `GET /system/postmortem/latest` | postmortem latest | incidents, reviews, RCA, actions, feedback, and dispatches |
+| `POST /system/postmortem-feedback/build/{incident_id}` | feedback build | typed feedback from approved RCA |
+| `POST /system/postmortem-feedback/dispatch/{feedback_id}` | feedback dispatch | approval-gated feedback dispatch record |
+| `GET /system/postmortem-feedback/latest` | feedback latest | latest postmortem feedback |
+| `GET /system/postmortem-feedback/target/{target_system}` | feedback target lookup | feedback by target system |
+| `GET /system/postmortem-feedback/dispatch/latest` | feedback dispatch latest | feedback dispatch audit log |
 
 ## Rule
 

@@ -1,9 +1,9 @@
 # Current Plan
 
-Date: `2026-04-24`
+Date: `2026-04-26`
 Repo: `QuantOps_github`
 Branch: `codex/post-phase7-hardening`
-Status: `afg03_active_boundary`
+Status: `afg04_active_boundary`
 
 ## Current Planning Decision
 
@@ -11,9 +11,9 @@ The current hardening/resume slice is treated as sufficiently complete.
 
 So the active planning question is now:
 
-- who is authorized to perform governance actions?
-- how should action, scope, and risk-level permission boundaries be fixed?
-- how should AFG-01 mutations and AFG-02 enforcement be protected by authorization?
+- how should major incidents become structured review records?
+- how should RCA, action items, and feedback be made auditable?
+- how should postmortem learning feed ORC / AES / AFG / LCC / Execution without silently mutating live policy?
 
 Historical note:
 
@@ -29,8 +29,9 @@ Architect-selected answer:
 - `Alpha Synthesis / Structural Discovery Intelligence v1` is checkpoint-complete through `ASD-05`
 - `Alpha Evaluation / Selection Intelligence v1` is checkpoint-complete through `AES-08`
 - `Operational Risk & Control Intelligence v1` is checkpoint-complete through `ORC-05`
+- `AFG v1 core` is checkpoint-complete through `AFG-03`
 - next top-level lane is `Alpha Factory Governance / Operator Control`
-- current packet boundary is `AFG-03: RBAC / Permission Model`
+- current packet boundary is `AFG-04: Incident Review & Postmortem System`
 
 ## Why This Is The Current Plan
 
@@ -54,7 +55,7 @@ Architect re-alignment now treats the following as sufficiently closed for the c
 - `Meta Portfolio Intelligence / Cross-Strategy Capital Allocation v1`
 - `Strategy Evolution / Regime Adaptation Intelligence v1`
 
-That means planning should not continue replaying `SERI`, `AAE`, `ASD`, `AES`, `ORC`, `AFG-01`, or `AFG-02` checkpoint work and should now establish operator authorization.
+That means planning should not continue replaying `SERI`, `AAE`, `ASD`, `AES`, `ORC`, `AFG-01`, `AFG-02`, or `AFG-03` checkpoint work and should now establish incident review and postmortem learning.
 
 ## Explicitly Completed Planning Slice
 
@@ -77,23 +78,26 @@ The following planning sequence is now historical and completed:
 
 ## Current Plan Outputs
 
-Current `AFG-03` outputs now planned:
+Current `AFG-04` outputs now planned:
 
-- `../Alpha_factory_governance_operator_control_packet03_plan.md`
-- `../../test_bundle/scripts/verify_alpha_factory_governance_packet03.py`
-- `POST /system/authorization/check`
-- `GET /system/authorization/latest`
-- `GET /system/authorization/denials/latest`
-- `GET /system/roles/latest`
-- `GET /system/permissions/latest`
-- `POST /system/roles/assign`
-- `POST /system/roles/revoke`
-- `GET /system/actor-permissions/{actor_id}`
-- `GET /system/authorization/audit/latest`
+- `../Alpha_factory_governance_operator_control_packet04_plan.md`
+- `../../test_bundle/scripts/verify_alpha_factory_governance_packet04.py`
+- `POST /system/incidents/ingest`
+- `GET /system/incidents/latest`
+- `POST /system/incidents/{id}/review`
+- `POST /system/incidents/{id}/rca`
+- `POST /system/incidents/{id}/actions`
+- `POST /system/incidents/{id}/close`
+- `GET /system/postmortem/latest`
+- `POST /system/postmortem-feedback/build/{incident_id}`
+- `POST /system/postmortem-feedback/dispatch/{feedback_id}`
+- `GET /system/postmortem-feedback/latest`
+- `GET /system/postmortem-feedback/target/{target_system}`
+- `GET /system/postmortem-feedback/dispatch/latest`
 
 ## Current Docs-Ready State
 
-The docs route for `AFG-03` is now prepared for implementation startup.
+The docs route for `AFG-04` is now prepared for implementation startup.
 
 Current docs-ready assets:
 
@@ -118,6 +122,7 @@ Current docs-ready assets:
 - `../Alpha_factory_governance_operator_control_packet01_plan.md`
 - `../Alpha_factory_governance_operator_control_packet02_plan.md`
 - `../Alpha_factory_governance_operator_control_packet03_plan.md`
+- `../Alpha_factory_governance_operator_control_packet04_plan.md`
 - `../07_interfaces/orc_operational_risk_contracts.md`
 - `../07_interfaces/afg_operator_control_contracts.md`
 - `../07_interfaces/aes_alpha_evaluation_contracts.md`
@@ -137,7 +142,7 @@ This is not the current plan:
 - replaying completed `AAE-01` through `AAE-05`
 - replaying completed `ASD-01` through `ASD-05`
 - inventing `ASD-06` without a new architect boundary
-- replaying completed `AAE` or `ASD` work instead of building the next `AES` packet
+- replaying completed `AAE`, `ASD`, `AES`, `ORC`, or `AFG-01` through `AFG-03` work instead of building AFG-04
 
 ## Read Before Editing
 

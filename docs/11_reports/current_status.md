@@ -1,6 +1,6 @@
 # Current Status
 
-Date: `2026-04-24`
+Date: `2026-04-26`
 Repo: `QuantOps_github`
 Branch: `codex/post-phase7-hardening`
 Status: `current_repo_report`
@@ -27,10 +27,10 @@ The repo currently stands in this state:
 - `Operational Risk & Control Intelligence v1` is checkpoint-complete through `ORC-05`
 - `AFG-01` is checkpoint-complete as the alpha factory operator control plane
 - `AFG-02` is checkpoint-complete as the runtime policy enforcement engine
-- latest local `HEAD` is `1945700`
-- latest pushed commit is `1945700`
-- branch working tree now includes `AAE-01` through `AAE-05` and `ASD-01`
-- canonical current-state docs are now aligned to `AFG-03 active`
+- `AFG-03` is checkpoint-complete as the RBAC / permission model
+- `AFG v1 core` is checkpoint-complete through operator control, runtime enforcement, and authorization
+- latest pushed commit before AFG-04 work is `fdf30f0`
+- canonical current-state docs are now aligned to `AFG-04 active`
 - `AAE-01` now exposes `GET /system/alpha-discovery-candidates/latest`
 - `AAE-01` now exposes `GET /system/alpha-validation-results/latest`
 - `AAE-01` now exposes `GET /system/alpha-admission-decision/latest`
@@ -221,6 +221,18 @@ The repo currently stands in this state:
 - `AFG-03` now exposes `POST /system/roles/revoke`
 - `AFG-03` now exposes `GET /system/actor-permissions/{actor_id}`
 - `AFG-03` now exposes `GET /system/authorization/audit/latest`
+- `AFG-04` now exposes `POST /system/incidents/ingest`
+- `AFG-04` now exposes `GET /system/incidents/latest`
+- `AFG-04` now exposes `POST /system/incidents/{id}/review`
+- `AFG-04` now exposes `POST /system/incidents/{id}/rca`
+- `AFG-04` now exposes `POST /system/incidents/{id}/actions`
+- `AFG-04` now exposes `POST /system/incidents/{id}/close`
+- `AFG-04` now exposes `GET /system/postmortem/latest`
+- `AFG-04` now exposes `POST /system/postmortem-feedback/build/{incident_id}`
+- `AFG-04` now exposes `POST /system/postmortem-feedback/dispatch/{feedback_id}`
+- `AFG-04` now exposes `GET /system/postmortem-feedback/latest`
+- `AFG-04` now exposes `GET /system/postmortem-feedback/target/{target_system}`
+- `AFG-04` now exposes `GET /system/postmortem-feedback/dispatch/latest`
 
 ## Current Reports To Trust First
 
@@ -326,22 +338,23 @@ Architect re-alignment now supports:
 - completed hardening slice
 - completed first checkpoints through `SERI-05`
 - no replay of `DRI`, `LCC`, `MPI`, or `SERI` unless a real regression appears
-- current work has shifted into `AFG-03`
+- no replay of `AFG-01`, `AFG-02`, or `AFG-03` unless a real regression appears
+- current work has shifted into `AFG-04`
 
 ## Default Next Candidate
 
-- `Alpha Factory Governance / Operator Control Packet 03`
+- `Alpha Factory Governance / Operator Control Packet 04`
 
-## Current AFG-03 Docs-Ready State
+## Current AFG-04 Docs-Ready State
 
-- `AFG-03` task spec exists
+- `AFG-04` task spec exists
 - packet plan doc exists
 - `AFG` interface contract doc exists
 - `lane_surface_inventory.md` and `api_endpoints.md` include the `AFG` family
 - `10_agent` still exposes the docs-first operating loop for implementation startup
 
-## Current AFG-03 Runtime State
+## Current AFG-04 Runtime State
 
 - packet plan doc exists
 - verifier exists
-- actor, role, permission, actor-role assignment, authorization decision, denial, and audit surfaces are implemented
+- incident, review, RCA, action item, feedback, and feedback dispatch surfaces are implemented
