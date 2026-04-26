@@ -280,6 +280,13 @@ This file is the compact routing matrix for the current `system` contract surfac
 | `GET /system/postmortem-feedback/latest` | feedback latest | latest postmortem feedback |
 | `GET /system/postmortem-feedback/target/{target_system}` | feedback target lookup | feedback by target system |
 | `GET /system/postmortem-feedback/dispatch/latest` | feedback dispatch latest | feedback dispatch audit log |
+| `GET /system/audit/bundle/{incident_id}` | audit bundle build | immutable governance evidence bundle |
+| `POST /system/audit/replay/{incident_id}` | governance replay | replay result and reconstructed traces |
+| `GET /system/audit/replay/{replay_id}` | replay lookup | replay log and trace rows |
+| `GET /system/audit/export/{incident_id}` | audit export | immutable JSON evidence export |
+| `GET /system/audit/bundles/latest` | audit bundles latest | latest audit evidence bundles |
+| `GET /system/audit/replays/latest` | replays latest | latest governance replay logs |
+| `GET /system/audit/exports/latest` | audit exports latest | latest audit export index |
 
 ## Rule
 

@@ -14,6 +14,7 @@ from ai_hedge_bot.data_integrity.data_integrity_service import DataIntegrityServ
 from ai_hedge_bot.enforcement.enforcement_service import EnforcementService
 from ai_hedge_bot.execution_health.execution_health_service import ExecutionHealthService
 from ai_hedge_bot.governance.governance_service import GovernanceService
+from ai_hedge_bot.governance_audit.audit_service import GovernanceAuditService
 from ai_hedge_bot.operational_governance.operational_governance_service import OperationalGovernanceService
 from ai_hedge_bot.operational_risk.operational_risk_service import OperationalRiskService
 from ai_hedge_bot.postmortem_feedback.postmortem_service import PostmortemService
@@ -80,6 +81,7 @@ _governance = GovernanceService()
 _enforcement = EnforcementService()
 _authorization = AuthorizationService()
 _postmortem = PostmortemService()
+_governance_audit = GovernanceAuditService()
 
 
 def _payload() -> dict:
@@ -1470,3 +1472,38 @@ def system_postmortem_feedback_target(target_system: str, limit: int = 20) -> di
 @router.get('/system/postmortem-feedback/dispatch/latest')
 def system_postmortem_feedback_dispatch_latest(limit: int = 20) -> dict:
     return _postmortem.dispatch_latest(limit=limit)
+
+
+@router.get('/system/audit/bundle/{incident_id}')
+def system_audit_bundle(incident_id: str) -> dict:
+    return _governance_audit.build_bundle(incident_id=incident_id)
+
+
+@router.post('/system/audit/replay/{incident_id}')
+def system_audit_replay_incident(incident_id: str) -> dict:
+    return _governance_audit.replay_incident(incident_id=incident_id)
+
+
+@router.get('/system/audit/replay/{replay_id}')
+def system_audit_replay(replay_id: str) -> dict:
+    return _governance_audit.replay(replay_id=replay_id)
+
+
+@router.get('/system/audit/export/{incident_id}')
+def system_audit_export(incident_id: str) -> dict:
+    return _governance_audit.export(incident_id=incident_id)
+
+
+@router.get('/system/audit/bundles/latest')
+def system_audit_bundles_latest(limit: int = 20) -> dict:
+    return _governance_audit.latest_bundles(limit=limit)
+
+
+@router.get('/system/audit/replays/latest')
+def system_audit_replays_latest(limit: int = 20) -> dict:
+    return _governance_audit.latest_replays(limit=limit)
+
+
+@router.get('/system/audit/exports/latest')
+def system_audit_exports_latest(limit: int = 20) -> dict:
+    return _governance_audit.latest_exports(limit=limit)

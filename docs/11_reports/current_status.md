@@ -29,8 +29,9 @@ The repo currently stands in this state:
 - `AFG-02` is checkpoint-complete as the runtime policy enforcement engine
 - `AFG-03` is checkpoint-complete as the RBAC / permission model
 - `AFG v1 core` is checkpoint-complete through operator control, runtime enforcement, and authorization
-- latest pushed commit before AFG-04 work is `fdf30f0`
-- canonical current-state docs are now aligned to `AFG-04 active`
+- `AFG-04` is checkpoint-complete as incident review and postmortem learning
+- latest pushed commit before AFG-05 work is `717c89b`
+- canonical current-state docs are now aligned to `AFG-05 active`
 - `AAE-01` now exposes `GET /system/alpha-discovery-candidates/latest`
 - `AAE-01` now exposes `GET /system/alpha-validation-results/latest`
 - `AAE-01` now exposes `GET /system/alpha-admission-decision/latest`
@@ -233,6 +234,13 @@ The repo currently stands in this state:
 - `AFG-04` now exposes `GET /system/postmortem-feedback/latest`
 - `AFG-04` now exposes `GET /system/postmortem-feedback/target/{target_system}`
 - `AFG-04` now exposes `GET /system/postmortem-feedback/dispatch/latest`
+- `AFG-05` now exposes `GET /system/audit/bundle/{incident_id}`
+- `AFG-05` now exposes `POST /system/audit/replay/{incident_id}`
+- `AFG-05` now exposes `GET /system/audit/replay/{replay_id}`
+- `AFG-05` now exposes `GET /system/audit/export/{incident_id}`
+- `AFG-05` now exposes `GET /system/audit/bundles/latest`
+- `AFG-05` now exposes `GET /system/audit/replays/latest`
+- `AFG-05` now exposes `GET /system/audit/exports/latest`
 
 ## Current Reports To Trust First
 
@@ -338,23 +346,23 @@ Architect re-alignment now supports:
 - completed hardening slice
 - completed first checkpoints through `SERI-05`
 - no replay of `DRI`, `LCC`, `MPI`, or `SERI` unless a real regression appears
-- no replay of `AFG-01`, `AFG-02`, or `AFG-03` unless a real regression appears
-- current work has shifted into `AFG-04`
+- no replay of `AFG-01`, `AFG-02`, `AFG-03`, or `AFG-04` unless a real regression appears
+- current work has shifted into `AFG-05`
 
 ## Default Next Candidate
 
-- `Alpha Factory Governance / Operator Control Packet 04`
+- `Alpha Factory Governance / Operator Control Packet 05`
 
-## Current AFG-04 Docs-Ready State
+## Current AFG-05 Docs-Ready State
 
-- `AFG-04` task spec exists
+- `AFG-05` task spec exists
 - packet plan doc exists
 - `AFG` interface contract doc exists
 - `lane_surface_inventory.md` and `api_endpoints.md` include the `AFG` family
 - `10_agent` still exposes the docs-first operating loop for implementation startup
 
-## Current AFG-04 Runtime State
+## Current AFG-05 Runtime State
 
 - packet plan doc exists
 - verifier exists
-- incident, review, RCA, action item, feedback, and feedback dispatch surfaces are implemented
+- audit bundle, replay log, decision trace, and immutable export surfaces are implemented

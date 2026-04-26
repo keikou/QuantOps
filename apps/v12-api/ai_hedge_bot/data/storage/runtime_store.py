@@ -1880,6 +1880,41 @@ class RuntimeStore:
                     created_at TIMESTAMP,
                     dispatched_at TIMESTAMP
                 );
+                CREATE TABLE IF NOT EXISTS governance_audit_bundles (
+                    bundle_id VARCHAR,
+                    incident_id VARCHAR,
+                    schema_version VARCHAR,
+                    created_at TIMESTAMP,
+                    previous_hash VARCHAR,
+                    content_json VARCHAR,
+                    content_hash VARCHAR,
+                    chain_hash VARCHAR
+                );
+                CREATE TABLE IF NOT EXISTS governance_replay_logs (
+                    replay_id VARCHAR,
+                    incident_id VARCHAR,
+                    bundle_id VARCHAR,
+                    status VARCHAR,
+                    started_at TIMESTAMP,
+                    completed_at TIMESTAMP,
+                    validation_errors_json VARCHAR
+                );
+                CREATE TABLE IF NOT EXISTS governance_decision_trace (
+                    trace_id VARCHAR,
+                    replay_id VARCHAR,
+                    trace_type VARCHAR,
+                    sequence_no INTEGER,
+                    event_json VARCHAR,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS governance_audit_exports (
+                    export_id VARCHAR,
+                    bundle_id VARCHAR,
+                    incident_id VARCHAR,
+                    exported_at TIMESTAMP,
+                    export_path VARCHAR,
+                    export_hash VARCHAR
+                );
                 CREATE TABLE IF NOT EXISTS live_orders (
                     live_order_id VARCHAR,
                     created_at TIMESTAMP,

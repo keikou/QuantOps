@@ -4,7 +4,7 @@ Date: `2026-04-26`
 Repo: `QuantOps_github`
 Branch: `codex/post-phase7-hardening`
 Track: `alpha_factory_governance_operator_control`
-Status: `afg04_active`
+Status: `afg05_active`
 
 ## Purpose
 
@@ -31,12 +31,12 @@ That means:
 Current top task:
 
 - establish `Alpha Factory Governance / Operator Control`
-- implement `AFG-04: Incident Review & Postmortem System`
+- implement `AFG-05: Governance Replay & Audit Evidence System`
 
 Current architect-selected candidate:
 
 - `Alpha Factory Governance / Operator Control`
-- current implementation boundary = `AFG-04`
+- current implementation boundary = `AFG-05`
 - current dependency 1 = `Research / Promotion Intelligence v1 checkpoint through RPI-06`
 - current dependency 2 = `Alpha / Strategy Selection Intelligence v1 checkpoint through ASI-05`
 - current dependency 3 = `Portfolio Intelligence v1 checkpoint through PI-05`
@@ -55,9 +55,9 @@ Architect now treats `Strategy Evolution / Regime Adaptation Intelligence v1` as
 
 The next question is:
 
-- "can critical incidents be reviewed through a structured lifecycle?"
-- "can approved RCA produce bounded, auditable system feedback?"
-- "can incident learning be dispatched without silently mutating live policy?"
+- "can governance evidence be replayed end-to-end?"
+- "can audit bundles prove incident / RCA / approval / feedback / dispatch history?"
+- "can AFG freeze readiness be verified before SRH migration?"
 
 This is the next lane beyond the completed hardening/resume slice, but it is no longer the older `Execution Reality` default.
 
@@ -78,7 +78,7 @@ This is the next lane beyond the completed hardening/resume slice, but it is no 
 
 ## Current Recommendation
 
-Use `AFG-04` as the current active task.
+Use `AFG-05` as the current active task.
 
 ## Explicit Non-Tasks
 
@@ -101,7 +101,7 @@ These are not current tasks:
 - replaying `ASD-01` through `ASD-05` without a real regression
 - inventing `ASD-06` before next-lane reselection
 - using portfolio allocation as a substitute for alpha evaluation
-- reopening `AFG-01`, `AFG-02`, or `AFG-03` after Architect marked AFG v1 core checkpoint-complete
+- reopening `AFG-01`, `AFG-02`, `AFG-03`, or `AFG-04` after Architect marked them checkpoint-complete
 
 ## Inputs To Read Before Acting
 
@@ -130,27 +130,22 @@ The current lane follow-up should produce:
 
 - one packet plan doc
 - one verifier script
-- incident review, RCA, action item, postmortem feedback, and feedback dispatch surfaces
+- audit bundle, replay log, decision trace, approval trace, feedback trace, dispatch trace, and export surfaces
 
-Current `AFG-04` outputs now planned:
+Current `AFG-05` outputs now planned:
 
-- `docs/Alpha_factory_governance_operator_control_packet04_plan.md`
-- `test_bundle/scripts/verify_alpha_factory_governance_packet04.py`
-- `POST /system/incidents/ingest`
-- `GET /system/incidents/latest`
-- `POST /system/incidents/{id}/review`
-- `POST /system/incidents/{id}/rca`
-- `POST /system/incidents/{id}/actions`
-- `POST /system/incidents/{id}/close`
-- `GET /system/postmortem/latest`
-- `POST /system/postmortem-feedback/build/{incident_id}`
-- `POST /system/postmortem-feedback/dispatch/{feedback_id}`
-- `GET /system/postmortem-feedback/latest`
-- `GET /system/postmortem-feedback/target/{target_system}`
-- `GET /system/postmortem-feedback/dispatch/latest`
+- `docs/Alpha_factory_governance_operator_control_packet05_plan.md`
+- `test_bundle/scripts/verify_alpha_factory_governance_packet05.py`
+- `GET /system/audit/bundle/{incident_id}`
+- `POST /system/audit/replay/{incident_id}`
+- `GET /system/audit/replay/{replay_id}`
+- `GET /system/audit/export/{incident_id}`
+- `GET /system/audit/bundles/latest`
+- `GET /system/audit/replays/latest`
+- `GET /system/audit/exports/latest`
 
 ## Single-Block Resume Note
 
 ```text
-Current task is not another hardening packet, not another Execution Reality packet, not another Governance -> Runtime Control packet, not another Portfolio Intelligence packet, not another Alpha / Strategy Selection Intelligence packet, not another Research / Promotion Intelligence packet, and not another active DRI, LCC, MPI, SERI, AAE, ASD, AES, or ORC packet. Current task is `AFG-04`, so completed `AES-01` through `AES-08`, `ORC-01` through `ORC-05`, and `AFG-01` through `AFG-03` work should be treated as input lanes and not replayed unless a real regression is found.
+Current task is not another hardening packet, not another Execution Reality packet, not another Governance -> Runtime Control packet, not another Portfolio Intelligence packet, not another Alpha / Strategy Selection Intelligence packet, not another Research / Promotion Intelligence packet, and not another active DRI, LCC, MPI, SERI, AAE, ASD, AES, or ORC packet. Current task is `AFG-05`, so completed `AES-01` through `AES-08`, `ORC-01` through `ORC-05`, and `AFG-01` through `AFG-04` work should be treated as input lanes and not replayed unless a real regression is found.
 ```

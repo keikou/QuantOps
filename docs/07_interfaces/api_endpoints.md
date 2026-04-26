@@ -267,6 +267,13 @@ This file is the short routing index for the current operator-visible API endpoi
 - `GET /system/postmortem-feedback/latest`
 - `GET /system/postmortem-feedback/target/{target_system}`
 - `GET /system/postmortem-feedback/dispatch/latest`
+- `GET /system/audit/bundle/{incident_id}`
+- `POST /system/audit/replay/{incident_id}`
+- `GET /system/audit/replay/{replay_id}`
+- `GET /system/audit/export/{incident_id}`
+- `GET /system/audit/bundles/latest`
+- `GET /system/audit/replays/latest`
+- `GET /system/audit/exports/latest`
 
 ## Read Next
 

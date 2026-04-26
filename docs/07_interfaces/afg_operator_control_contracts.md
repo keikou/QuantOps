@@ -2,7 +2,7 @@
 
 Date: `2026-04-26`
 Repo: `QuantOps_github`
-Status: `afg04_contracts`
+Status: `afg05_contracts`
 
 ## Contract Intent
 
@@ -119,3 +119,26 @@ No production-impacting decision should be applied without explicit policy, audi
 - approval-gated feedback dispatch
 - idempotent dispatch audit
 - no direct live policy mutation
+
+## AFG-05 Surfaces
+
+1. `GET /system/audit/bundle/{incident_id}`
+2. `POST /system/audit/replay/{incident_id}`
+3. `GET /system/audit/replay/{replay_id}`
+4. `GET /system/audit/export/{incident_id}`
+5. `GET /system/audit/bundles/latest`
+6. `GET /system/audit/replays/latest`
+7. `GET /system/audit/exports/latest`
+
+## AFG-05 Contract Progression
+
+- audit evidence bundle
+- immutable content hash
+- chained hash
+- governance replay log
+- decision trace
+- approval trace
+- feedback trace
+- dispatch trace
+- immutable JSON export
+- read-only replay

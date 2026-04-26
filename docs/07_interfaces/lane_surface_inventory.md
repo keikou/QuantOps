@@ -497,6 +497,28 @@ AFG-04 progression:
 - approval-gated feedback dispatch
 - dispatch audit and idempotency
 
+AFG-05 additions:
+
+- `GET /system/audit/bundle/{incident_id}`
+- `POST /system/audit/replay/{incident_id}`
+- `GET /system/audit/replay/{replay_id}`
+- `GET /system/audit/export/{incident_id}`
+- `GET /system/audit/bundles/latest`
+- `GET /system/audit/replays/latest`
+- `GET /system/audit/exports/latest`
+
+AFG-05 progression:
+
+- audit evidence bundle
+- content hash and chain hash
+- governance replay log
+- decision trace
+- approval trace
+- feedback trace
+- dispatch trace
+- immutable JSON export
+- AFG lane freeze readiness
+
 ## Rule
 
 When a lane checkpoint becomes operationally visible through `/system/*`, add its family here as one grouped inventory rather than leaving the surface readable only from isolated endpoint rows.
