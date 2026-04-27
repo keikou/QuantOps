@@ -3,7 +3,7 @@
 Date: `2026-04-26`
 Repo: `QuantOps_github`
 Branch: `codex/post-phase7-hardening`
-Status: `srh02_active_boundary`
+Status: `srh03_active_boundary`
 
 ## Current Planning Decision
 
@@ -11,9 +11,9 @@ The current hardening/resume slice is treated as sufficiently complete.
 
 So the active planning question is now:
 
-- how should dependency failure be detected?
-- how should blast radius be isolated?
-- how should circuit breakers, fallback routes, and recovery probes be connected?
+- how should severe runtime events escalate?
+- how should operators be notified and acknowledgement tracked?
+- how should SRH hand off incident candidates to AFG-04 without mutating frozen AFG audit evidence?
 
 Historical note:
 
@@ -35,7 +35,8 @@ Architect-selected answer:
 - `AFG lane` is frozen after AFG-05
 - next top-level lane is `System Reliability / Runtime Hardening`
 - `SRH-01` is checkpoint-complete as runtime health and degradation control
-- current packet boundary is `SRH-02: Dependency Failure Isolation & Circuit Breaker System`
+- `SRH-02` is checkpoint-complete as dependency failure isolation and circuit breaker control
+- current packet boundary is `SRH-03: Runtime Incident Escalation & Operator Notification`
 
 ## Why This Is The Current Plan
 
@@ -59,7 +60,7 @@ Architect re-alignment now treats the following as sufficiently closed for the c
 - `Meta Portfolio Intelligence / Cross-Strategy Capital Allocation v1`
 - `Strategy Evolution / Regime Adaptation Intelligence v1`
 
-That means planning should not continue replaying `SERI`, `AAE`, `ASD`, `AES`, `ORC`, `AFG-01` through `AFG-05`, or completed `SRH-01` checkpoint work and should now establish dependency failure isolation.
+That means planning should not continue replaying `SERI`, `AAE`, `ASD`, `AES`, `ORC`, `AFG-01` through `AFG-05`, or completed `SRH-01` / `SRH-02` checkpoint work and should now establish runtime incident escalation.
 
 ## Explicitly Completed Planning Slice
 
@@ -82,18 +83,18 @@ The following planning sequence is now historical and completed:
 
 ## Current Plan Outputs
 
-Current `SRH-02` outputs now planned:
+Current `SRH-03` outputs now planned:
 
-- `../System_reliability_runtime_hardening_packet02_plan.md`
-- `../../test_bundle/scripts/verify_runtime_dependency_packet02.py`
-- `GET /system/dependencies`
-- `POST /system/dependencies/register`
-- `POST /system/dependencies/{dependency_id}/record-failure`
-- `GET /system/circuit-breakers/latest`
-- `GET /system/dependency-isolation/latest`
-- `GET /system/fallback-routes/latest`
-- `POST /system/recovery-probes/{dependency_id}/schedule`
-- `POST /system/recovery-probes/{probe_id}/complete`
+- `../System_reliability_runtime_hardening_packet03_plan.md`
+- `../../test_bundle/scripts/verify_runtime_escalation_packet03.py`
+- `GET /system/escalation/rules`
+- `POST /system/escalation/rules/register`
+- `POST /system/escalation/evaluate/degradation/{event_id}`
+- `POST /system/escalation/evaluate/dependency/{event_id}`
+- `GET /system/operator-notifications/latest`
+- `POST /system/operator-notifications/{notification_id}/ack`
+- `GET /system/incident-handoffs/latest`
+- `GET /system/escalation-audit/latest`
 
 ## Current Docs-Ready State
 
@@ -126,6 +127,7 @@ Current docs-ready assets:
 - `../Alpha_factory_governance_operator_control_packet05_plan.md`
 - `../System_reliability_runtime_hardening_packet01_plan.md`
 - `../System_reliability_runtime_hardening_packet02_plan.md`
+- `../System_reliability_runtime_hardening_packet03_plan.md`
 - `../07_interfaces/orc_operational_risk_contracts.md`
 - `../07_interfaces/afg_operator_control_contracts.md`
 - `../07_interfaces/aes_alpha_evaluation_contracts.md`
@@ -145,7 +147,7 @@ This is not the current plan:
 - replaying completed `AAE-01` through `AAE-05`
 - replaying completed `ASD-01` through `ASD-05`
 - inventing `ASD-06` without a new architect boundary
-- replaying completed `AAE`, `ASD`, `AES`, `ORC`, frozen `AFG-01` through `AFG-05`, or completed `SRH-01` work instead of building SRH-02
+- replaying completed `AAE`, `ASD`, `AES`, `ORC`, frozen `AFG-01` through `AFG-05`, or completed `SRH-01` / `SRH-02` work instead of building SRH-03
 
 ## Read Before Editing
 

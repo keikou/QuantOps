@@ -316,6 +316,19 @@ This file is the compact routing matrix for the current `system` contract surfac
 | `POST /system/recovery-probes/{dependency_id}/schedule` | recovery probe schedule | scheduled probe row |
 | `POST /system/recovery-probes/{probe_id}/complete` | recovery probe completion | probe result and breaker transition |
 | `GET /system/recovery-probes/latest` | recovery probes latest | latest recovery probe rows |
+| `GET /system/escalation/rules` | escalation rule registry | active and historical escalation rules |
+| `POST /system/escalation/rules/register` | escalation rule registration | append-only escalation rule |
+| `POST /system/escalation/evaluate/degradation/{event_id}` | degradation escalation evaluation | escalation, notification, handoff, or duplicate suppression |
+| `POST /system/escalation/evaluate/dependency/{event_id}` | dependency escalation evaluation | escalation, notification, handoff, or duplicate suppression |
+| `GET /system/escalations/latest` | escalation latest | latest runtime escalation events |
+| `GET /system/escalations/{escalation_id}` | escalation lookup | escalation with notifications and handoffs |
+| `GET /system/operator-notifications/latest` | operator notifications latest | latest operator notification queue |
+| `GET /system/operator-notifications/{notification_id}` | operator notification lookup | notification and acknowledgement history |
+| `POST /system/operator-notifications/{notification_id}/ack` | notification acknowledgement | ACK record and notification status update |
+| `GET /system/incident-handoffs/latest` | incident handoff latest | latest AFG-04 incident handoffs |
+| `GET /system/incident-handoffs/{handoff_id}` | incident handoff lookup | handoff and retry attempts |
+| `POST /system/incident-handoffs/{handoff_id}/retry` | incident handoff retry | handoff ingest retry or persisted failure |
+| `GET /system/escalation-audit/latest` | escalation audit latest | append-only escalation decision audit log |
 
 ## Rule
 

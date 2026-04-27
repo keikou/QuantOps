@@ -2040,6 +2040,103 @@ class RuntimeStore:
                     result_detail VARCHAR,
                     metadata_json VARCHAR
                 );
+                CREATE TABLE IF NOT EXISTS runtime_escalation_rules (
+                    rule_id VARCHAR,
+                    source_type VARCHAR,
+                    source_severity_min VARCHAR,
+                    target_escalation_level VARCHAR,
+                    notification_channel VARCHAR,
+                    requires_ack BOOLEAN,
+                    handoff_to_afg04 BOOLEAN,
+                    cooldown_seconds INTEGER,
+                    dedup_key_template VARCHAR,
+                    enabled BOOLEAN,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS runtime_escalation_events (
+                    escalation_id VARCHAR,
+                    rule_id VARCHAR,
+                    source_type VARCHAR,
+                    source_event_id VARCHAR,
+                    source_severity VARCHAR,
+                    level VARCHAR,
+                    status VARCHAR,
+                    dedup_key VARCHAR,
+                    title VARCHAR,
+                    message VARCHAR,
+                    created_at TIMESTAMP,
+                    metadata_json VARCHAR
+                );
+                CREATE TABLE IF NOT EXISTS runtime_escalation_dedup (
+                    dedup_id VARCHAR,
+                    dedup_key VARCHAR,
+                    cooldown_seconds INTEGER,
+                    first_seen_at TIMESTAMP,
+                    last_seen_at TIMESTAMP,
+                    suppressed_count INTEGER,
+                    active_escalation_id VARCHAR
+                );
+                CREATE TABLE IF NOT EXISTS runtime_escalation_audit_log (
+                    audit_id VARCHAR,
+                    escalation_id VARCHAR,
+                    event_type VARCHAR,
+                    source_event_id VARCHAR,
+                    rule_id VARCHAR,
+                    dedup_key VARCHAR,
+                    details_json VARCHAR,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS runtime_operator_notifications (
+                    notification_id VARCHAR,
+                    escalation_id VARCHAR,
+                    level VARCHAR,
+                    channel VARCHAR,
+                    title VARCHAR,
+                    message VARCHAR,
+                    requires_ack BOOLEAN,
+                    ack_deadline_at TIMESTAMP,
+                    status VARCHAR,
+                    created_at TIMESTAMP,
+                    updated_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS runtime_operator_notification_acks (
+                    ack_id VARCHAR,
+                    notification_id VARCHAR,
+                    operator_id VARCHAR,
+                    ack_status VARCHAR,
+                    ack_message VARCHAR,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS runtime_operator_notification_delivery (
+                    delivery_id VARCHAR,
+                    notification_id VARCHAR,
+                    channel VARCHAR,
+                    delivery_status VARCHAR,
+                    detail VARCHAR,
+                    created_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS runtime_incident_handoffs (
+                    handoff_id VARCHAR,
+                    escalation_id VARCHAR,
+                    source_system VARCHAR,
+                    source_packet VARCHAR,
+                    incident_type VARCHAR,
+                    severity VARCHAR,
+                    title VARCHAR,
+                    summary VARCHAR,
+                    source_refs_json VARCHAR,
+                    status VARCHAR,
+                    incident_id VARCHAR,
+                    created_at TIMESTAMP,
+                    updated_at TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS runtime_incident_handoff_attempts (
+                    attempt_id VARCHAR,
+                    handoff_id VARCHAR,
+                    attempt_status VARCHAR,
+                    detail VARCHAR,
+                    created_at TIMESTAMP
+                );
                 CREATE TABLE IF NOT EXISTS live_orders (
                     live_order_id VARCHAR,
                     created_at TIMESTAMP,

@@ -301,6 +301,19 @@ This file is the short routing index for the current operator-visible API endpoi
 - `POST /system/recovery-probes/{dependency_id}/schedule`
 - `POST /system/recovery-probes/{probe_id}/complete`
 - `GET /system/recovery-probes/latest`
+- `GET /system/escalation/rules`
+- `POST /system/escalation/rules/register`
+- `POST /system/escalation/evaluate/degradation/{event_id}`
+- `POST /system/escalation/evaluate/dependency/{event_id}`
+- `GET /system/escalations/latest`
+- `GET /system/escalations/{escalation_id}`
+- `GET /system/operator-notifications/latest`
+- `GET /system/operator-notifications/{notification_id}`
+- `POST /system/operator-notifications/{notification_id}/ack`
+- `GET /system/incident-handoffs/latest`
+- `GET /system/incident-handoffs/{handoff_id}`
+- `POST /system/incident-handoffs/{handoff_id}/retry`
+- `GET /system/escalation-audit/latest`
 
 ## Read Next
 

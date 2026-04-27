@@ -574,3 +574,29 @@ SRH-02 progression:
 - dependency isolation event
 - recovery probe scheduling and completion
 - illegal transition blocking
+
+SRH-03 additions:
+
+- `GET /system/escalation/rules`
+- `POST /system/escalation/rules/register`
+- `POST /system/escalation/evaluate/degradation/{event_id}`
+- `POST /system/escalation/evaluate/dependency/{event_id}`
+- `GET /system/escalations/latest`
+- `GET /system/escalations/{escalation_id}`
+- `GET /system/operator-notifications/latest`
+- `GET /system/operator-notifications/{notification_id}`
+- `POST /system/operator-notifications/{notification_id}/ack`
+- `GET /system/incident-handoffs/latest`
+- `GET /system/incident-handoffs/{handoff_id}`
+- `POST /system/incident-handoffs/{handoff_id}/retry`
+- `GET /system/escalation-audit/latest`
+
+SRH-03 progression:
+
+- escalation rule registry
+- severity-based escalation evaluation
+- operator notification queue
+- acknowledgement tracking
+- dedup and cooldown suppression
+- AFG-04 incident handoff
+- escalation audit log

@@ -4,7 +4,7 @@ Date: `2026-04-26`
 Repo: `QuantOps_github`
 Branch: `codex/post-phase7-hardening`
 Track: `alpha_factory_governance_operator_control`
-Status: `srh02_active`
+Status: `srh03_active`
 
 ## Purpose
 
@@ -31,12 +31,12 @@ That means:
 Current top task:
 
 - establish `System Reliability / Runtime Hardening`
-- implement `SRH-02: Dependency Failure Isolation & Circuit Breaker System`
+- implement `SRH-03: Runtime Incident Escalation & Operator Notification`
 
 Current architect-selected candidate:
 
 - `System Reliability / Runtime Hardening`
-- current implementation boundary = `SRH-02`
+- current implementation boundary = `SRH-03`
 - current dependency 1 = `Research / Promotion Intelligence v1 checkpoint through RPI-06`
 - current dependency 2 = `Alpha / Strategy Selection Intelligence v1 checkpoint through ASI-05`
 - current dependency 3 = `Portfolio Intelligence v1 checkpoint through PI-05`
@@ -53,11 +53,11 @@ Current architect-selected candidate:
 
 Architect now treats `Strategy Evolution / Regime Adaptation Intelligence v1` as checkpoint-complete.
 
-SRH-01 is checkpoint-complete. The next question is:
+SRH-01 and SRH-02 are checkpoint-complete. The next question is:
 
-- "can dependency failure be observed?"
-- "can the circuit open and isolate blast radius?"
-- "can fallback or recovery probe return the dependency to service?"
+- "can severe degradation and dependency outage become escalations?"
+- "can operators be notified and acknowledgements tracked?"
+- "can AFG-04 incident handoff be created without mutating frozen AFG audit evidence?"
 
 This is the next lane beyond the completed hardening/resume slice, but it is no longer the older `Execution Reality` default.
 
@@ -78,7 +78,7 @@ This is the next lane beyond the completed hardening/resume slice, but it is no 
 
 ## Current Recommendation
 
-Use `SRH-02` as the current active task.
+Use `SRH-03` as the current active task.
 
 ## Explicit Non-Tasks
 
@@ -103,6 +103,7 @@ These are not current tasks:
 - using portfolio allocation as a substitute for alpha evaluation
 - reopening `AFG-01` through `AFG-05` after Architect marked AFG lane frozen
 - replaying completed `SRH-01` unless a real regression is found
+- replaying completed `SRH-02` unless a real regression is found
 
 ## Inputs To Read Before Acting
 
@@ -131,23 +132,23 @@ The current lane follow-up should produce:
 
 - one packet plan doc
 - one verifier script
-- dependency registry, circuit breaker, fallback isolation, and recovery probe surfaces
+- escalation rule, operator notification, ACK, incident handoff, and escalation audit surfaces
 
-Current `SRH-02` outputs now planned:
+Current `SRH-03` outputs now planned:
 
-- `docs/System_reliability_runtime_hardening_packet02_plan.md`
-- `test_bundle/scripts/verify_runtime_dependency_packet02.py`
-- `GET /system/dependencies`
-- `POST /system/dependencies/register`
-- `POST /system/dependencies/{dependency_id}/record-failure`
-- `GET /system/circuit-breakers/latest`
-- `GET /system/dependency-isolation/latest`
-- `GET /system/fallback-routes/latest`
-- `POST /system/recovery-probes/{dependency_id}/schedule`
-- `POST /system/recovery-probes/{probe_id}/complete`
+- `docs/System_reliability_runtime_hardening_packet03_plan.md`
+- `test_bundle/scripts/verify_runtime_escalation_packet03.py`
+- `GET /system/escalation/rules`
+- `POST /system/escalation/rules/register`
+- `POST /system/escalation/evaluate/degradation/{event_id}`
+- `POST /system/escalation/evaluate/dependency/{event_id}`
+- `GET /system/operator-notifications/latest`
+- `POST /system/operator-notifications/{notification_id}/ack`
+- `GET /system/incident-handoffs/latest`
+- `GET /system/escalation-audit/latest`
 
 ## Single-Block Resume Note
 
 ```text
-Current task is not another hardening packet replay, not another Execution Reality packet, not another Governance -> Runtime Control packet, not another Portfolio Intelligence packet, not another Alpha / Strategy Selection Intelligence packet, not another Research / Promotion Intelligence packet, and not another active DRI, LCC, MPI, SERI, AAE, ASD, AES, ORC, or AFG packet. Current task is `SRH-02`, so completed `SRH-01`, `AES-01` through `AES-08`, `ORC-01` through `ORC-05`, and frozen `AFG-01` through `AFG-05` work should be treated as input lanes and not replayed unless a real regression is found.
+Current task is not another hardening packet replay, not another Execution Reality packet, not another Governance -> Runtime Control packet, not another Portfolio Intelligence packet, not another Alpha / Strategy Selection Intelligence packet, not another Research / Promotion Intelligence packet, and not another active DRI, LCC, MPI, SERI, AAE, ASD, AES, ORC, or AFG packet. Current task is `SRH-03`, so completed `SRH-01`, `SRH-02`, `AES-01` through `AES-08`, `ORC-01` through `ORC-05`, and frozen `AFG-01` through `AFG-05` work should be treated as input lanes and not replayed unless a real regression is found.
 ```

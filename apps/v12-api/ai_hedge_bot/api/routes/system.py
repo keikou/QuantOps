@@ -19,6 +19,7 @@ from ai_hedge_bot.operational_governance.operational_governance_service import O
 from ai_hedge_bot.operational_risk.operational_risk_service import OperationalRiskService
 from ai_hedge_bot.postmortem_feedback.postmortem_service import PostmortemService
 from ai_hedge_bot.runtime_dependencies.service import RuntimeDependencyService
+from ai_hedge_bot.runtime_escalation.escalation_service import RuntimeEscalationService
 from ai_hedge_bot.runtime_health.service import RuntimeHealthService
 from ai_hedge_bot.alpha_synthesis.alpha_synthesis_service import AlphaSynthesisService
 from ai_hedge_bot.services.autonomous_alpha_expansion_strategy_generation_intelligence_service import (
@@ -86,6 +87,7 @@ _postmortem = PostmortemService()
 _governance_audit = GovernanceAuditService()
 _runtime_health = RuntimeHealthService()
 _runtime_dependencies = RuntimeDependencyService()
+_runtime_escalation = RuntimeEscalationService()
 
 
 def _payload() -> dict:
@@ -1659,3 +1661,90 @@ def system_recovery_probe_complete(probe_id: str, success: bool = True, result_d
 @router.get('/system/recovery-probes/latest')
 def system_recovery_probes_latest(limit: int = 50) -> dict:
     return _runtime_dependencies.latest_probes(limit=limit)
+
+
+@router.get('/system/escalation/rules')
+def system_escalation_rules(limit: int = 50) -> dict:
+    return _runtime_escalation.rules(limit=limit)
+
+
+@router.post('/system/escalation/rules/register')
+def system_escalation_rules_register(
+    rule_id: str,
+    source_type: str,
+    source_severity_min: str = "S3",
+    target_escalation_level: str = "CRITICAL",
+    notification_channel: str = "OPERATOR_QUEUE",
+    requires_ack: bool = True,
+    handoff_to_afg04: bool = True,
+    cooldown_seconds: int = 900,
+    dedup_key_template: str = "{source_type}:{component}:{dependency_id}:{severity}",
+    enabled: bool = True,
+) -> dict:
+    return _runtime_escalation.register_rule(
+        rule_id=rule_id,
+        source_type=source_type,
+        source_severity_min=source_severity_min,
+        target_escalation_level=target_escalation_level,
+        notification_channel=notification_channel,
+        requires_ack=requires_ack,
+        handoff_to_afg04=handoff_to_afg04,
+        cooldown_seconds=cooldown_seconds,
+        dedup_key_template=dedup_key_template,
+        enabled=enabled,
+    )
+
+
+@router.post('/system/escalation/evaluate/degradation/{event_id}')
+def system_escalation_evaluate_degradation(event_id: str) -> dict:
+    return _runtime_escalation.evaluate_degradation(event_id=event_id)
+
+
+@router.post('/system/escalation/evaluate/dependency/{event_id}')
+def system_escalation_evaluate_dependency(event_id: str) -> dict:
+    return _runtime_escalation.evaluate_dependency(event_id=event_id)
+
+
+@router.get('/system/escalations/latest')
+def system_escalations_latest(limit: int = 50) -> dict:
+    return _runtime_escalation.latest_escalations(limit=limit)
+
+
+@router.get('/system/escalations/{escalation_id}')
+def system_escalation(escalation_id: str) -> dict:
+    return _runtime_escalation.escalation(escalation_id=escalation_id)
+
+
+@router.get('/system/operator-notifications/latest')
+def system_operator_notifications_latest(limit: int = 50) -> dict:
+    return _runtime_escalation.notifications_latest(limit=limit)
+
+
+@router.get('/system/operator-notifications/{notification_id}')
+def system_operator_notification(notification_id: str) -> dict:
+    return _runtime_escalation.notification(notification_id=notification_id)
+
+
+@router.post('/system/operator-notifications/{notification_id}/ack')
+def system_operator_notification_ack(notification_id: str, operator_id: str = "operator.system", ack_message: str = "acknowledged") -> dict:
+    return _runtime_escalation.ack_notification(notification_id=notification_id, operator_id=operator_id, ack_message=ack_message)
+
+
+@router.get('/system/incident-handoffs/latest')
+def system_incident_handoffs_latest(limit: int = 50) -> dict:
+    return _runtime_escalation.handoffs_latest(limit=limit)
+
+
+@router.get('/system/incident-handoffs/{handoff_id}')
+def system_incident_handoff(handoff_id: str) -> dict:
+    return _runtime_escalation.handoff(handoff_id=handoff_id)
+
+
+@router.post('/system/incident-handoffs/{handoff_id}/retry')
+def system_incident_handoff_retry(handoff_id: str, force_fail: bool = False) -> dict:
+    return _runtime_escalation.retry_handoff(handoff_id=handoff_id, force_fail=force_fail)
+
+
+@router.get('/system/escalation-audit/latest')
+def system_escalation_audit_latest(limit: int = 100) -> dict:
+    return _runtime_escalation.audit_latest(limit=limit)

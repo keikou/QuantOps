@@ -33,7 +33,7 @@ The repo currently stands in this state:
 - `AFG-05` is checkpoint-complete as governance replay and audit evidence
 - `AFG lane` is frozen after AFG-05
 - latest pushed commit before SRH-01 work is `75a9b44`
-- canonical current-state docs are now aligned to `SRH-02 active`
+- canonical current-state docs are now aligned to `SRH-03 active`
 - `AAE-01` now exposes `GET /system/alpha-discovery-candidates/latest`
 - `AAE-01` now exposes `GET /system/alpha-validation-results/latest`
 - `AAE-01` now exposes `GET /system/alpha-admission-decision/latest`
@@ -268,6 +268,20 @@ The repo currently stands in this state:
 - `SRH-02` now exposes `POST /system/recovery-probes/{dependency_id}/schedule`
 - `SRH-02` now exposes `POST /system/recovery-probes/{probe_id}/complete`
 - `SRH-02` now exposes `GET /system/recovery-probes/latest`
+- `SRH-02` is checkpoint-complete as dependency failure isolation and circuit breaker control
+- `SRH-03` now exposes `GET /system/escalation/rules`
+- `SRH-03` now exposes `POST /system/escalation/rules/register`
+- `SRH-03` now exposes `POST /system/escalation/evaluate/degradation/{event_id}`
+- `SRH-03` now exposes `POST /system/escalation/evaluate/dependency/{event_id}`
+- `SRH-03` now exposes `GET /system/escalations/latest`
+- `SRH-03` now exposes `GET /system/escalations/{escalation_id}`
+- `SRH-03` now exposes `GET /system/operator-notifications/latest`
+- `SRH-03` now exposes `GET /system/operator-notifications/{notification_id}`
+- `SRH-03` now exposes `POST /system/operator-notifications/{notification_id}/ack`
+- `SRH-03` now exposes `GET /system/incident-handoffs/latest`
+- `SRH-03` now exposes `GET /system/incident-handoffs/{handoff_id}`
+- `SRH-03` now exposes `POST /system/incident-handoffs/{handoff_id}/retry`
+- `SRH-03` now exposes `GET /system/escalation-audit/latest`
 
 ## Current Reports To Trust First
 
@@ -374,21 +388,21 @@ Architect re-alignment now supports:
 - completed first checkpoints through `SERI-05`
 - no replay of `DRI`, `LCC`, `MPI`, or `SERI` unless a real regression appears
 - AFG lane is frozen; no new AFG packets unless a real regression appears
-- current work has shifted into `SRH-02`
+- current work has shifted into `SRH-03`
 
 ## Default Next Candidate
 
-- `System Reliability / Runtime Hardening Packet 02`
+- `System Reliability / Runtime Hardening Packet 03`
 
-## Current SRH-02 Docs-Ready State
+## Current SRH-03 Docs-Ready State
 
-- `SRH-02` task spec exists
+- `SRH-03` task spec exists
 - packet plan doc exists
 - `lane_surface_inventory.md` and `api_endpoints.md` include the `SRH` family
 - `10_agent` still exposes the docs-first operating loop for implementation startup
 
-## Current SRH-02 Runtime State
+## Current SRH-03 Runtime State
 
 - packet plan doc exists
 - verifier exists
-- dependency registry, circuit breaker, fallback isolation, and recovery probe surfaces are implemented
+- escalation rule, operator notification, ACK, incident handoff, and escalation audit surfaces are implemented
